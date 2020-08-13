@@ -24,10 +24,12 @@ on:
       - "api-public@*"
 
 jobs:
-  api-${{ matrix.api }}:
+  api-image:
     strategy:
       matrix:
         api: [admin, internal, private, public]
+
+    name: api-${{ matrix.api }}
 
     runs-on: ubuntu-latest
 
