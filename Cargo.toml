@@ -1,0 +1,9 @@
+[workspace]
+members = [
+  "db",
+  "logic",
+  "api-private",
+  "api-internal",
+  "api-admin",
+  "api-public",
+]
