@@ -1,6 +1,6 @@
 FROM docker.pkg.github.com/cardboxdev/backend/builder:1.45.2 as build
 
-ARG CRATE_NAME
+ARG API_NAME
 ENV USER="root"
 WORKDIR /app
 
@@ -10,24 +10,24 @@ COPY ./Cargo.lock ./Cargo.toml ./
 COPY ./migrations ./migrations
 COPY ./db ./db
 COPY ./logic ./logic
-COPY ./${CRATE_NAME} ./${CRATE_NAME}
+COPY ./api-admin ./api-internal ./api-private ./api-public ./
 
-RUN cargo test --release --verbose --package cardbox-$CRATE_NAME
+RUN cargo test --release --verbose --package cardbox-api-$API_NAME
 
-RUN cargo build --release --package cardbox-$CRATE_NAME
+RUN cargo build --release --package cardbox-api-$API_NAME
 
 # ----------------------------------------------------------------
 
 FROM docker.pkg.github.com/cardboxdev/backend/start-tools:1.1
 
-ARG CRATE_NAME
+ARG API_NAME
 
 WORKDIR /app
 
 RUN touch .env
 
 COPY --from=build /out/diesel /bin/
-COPY --from=build /app/target/release/cardbox-$CRATE_NAME ./server
+COPY --from=build /app/target/release/cardbox-api-$API_NAME ./server
 
 COPY --from=build /app/migrations ./migrations
 COPY --from=build /app/diesel.toml ./

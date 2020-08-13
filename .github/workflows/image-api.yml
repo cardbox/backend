@@ -79,7 +79,7 @@ jobs:
           registry: docker.pkg.github.com
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-          buildargs: CRATE_NAME=api-${{ matrix.api }}
+          buildargs: IMAGE_NAME=${{ matrix.api }}
           snapshot: "true"
           tag_semver: skip
           tag_separator: "@"
