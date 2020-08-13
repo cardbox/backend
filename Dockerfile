@@ -10,7 +10,10 @@ COPY ./Cargo.lock ./Cargo.toml ./
 COPY ./migrations ./migrations
 COPY ./db ./db
 COPY ./logic ./logic
-COPY ./api-admin ./api-internal ./api-private ./api-public ./
+COPY ./api-admin ./api-admin
+COPY ./api-internal ./api-internal
+COPY ./api-private ./api-private
+COPY ./api-public ./api-public
 
 RUN cargo test --release --verbose --package cardbox-api-$API_NAME
 

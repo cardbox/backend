@@ -43,6 +43,7 @@ jobs:
           registry: docker.pkg.github.com
           dockerfile: builder.Dockerfile
           tags: "1.45.2"
+          cache: true
 
   start-tools-image:
     runs-on: ubuntu-latest
