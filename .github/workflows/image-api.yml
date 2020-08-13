@@ -7,6 +7,8 @@ on:
       - dev
     paths:
       - ".github/workflows/image-api.yml"
+      - ".github/workflows/image-builder.yml"
+      - ".github/workflows/image-start-tools.yml"
       - "db/**"
       - "logic/**"
       - "migrations/**"
@@ -16,6 +18,8 @@ on:
       - "api-public/**"
       - "docker-entrypoint.sh"
       - "Dockerfile"
+      - "builder.Dockerfile"
+      - "start-tools.Dockerfile"
       - "Cargo.lock"
     tags:
       - "api-admin@*"
@@ -24,13 +28,45 @@ on:
       - "api-public@*"
 
 jobs:
+  builder-image:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Publish Docker
+        uses: elgohr/Publish-Docker-Github-Action@2.12
+        with:
+          name: cardboxdev/backend/builder
+          username: sergeysova
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          dockerfile: builder.Dockerfile
+          tags: "1.45.2"
+
+  start-tools-image:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Publish Docker
+        uses: elgohr/Publish-Docker-Github-Action@2.12
+        with:
+          name: cardboxdev/backend/start-tools
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          dockerfile: start-tools.Dockerfile
+          tags: "1.1"
+
   api-image:
     strategy:
       matrix:
         api: [admin, internal, private, public]
 
     name: api-${{ matrix.api }}
-
+    needs: [builder-image, start-tools-image]
     runs-on: ubuntu-latest
 
     steps:
