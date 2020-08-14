@@ -35,14 +35,14 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Publish Docker
-        uses: elgohr/Publish-Docker-Github-Action@2.19
+        uses: sergeysova/docker-publish-action@master
         with:
-          name: cardboxdev/backend/builder
+          image: cardboxdev/backend/builder
+          registry: docker.pkg.github.com
           username: sergeysova
           password: ${{ secrets.GITHUB_TOKEN }}
-          registry: docker.pkg.github.com
           dockerfile: builder.Dockerfile
-          tags: "1.45.2"
+          tagExtra: "1.45.2"
           cache: true
 
   start-tools-image:
