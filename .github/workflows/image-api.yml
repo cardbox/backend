@@ -42,7 +42,7 @@ jobs:
           username: sergeysova
           password: ${{ secrets.GITHUB_TOKEN }}
           dockerfile: builder.Dockerfile
-          tagExtra: "1.45.2"
+          tag_extra: "1.45.2"
           cache: true
 
   start-tools-image:
