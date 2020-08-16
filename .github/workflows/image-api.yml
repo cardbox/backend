@@ -81,6 +81,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
           buildargs: API_NAME=${{ matrix.api }}
           snapshot: "true"
+          tag_extra: latest
           tag_semver: skip
           tag_separator: "@"
           semver_higher: "true"
