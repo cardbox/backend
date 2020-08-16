@@ -21,7 +21,7 @@ RUN cargo build --release --package cardbox-api-$API_NAME
 
 # ----------------------------------------------------------------
 
-FROM docker.pkg.github.com/cardboxdev/backend/start-tools:1.1
+FROM docker.pkg.github.com/cardboxdev/backend/start-tools:1.2
 
 ARG API_NAME
 
