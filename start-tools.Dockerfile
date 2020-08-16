@@ -6,4 +6,4 @@ RUN seq 1 8 | xargs -I{} mkdir -p /usr/share/man/man{} && \
     update-ca-certificates && \
     apt clean
 
-LABEL version=demo
+LABEL version=1.2
