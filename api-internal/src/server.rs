@@ -1,7 +1,6 @@
-use actix_web::{
-    error, http::StatusCode, middleware, web, App, HttpRequest, HttpResponse, HttpServer, Responder,
-};
-use serde::{Deserialize, Serialize};
+use super::routes::{self, AnswerFailure, FailureCode};
+use crate::services::Database;
+use actix_web::{error, middleware, web, App, HttpResponse, HttpServer};
 
 pub struct Config {
     pub bind_address: String,
@@ -10,8 +9,16 @@ pub struct Config {
 }
 
 pub async fn create_server(config: Config) -> std::io::Result<()> {
+    let app = cardbox_logic::App {
+        db: Database::new(config.database_url).expect("Failed to create database"),
+    };
+
+    let app_lock = std::sync::RwLock::new(app);
+    let app_data = web::Data::new(app_lock);
+
     HttpServer::new(move || {
         App::new()
+            .app_data(app_data.clone())
             .wrap(middleware::Compress::default())
             .wrap(middleware::Logger::default())
             .app_data(web::JsonConfig::default().error_handler(|err, _| {
@@ -42,31 +49,9 @@ pub async fn create_server(config: Config) -> std::io::Result<()> {
                     .header("X-Content-Type-Options", "nosniff")
                     .header("X-XSS-Protection", "1; mode=block"),
             )
-            .default_service(web::route().to(not_found))
+            .default_service(web::route().to(routes::not_found::route))
     })
     .bind(config.bind_address)?
     .run()
     .await
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-enum FailureCode {
-    InvalidPayload,
-    InvalidRoute,
-    InvalidQueryParams,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct AnswerFailure {
-    pub error: FailureCode,
-    pub message: Option<String>,
-}
-
-async fn not_found(_req: HttpRequest) -> impl Responder {
-    web::Json(AnswerFailure {
-        error: FailureCode::InvalidRoute,
-        message: None,
-    })
-    .with_status(StatusCode::NOT_FOUND)
 }

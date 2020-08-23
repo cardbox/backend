@@ -1,7 +1,15 @@
 #[macro_use]
 extern crate diesel;
 
+mod routes;
 mod server;
+mod services;
+
+/// Useful to extract app data at handler
+/// ```rust
+/// async fn handler(app: web::Data<crate::App>) {}
+/// ```
+pub type App = std::sync::RwLock<cardbox_logic::App<services::Database>>;
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
