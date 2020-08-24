@@ -49,6 +49,7 @@ pub async fn create_server(config: Config) -> std::io::Result<()> {
                     .header("X-Content-Type-Options", "nosniff")
                     .header("X-XSS-Protection", "1; mode=block"),
             )
+            .service(routes::health::service())
             .default_service(web::route().to(routes::not_found::route))
     })
     .bind(config.bind_address)?
