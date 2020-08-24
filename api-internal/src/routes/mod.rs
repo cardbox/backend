@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 
+pub mod health;
 pub mod not_found;
+
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum FailureCode {
