@@ -1,6 +1,8 @@
+use actix_web::{web, Scope};
 use serde::{Deserialize, Serialize};
 
-pub mod health;
+mod accesso;
+mod health;
 pub mod not_found;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -15,4 +17,10 @@ pub enum FailureCode {
 pub struct AnswerFailure {
     pub error: FailureCode,
     pub message: Option<String>,
+}
+
+pub fn scope() -> Scope {
+    web::scope("/")
+        .service(health::service())
+        .service(accesso::scope())
 }

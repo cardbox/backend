@@ -28,3 +28,5 @@ serde = {version = "1.0.115", features = ["derive"]}
 serde_json = "1.0.57"
 serde_plain = "0.3.0"
 uuid = {version = "0.8.1", features = ["serde", "v4"]}
+actix-swagger = "0.2.1"
+url = "2.1.1"

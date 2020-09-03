@@ -26,6 +26,8 @@ async fn main() -> std::io::Result<()> {
     let database_url = read_var("DATABASE_URL");
 
     let accesso_url = read_var("ACCESSO_URL");
+    let accesso_client_id = read_var("ACCESSO_CLIENT_ID");
+    let accesso_redirect_back_url = read_var("ACCESSO_REDIRECT_BACK_URL");
 
     let bind_address = format!("{host}:{port}", host = listen_host, port = listen_port);
 
@@ -39,6 +41,8 @@ async fn main() -> std::io::Result<()> {
         bind_address,
         database_url,
         accesso_url,
+        accesso_client_id,
+        accesso_redirect_back_url,
     })
     .await
 }

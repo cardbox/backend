@@ -150,6 +150,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "actix-swagger"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1268eb09efa2a57fe1e877552bf3238b074da1adfa152f09f98e9102a114ab4b"
+dependencies = [
+ "actix-http",
+ "actix-rt",
+ "actix-web",
+ "futures",
+ "serde",
+ "serde_json",
+ "serde_urlencoded",
+ "take_mut",
+]
+
+[[package]]
 name = "actix-testing"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -428,6 +444,7 @@ name = "cardbox-api-internal"
 version = "0.1.0"
 dependencies = [
  "actix-rt",
+ "actix-swagger",
  "actix-web",
  "cardbox-logic",
  "chrono",
@@ -441,6 +458,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_plain",
+ "url",
  "uuid",
 ]
 
@@ -1697,6 +1715,12 @@ dependencies = [
  "syn",
  "unicode-xid",
 ]
+
+[[package]]
+name = "take_mut"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f764005d11ee5f36500a149ace24e00e3da98b0158b3e2d53a7495660d3f4d60"
 
 [[package]]
 name = "termcolor"
