@@ -6,11 +6,13 @@ use serde::{Deserialize, Serialize};
 use url::Url;
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Body {
     state: String,
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Response {
     accesso_url: String,
 }
