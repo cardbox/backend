@@ -9,6 +9,7 @@ pub struct Config {
     pub accesso_url: String,
     pub accesso_client_id: String,
     pub accesso_redirect_back_url: String,
+    pub accesso_client_secret: String,
 }
 
 pub async fn create_server(config: Config) -> std::io::Result<()> {
