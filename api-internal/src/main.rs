@@ -17,9 +17,9 @@ async fn main() -> std::io::Result<()> {
     // env_logger::init();
     pretty_env_logger::init();
 
-    let is_dev = std::env::var("DEV")
-        .map(|dev| dev != "false")
-        .unwrap_or(false);
+    let is_dev = read_var_bool("DEV");
+
+    let openssl_validate = !read_var_bool("OPENSSL_NO_VALIDATE");
 
     let listen_port = read_var("LISTEN_PORT");
     let listen_host = read_var("LISTEN_HOST");
@@ -45,6 +45,7 @@ async fn main() -> std::io::Result<()> {
         accesso_client_id,
         accesso_redirect_back_url,
         accesso_client_secret,
+        openssl_validate,
     })
     .await
 }
@@ -52,4 +53,11 @@ async fn main() -> std::io::Result<()> {
 #[inline]
 fn read_var<T: AsRef<str>>(name: T) -> String {
     std::env::var(name.as_ref()).expect(name.as_ref())
+}
+
+#[inline]
+fn read_var_bool<T: AsRef<str>>(name: T) -> bool {
+    std::env::var(name.as_ref())
+        .map(|dev| dev != "false")
+        .unwrap_or(false)
 }

@@ -10,6 +10,23 @@ pub struct Config {
     pub accesso_client_id: String,
     pub accesso_redirect_back_url: String,
     pub accesso_client_secret: String,
+    pub openssl_validate: bool,
+}
+
+pub fn create_request_client(config: &Config) -> actix_web::client::Client {
+    use actix_web::client::{Client, Connector};
+    use openssl::ssl::{SslConnector, SslMethod, SslVerifyMode};
+
+    let mut builder = SslConnector::builder(SslMethod::tls()).unwrap();
+    builder.set_verify(if config.openssl_validate {
+        SslVerifyMode::PEER
+    } else {
+        SslVerifyMode::NONE
+    });
+
+    Client::build()
+        .connector(Connector::new().ssl(builder.build()).finish())
+        .finish()
 }
 
 pub async fn create_server(config: Config) -> std::io::Result<()> {
