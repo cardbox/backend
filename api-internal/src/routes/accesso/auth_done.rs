@@ -1,3 +1,4 @@
+use crate::accesso::exchange_token::{self, ExchangeToken, GrantType};
 use crate::server::{create_request_client, Config};
 use actix_swagger::{Answer, ContentType};
 use actix_web::http::StatusCode;
@@ -18,8 +19,10 @@ pub enum Response {
 }
 
 pub async fn route(body: Json<Body>, config: Data<Config>) -> Answer<'static, Response> {
-    let payload = accesso::ExchangeTokenPayload {
-        grant_type: accesso::GrantType::AuthorizationCode,
+    let grant_type = GrantType::AuthorizationCode;
+
+    let payload = ExchangeToken {
+        grant_type: grant_type.clone(),
         redirect_uri: config.accesso_redirect_back_url.clone(),
         code: body.authorization_code.clone(),
         client_id: config.accesso_client_id.clone(),
@@ -44,83 +47,68 @@ pub async fn route(body: Json<Body>, config: Data<Config>) -> Answer<'static, Re
         .send_json(&payload)
         .await;
 
-    let response = result.unwrap().json::<accesso::OAuthResponse>().await;
+    let response = result
+        .expect("sent request")
+        .json::<exchange_token::response::Answer>()
+        .await;
 
     println!("DONE — {:#?}", response);
 
+    use exchange_token::response::{
+        Answer::{Failure, TokenCreated},
+        Error, TokenType,
+    };
+
+    // https://www.oauth.com/oauth2-servers/access-tokens/access-token-response/
     match response {
-        accesso::OAuthResponse(accesso::OAuthAccessTokenCreated { expires_in, .. }) => {
-            let naive = chrono::NaiveDateTime::from_timestamp(expires_in, 0);
+        Ok(TokenCreated {
+            expires_in,
+            access_token,
+            token_type,
+        }) => {
+            use chrono::{DateTime, NaiveDateTime, Utc};
+            let naive = NaiveDateTime::from_timestamp(expires_in, 0);
+            let datetime = DateTime::<Utc>::from_utc(naive, Utc);
+
+            match token_type {
+                TokenType::Bearer => {
+                    println!("{}", datetime);
+                    // send GET /viewer request with X-Access-Token header
+                    // create/update user with viewer.id: uuid::Uuid
+                }
+            }
         }
-        _ => {}
+        Ok(Failure { error }) => match error {
+            Error::InvalidRequest => {
+                log::error!("Invalid request to accesso");
+            }
+            Error::InvalidClient => {
+                log::error!(
+                    "Invalid accesso client '{:#?}'",
+                    config.accesso_client_id.clone()
+                );
+            }
+            Error::InvalidGrant => {}
+            Error::InvalidScope => {
+                log::error!("Invalid scope for accesso");
+            }
+            Error::UnauthorizedClient => {
+                log::error!(
+                    "Unauthorized accesso client '{:#?}'",
+                    config.accesso_client_id.clone()
+                );
+            }
+            Error::UnsupportedGrantType => {
+                log::error!("Unsupported grant type '{:#?}' for accesso", grant_type);
+            }
+            Error::UnknownAccessoError => {
+                log::error!("Unknown error from accesso");
+            }
+        },
+        Err(failure) => {
+            log::error!("Failed to get response from accesso: {:#?}", failure);
+        }
     }
 
     unimplemented!()
-}
-
-mod accesso {
-    use serde::{Deserialize, Serialize};
-
-    #[derive(Serialize, Debug)]
-    pub enum GrantType {
-        #[serde(rename = "authorization_code")]
-        AuthorizationCode,
-    }
-
-    #[derive(Serialize, Debug)]
-    pub struct ExchangeTokenPayload {
-        pub grant_type: GrantType,
-        pub code: String,
-        pub redirect_uri: String,
-        pub client_id: String,
-        pub client_secret: String,
-    }
-
-    #[derive(Deserialize, Debug)]
-    #[serde(untagged)]
-    pub enum OAuthResponse {
-        Success(OAuthAccessTokenCreated),
-        Failure(OAuthAccessTokenFailure),
-    }
-
-    #[derive(Debug, Deserialize)]
-    pub struct OAuthAccessTokenCreated {
-        pub access_token: String,
-        pub token_type: OAuthAccessTokenCreatedTokenType,
-
-        /// UTC Unix TimeStamp when the access token expires
-        pub expires_in: i64,
-    }
-
-    #[derive(Debug, Deserialize)]
-    pub enum OAuthAccessTokenCreatedTokenType {
-        #[serde(rename = "bearer")]
-        Bearer,
-    }
-
-    #[derive(Debug, Deserialize)]
-    pub struct OAuthAccessTokenFailure {
-        pub error: OAuthAccessTokenFailureError,
-    }
-
-    #[derive(Debug, Deserialize)]
-    pub enum OAuthAccessTokenFailureError {
-        #[serde(rename = "invalid_request")]
-        InvalidRequest,
-
-        #[serde(rename = "invalid_client")]
-        InvalidClient,
-
-        #[serde(rename = "invalid_grant")]
-        InvalidGrant,
-
-        #[serde(rename = "invalid_scope")]
-        InvalidScope,
-
-        #[serde(rename = "unauthorized_client")]
-        UnauthorizedClient,
-
-        #[serde(rename = "unsupported_grant_type")]
-        UnsupportedGrantType,
-    }
 }

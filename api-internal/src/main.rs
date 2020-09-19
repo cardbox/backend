@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate diesel;
 
+mod accesso;
 mod routes;
 mod server;
 mod services;
