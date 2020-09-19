@@ -41,13 +41,12 @@ pub async fn route(body: Json<Body>, config: Data<Config>) -> Answer<'static, Re
         serde_json::to_string_pretty(&payload).unwrap()
     );
 
-    let result = create_request_client(&config)
-        .get(exchange_token_url)
-        .method(awc::http::Method::POST)
-        .send_json(&payload)
-        .await;
+    let client = create_request_client(&config);
 
-    let response = result
+    let response = client
+        .post(exchange_token_url)
+        .send_json(&payload)
+        .await
         .expect("sent request")
         .json::<exchange_token::response::Answer>()
         .await;
@@ -75,6 +74,50 @@ pub async fn route(body: Json<Body>, config: Data<Config>) -> Answer<'static, Re
                     println!("{}", datetime);
                     // send GET /viewer request with X-Access-Token header
                     // create/update user with viewer.id: uuid::Uuid
+
+                    use crate::accesso::viewer_get::response::{
+                        Answer::{self, Authorized, Failure},
+                        Error,
+                    };
+
+                    let viewer_get_url = {
+                        let mut uri =
+                            Url::parse(&config.accesso_url).expect("Failed to parse accesso_url");
+                        uri.set_path("/api/v0/viewer");
+                        uri.to_string()
+                    };
+
+                    let result = client
+                        .get(viewer_get_url)
+                        .set_header("X-Access-Token", access_token)
+                        .send()
+                        .await
+                        .expect("sent request")
+                        .json::<Answer>()
+                        .await;
+
+                    match result {
+                        Ok(Authorized {
+                            first_name,
+                            last_name,
+                            id,
+                        }) => {}
+
+                        Ok(Failure {
+                            error: Error::InvalidToken,
+                        }) => {}
+
+                        Ok(Failure {
+                            error: Error::Unauthorized,
+                        }) => {}
+
+                        Err(error) => {
+                            log::error!(
+                                "Failed to parse json answer for accesso::viewer_get {:?}",
+                                error
+                            );
+                        }
+                    }
                 }
             }
         }

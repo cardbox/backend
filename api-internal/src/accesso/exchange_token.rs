@@ -41,23 +41,13 @@ pub mod response {
     }
 
     #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "snake_case")]
     pub enum Error {
-        #[serde(rename = "invalid_request")]
-        InvalidRequest,
-
-        #[serde(rename = "invalid_client")]
         InvalidClient,
-
-        #[serde(rename = "invalid_grant")]
         InvalidGrant,
-
-        #[serde(rename = "invalid_scope")]
+        InvalidRequest,
         InvalidScope,
-
-        #[serde(rename = "unauthorized_client")]
         UnauthorizedClient,
-
-        #[serde(rename = "unsupported_grant_type")]
         UnsupportedGrantType,
 
         #[serde(other)]
