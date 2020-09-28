@@ -13,9 +13,35 @@ pub struct Body {
 }
 
 #[derive(Serialize)]
-#[serde(untagged, rename_all = "camelCase")]
+#[serde(untagged)]
 pub enum Response {
-    Done { ok: bool },
+    #[serde(rename_all = "camelCase")]
+    Done { user_info: UserInfo },
+    #[serde(rename_all = "camelCase")]
+    Fail { error: PublicError },
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UserInfo {
+    first_name: String,
+    last_name: String,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PublicError {
+    /// Something goes wrong with accesso tokens
+    AccessoFailed,
+
+    /// Authorization code or password for grant type is invalid or expired
+    TryLater,
+
+    /// User declined authorization or client is unauthorized
+    Unauthorized,
+
+    // Something unexpected happened
+    Unexpected,
 }
 
 pub async fn route(body: Json<Body>, config: Data<Config>) -> Answer<'static, Response> {
@@ -101,21 +127,40 @@ pub async fn route(body: Json<Body>, config: Data<Config>) -> Answer<'static, Re
                             first_name,
                             last_name,
                             id,
-                        }) => {}
+                        }) => {
+                            // TODO: Create or update user here
+
+                            Response::Done {
+                                user_info: UserInfo {
+                                    first_name,
+                                    last_name,
+                                },
+                            }
+                            .answer()
+                        }
 
                         Ok(Failure {
                             error: Error::InvalidToken,
-                        }) => {}
+                        }) => {
+                            log::info!(
+                                "Request for user data failed because access token is invalid"
+                            );
+                            PublicError::AccessoFailed.answer()
+                        }
 
                         Ok(Failure {
                             error: Error::Unauthorized,
-                        }) => {}
+                        }) => {
+                            log::info!("Unauthorized request to get user data with access token");
+                            PublicError::Unauthorized.answer()
+                        }
 
                         Err(error) => {
                             log::error!(
                                 "Failed to parse json answer for accesso::viewer_get {:?}",
                                 error
                             );
+                            PublicError::Unexpected.answer()
                         }
                     }
                 }
@@ -124,34 +169,68 @@ pub async fn route(body: Json<Body>, config: Data<Config>) -> Answer<'static, Re
         Ok(Failure { error }) => match error {
             Error::InvalidRequest => {
                 log::error!("Invalid request to accesso");
+                PublicError::AccessoFailed.answer()
             }
             Error::InvalidClient => {
                 log::error!(
                     "Invalid accesso client '{:#?}'",
                     config.accesso_client_id.clone()
                 );
+                PublicError::AccessoFailed.answer()
             }
-            Error::InvalidGrant => {}
+            Error::InvalidGrant => {
+                // The authorization code (or user’s password for the password grant type) is invalid or expired.
+                // This is also the error you would return if the redirect URL given
+                // in the authorization grant does not match the URL provided in this access token request.
+                PublicError::TryLater.answer()
+            }
             Error::InvalidScope => {
                 log::error!("Invalid scope for accesso");
+                PublicError::AccessoFailed.answer()
             }
             Error::UnauthorizedClient => {
                 log::error!(
                     "Unauthorized accesso client '{:#?}'",
                     config.accesso_client_id.clone()
                 );
+                PublicError::Unauthorized.answer()
             }
             Error::UnsupportedGrantType => {
                 log::error!("Unsupported grant type '{:#?}' for accesso", grant_type);
+                PublicError::AccessoFailed.answer()
             }
             Error::UnknownAccessoError => {
                 log::error!("Unknown error from accesso");
+                PublicError::AccessoFailed.answer()
             }
         },
         Err(failure) => {
             log::error!("Failed to get response from accesso: {:#?}", failure);
+            PublicError::Unexpected.answer()
         }
     }
+}
 
-    unimplemented!()
+impl Response {
+    fn answer(self) -> Answer<'static, Self> {
+        let status = match &self {
+            Response::Done { .. } => StatusCode::OK,
+            Response::Fail { error } => match error {
+                PublicError::AccessoFailed => StatusCode::BAD_REQUEST,
+                PublicError::TryLater => StatusCode::BAD_REQUEST,
+                PublicError::Unauthorized => StatusCode::UNAUTHORIZED,
+                PublicError::Unexpected => StatusCode::INTERNAL_SERVER_ERROR,
+            },
+        };
+
+        Answer::new(self)
+            .content_type(Some(ContentType::Json))
+            .status(status)
+    }
+}
+
+impl PublicError {
+    fn answer(self) -> Answer<'static, Response> {
+        Response::Fail { error: self }.answer()
+    }
 }
