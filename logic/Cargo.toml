@@ -13,6 +13,7 @@ time = "0.2.16"
 uuid = {version = "0.8.1", features = ["v4"]}
 validator = "0.10.1"
 validator_derive = "0.10.1"
+async-trait = "0.1.40"
 
 [dev-dependencies]
 insta = "0.16.1"
