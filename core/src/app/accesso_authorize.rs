@@ -8,9 +8,9 @@ pub trait AccessoAuthorize {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct UserInfo {
-    accesso_id: uuid::Uuid,
-    first_name: String,
-    last_name: String,
+    pub accesso_id: uuid::Uuid,
+    pub first_name: String,
+    pub last_name: String,
 }
 
 #[derive(Debug, PartialEq, Eq)]

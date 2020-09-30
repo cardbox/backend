@@ -44,7 +44,11 @@ pub enum PublicError {
     Unexpected,
 }
 
-pub async fn route(body: Json<Body>, config: Data<Config>) -> Answer<'static, Response> {
+pub async fn route(
+    body: Json<Body>,
+    config: Data<Config>,
+    app: Data<crate::App>,
+) -> Answer<'static, Response> {
     let grant_type = GrantType::AuthorizationCode;
 
     let payload = ExchangeToken {
@@ -98,8 +102,6 @@ pub async fn route(body: Json<Body>, config: Data<Config>) -> Answer<'static, Re
             match token_type {
                 TokenType::Bearer => {
                     println!("{}", datetime);
-                    // send GET /viewer request with X-Access-Token header
-                    // create/update user with viewer.id: uuid::Uuid
 
                     use crate::accesso::viewer_get::response::{
                         Answer::{self, Authorized, Failure},
@@ -128,15 +130,30 @@ pub async fn route(body: Json<Body>, config: Data<Config>) -> Answer<'static, Re
                             last_name,
                             id,
                         }) => {
-                            // TODO: Create or update user here
+                            use cardbox_core::app::{AccessoAuthorize, UpdateUserFailure};
 
-                            Response::Done {
-                                user_info: UserInfo {
+                            let created = app
+                                .lock()
+                                .await
+                                .authorize(cardbox_core::app::UserInfo {
+                                    accesso_id: id,
                                     first_name,
                                     last_name,
-                                },
+                                })
+                                .await;
+
+                            match created {
+                                Ok(user) => Response::Done {
+                                    user_info: UserInfo {
+                                        first_name: user.first_name(),
+                                        last_name: user.last_name(),
+                                    },
+                                }
+                                .answer(),
+                                Err(UpdateUserFailure::Unexpected) => {
+                                    PublicError::Unexpected.answer()
+                                }
                             }
-                            .answer()
                         }
 
                         Ok(Failure {

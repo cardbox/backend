@@ -1,6 +1,8 @@
 use super::routes::{self, AnswerFailure, FailureCode};
 use crate::services::Database;
 use actix_web::{error, middleware, web, App, HttpResponse, HttpServer};
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
 #[derive(Clone, Debug)]
 pub struct Config {
@@ -36,7 +38,7 @@ pub async fn create_server(config: Config) -> std::io::Result<()> {
         db: Database::new(database_url).expect("Failed to create database"),
     };
 
-    let app_lock = std::sync::RwLock::new(app);
+    let app_lock: crate::App = Arc::new(Mutex::new(app));
     let app_data = web::Data::new(app_lock);
 
     HttpServer::new(move || {

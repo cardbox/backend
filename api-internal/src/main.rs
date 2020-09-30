@@ -1,6 +1,9 @@
 #[macro_use]
 extern crate diesel;
 
+use std::sync::Arc;
+use tokio::sync::Mutex;
+
 mod accesso;
 mod routes;
 mod server;
@@ -10,7 +13,7 @@ mod services;
 /// ```rust
 /// async fn handler(app: web::Data<crate::App>) {}
 /// ```
-pub type App = std::sync::RwLock<cardbox_core::App<services::Database>>;
+pub type App = Arc<Mutex<cardbox_core::App<services::Database>>>;
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
