@@ -1,4 +1,4 @@
-FROM docker.pkg.github.com/cardboxdev/backend/builder:1.45.2 as build
+FROM docker.pkg.github.com/cardboxdev/backend/builder:1.46.0 as build
 
 ARG API_NAME
 ENV USER="root"
