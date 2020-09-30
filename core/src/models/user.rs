@@ -1,13 +1,28 @@
+/// TODO: how to guarantee model validity
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct User {
-    pub(crate) id: uuid::Uuid,
-    pub(crate) first_name: String,
-    pub(crate) last_name: String,
+    pub id: uuid::Uuid,
+    pub accesso_id: uuid::Uuid,
+    pub first_name: String,
+    pub last_name: String,
 }
 
 impl User {
+    pub fn new(accesso_id: uuid::Uuid) -> Self {
+        Self {
+            id: uuid::Uuid::new_v4(),
+            accesso_id,
+            first_name: String::new(),
+            last_name: String::new(),
+        }
+    }
+
     pub fn id(&self) -> uuid::Uuid {
         self.id
+    }
+
+    pub fn accesso_id(&self) -> uuid::Uuid {
+        self.accesso_id
     }
 
     pub fn first_name(&self) -> String {
