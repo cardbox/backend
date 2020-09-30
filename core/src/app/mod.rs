@@ -1,3 +1,3 @@
-mod accesso_update;
+mod accesso_authorize;
 
-pub use accesso_update::*;
+pub use accesso_authorize::*;
