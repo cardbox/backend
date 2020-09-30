@@ -9,7 +9,7 @@ COPY ./diesel.toml ./diesel.toml
 COPY ./Cargo.lock ./Cargo.toml ./
 COPY ./migrations ./migrations
 COPY ./db ./db
-COPY ./logic ./logic
+COPY ./core ./core
 COPY ./api-admin ./api-admin
 COPY ./api-internal ./api-internal
 COPY ./api-private ./api-private

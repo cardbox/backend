@@ -454,7 +454,7 @@ dependencies = [
  "actix-web",
  "async-trait",
  "awc",
- "cardbox-logic",
+ "cardbox-core",
  "chrono",
  "diesel",
  "dotenv",
@@ -480,17 +480,7 @@ name = "cardbox-api-public"
 version = "0.1.0"
 
 [[package]]
-name = "cardbox-db"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "diesel",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "cardbox-logic"
+name = "cardbox-core"
 version = "0.1.0"
 dependencies = [
  "async-trait",
@@ -502,6 +492,16 @@ dependencies = [
  "uuid",
  "validator",
  "validator_derive",
+]
+
+[[package]]
+name = "cardbox-db"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "diesel",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

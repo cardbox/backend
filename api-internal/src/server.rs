@@ -32,7 +32,7 @@ pub fn create_request_client(config: &Config) -> actix_web::client::Client {
 pub async fn create_server(config: Config) -> std::io::Result<()> {
     let database_url = config.database_url.clone();
     let bind_address = config.bind_address.clone();
-    let app = cardbox_logic::App {
+    let app = cardbox_core::App {
         db: Database::new(database_url).expect("Failed to create database"),
     };
 
