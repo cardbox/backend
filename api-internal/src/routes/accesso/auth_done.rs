@@ -1,8 +1,11 @@
 use crate::accesso::exchange_token::{self, ExchangeToken, GrantType};
-use crate::server::{create_request_client, Config};
+use crate::server::{create_request_client, Config, ConfigSession};
 use actix_swagger::{Answer, ContentType};
 use actix_web::http::StatusCode;
-use actix_web::web::{Data, Json};
+use actix_web::{
+    cookie::CookieBuilder,
+    web::{Data, Json},
+};
 use serde::{Deserialize, Serialize};
 use url::Url;
 
@@ -47,6 +50,7 @@ pub enum PublicError {
 pub async fn route(
     body: Json<Body>,
     config: Data<Config>,
+    config_session: Data<ConfigSession>,
     app: Data<crate::App>,
 ) -> Answer<'static, Response> {
     let grant_type = GrantType::AuthorizationCode;
@@ -143,13 +147,32 @@ pub async fn route(
                                 .await;
 
                             match created {
-                                Ok(user) => Response::Done {
+                                Ok((user, session_token)) => Response::Done {
                                     user_info: UserInfo {
                                         first_name: user.first_name(),
                                         last_name: user.last_name(),
                                     },
                                 }
-                                .answer(),
+                                .answer()
+                                .cookie(
+                                    CookieBuilder::new(
+                                        config_session.name.clone(),
+                                        session_token.token(),
+                                    )
+                                    // TODO: extract to function or Trait
+                                    .expires(time::at(time::Timespec::new(
+                                        chrono::DateTime::<chrono::Utc>::from_utc(
+                                            session_token.expires_at(),
+                                            chrono::Utc,
+                                        )
+                                        .timestamp(),
+                                        0,
+                                    )))
+                                    .path(config_session.path.clone())
+                                    .secure(config_session.secure)
+                                    .http_only(config_session.http_only)
+                                    .finish(),
+                                ),
                                 Err(UpdateUserFailure::Unexpected) => {
                                     PublicError::Unexpected.answer()
                                 }

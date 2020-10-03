@@ -6,13 +6,21 @@ use tokio::sync::Mutex;
 
 #[derive(Clone, Debug)]
 pub struct Config {
+    pub accesso_client_id: String,
+    pub accesso_client_secret: String,
+    pub accesso_redirect_back_url: String,
+    pub accesso_url: String,
     pub bind_address: String,
     pub database_url: String,
-    pub accesso_url: String,
-    pub accesso_client_id: String,
-    pub accesso_redirect_back_url: String,
-    pub accesso_client_secret: String,
     pub openssl_validate: bool,
+}
+
+#[derive(Clone, Debug)]
+pub struct ConfigSession {
+    pub name: String,
+    pub path: String,
+    pub secure: bool,
+    pub http_only: bool,
 }
 
 pub fn create_request_client(config: &Config) -> actix_web::client::Client {
@@ -36,15 +44,24 @@ pub async fn create_server(config: Config) -> std::io::Result<()> {
     let bind_address = config.bind_address.clone();
     let app = cardbox_core::App {
         db: Database::new(database_url).expect("Failed to create database"),
+        generator: cardbox_generator::Generator::new(),
     };
 
     let app_lock: crate::App = Arc::new(Mutex::new(app));
     let app_data = web::Data::new(app_lock);
 
+    let config_session = ConfigSession {
+        http_only: config.openssl_validate,
+        secure: config.openssl_validate,
+        path: "/".to_owned(),
+        name: "session-token".to_owned(),
+    };
+
     HttpServer::new(move || {
         App::new()
             .app_data(app_data.clone())
             .data(config.clone())
+            .data(config_session.clone())
             .wrap(middleware::Compress::default())
             .wrap(middleware::Logger::default())
             .app_data(web::JsonConfig::default().error_handler(|err, _| {

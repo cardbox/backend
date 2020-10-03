@@ -9,7 +9,7 @@ mod server;
 /// ```rust
 /// async fn handler(app: web::Data<crate::App>) {}
 /// ```
-pub type App = Arc<Mutex<cardbox_core::App<cardbox_db::Database>>>;
+pub type App = Arc<Mutex<cardbox_core::App<cardbox_db::Database, cardbox_generator::Generator>>>;
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {

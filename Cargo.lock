@@ -465,6 +465,7 @@ dependencies = [
  "awc",
  "cardbox-core",
  "cardbox-db",
+ "cardbox-generator",
  "chrono",
  "dotenv",
  "lazy_static",
@@ -474,6 +475,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_plain",
+ "time 0.1.43",
  "tokio",
  "url",
  "uuid",
@@ -496,7 +498,7 @@ dependencies = [
  "insta",
  "mockall",
  "serde",
- "time 0.2.16",
+ "time 0.2.22",
  "uuid",
  "validator",
  "validator_derive",
@@ -572,6 +574,12 @@ dependencies = [
  "termios",
  "winapi 0.3.9",
 ]
+
+[[package]]
+name = "const_fn"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ce90df4c658c62f12d78f7508cf92f9173e5184a539c10bfe54a3107b3ffd0f2"
 
 [[package]]
 name = "copyless"
@@ -1904,11 +1912,11 @@ dependencies = [
 
 [[package]]
 name = "time"
-version = "0.2.16"
+version = "0.2.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3a51cadc5b1eec673a685ff7c33192ff7b7603d0b75446fb354939ee615acb15"
+checksum = "55b7151c9065e80917fbf285d9a5d1432f60db41d170ccafc749a136b41a93af"
 dependencies = [
- "cfg-if",
+ "const_fn",
  "libc",
  "standback",
  "stdweb",
