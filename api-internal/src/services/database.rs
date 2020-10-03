@@ -7,7 +7,6 @@ use cardbox_db::schema::*;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use diesel::r2d2::ConnectionManager;
-use std::sync::RwLock;
 use uuid::Uuid;
 
 type Connection = r2d2::PooledConnection<ConnectionManager<PgConnection>>;
@@ -31,81 +30,122 @@ impl Database {
     }
 }
 
-#[async_trait]
-impl UserRepo for Database {
-    async fn find_by_id(&self, user_id: Uuid) -> RepoResult<Option<models::User>> {
-        let conn = self.conn();
+mod impl_user {
+    use super::*;
 
-        users::table
-            .filter(users::id.eq(user_id))
-            .get_result::<map::User>(&conn)
-            .map(Into::into)
-            .optional()
-            .map_err(diesel_to_unexpected)
+    #[async_trait]
+    impl UserRepo for Database {
+        async fn find_by_id(&self, user_id: Uuid) -> RepoResult<Option<models::User>> {
+            let conn = self.conn();
+
+            users::table
+                .filter(users::id.eq(user_id))
+                .get_result::<map::User>(&conn)
+                .map(Into::into)
+                .optional()
+                .map_err(diesel_to_unexpected)
+        }
+
+        async fn find_by_accesso(&self, accesso_id: Uuid) -> RepoResult<Option<models::User>> {
+            let conn = self.conn();
+
+            users::table
+                .filter(users::accesso_id.eq(accesso_id))
+                .get_result::<map::User>(&conn)
+                .map(Into::into)
+                .optional()
+                .map_err(diesel_to_unexpected)
+        }
+
+        async fn save(&mut self, user: models::User) -> RepoResult<models::User> {
+            let conn = self.conn();
+
+            diesel::update(users::table.find(user.id))
+                .set(map::User::from(user))
+                .get_result::<map::User>(&conn)
+                .map(Into::into)
+                .map_err(diesel_to_unexpected)
+        }
+
+        async fn create(&mut self, user: UserCreate) -> Result<models::User, UserCreateError> {
+            let conn = self.conn();
+
+            diesel::insert_into(users::table)
+                .values(map::UserNew::from(user))
+                .get_result::<map::User>(&conn)
+                .map(Into::into)
+                .map_err(diesel_to_user_create_error)
+        }
     }
 
-    async fn find_by_accesso(&self, accesso_id: Uuid) -> RepoResult<Option<models::User>> {
-        let conn = self.conn();
-
-        users::table
-            .filter(users::accesso_id.eq(accesso_id))
-            .get_result::<map::User>(&conn)
-            .map(Into::into)
-            .optional()
-            .map_err(diesel_to_unexpected)
+    fn diesel_to_user_create_error(error: diesel::result::Error) -> UserCreateError {
+        use diesel::result::{DatabaseErrorKind, Error as DieselError};
+        match error {
+            DieselError::DatabaseError(DatabaseErrorKind::UniqueViolation, _) => {
+                UserCreateError::UserAlreadyExists
+            }
+            failure => {
+                log::error!(target: "services/database", "Unable to create user {:?}", failure);
+                UserCreateError::UnexpectedFailure
+            }
+        }
     }
 
-    async fn save(&mut self, user: models::User) -> RepoResult<models::User> {
-        let conn = self.conn();
+    mod map {
+        use cardbox_core::{models, repo};
+        use cardbox_db::schema::users;
 
-        diesel::insert_into(users::table)
-            .values(map::User::from(user))
-            .get_result::<map::User>(&conn)
-            .map(Into::into)
-            .map_err(diesel_to_unexpected)
-    }
+        #[derive(Identifiable, Insertable, Queryable, AsChangeset)]
+        pub struct User {
+            pub id: uuid::Uuid,
+            pub accesso_id: uuid::Uuid,
+            pub first_name: String,
+            pub last_name: String,
+        }
 
-    async fn create(&mut self, user: UserCreate) -> Result<models::User, UserCreateError> {
-        unimplemented!()
+        impl Into<models::User> for User {
+            fn into(self) -> models::User {
+                models::User {
+                    id: self.id,
+                    accesso_id: self.accesso_id,
+                    first_name: self.first_name,
+                    last_name: self.last_name,
+                }
+            }
+        }
+
+        impl From<models::User> for User {
+            fn from(user: models::User) -> Self {
+                Self {
+                    id: user.id(),
+                    accesso_id: user.accesso_id(),
+                    first_name: user.first_name(),
+                    last_name: user.last_name(),
+                }
+            }
+        }
+
+        #[derive(Insertable)]
+        #[table_name = "users"]
+        pub struct UserNew {
+            pub accesso_id: uuid::Uuid,
+            pub first_name: String,
+            pub last_name: String,
+        }
+
+        impl From<repo::UserCreate> for UserNew {
+            fn from(create: repo::UserCreate) -> Self {
+                Self {
+                    accesso_id: create.accesso_id,
+                    first_name: create.first_name,
+                    last_name: create.last_name,
+                }
+            }
+        }
     }
 }
 
 fn diesel_to_unexpected(error: diesel::result::Error) -> UnexpectedError {
     log::error!(target: "services/database", "Unexpected error happened {:?}", error);
     UnexpectedError
-}
-
-mod map {
-    use cardbox_core::models;
-    use cardbox_db::schema::users;
-
-    #[derive(Identifiable, Insertable, Queryable)]
-    pub struct User {
-        pub id: uuid::Uuid,
-        pub accesso_id: uuid::Uuid,
-        pub first_name: String,
-        pub last_name: String,
-    }
-
-    impl Into<models::User> for User {
-        fn into(self) -> models::User {
-            models::User {
-                id: self.id,
-                accesso_id: self.accesso_id,
-                first_name: self.first_name,
-                last_name: self.last_name,
-            }
-        }
-    }
-
-    impl From<models::User> for User {
-        fn from(user: models::User) -> Self {
-            Self {
-                id: user.id(),
-                accesso_id: user.accesso_id(),
-                first_name: user.first_name(),
-                last_name: user.last_name(),
-            }
-        }
-    }
 }
