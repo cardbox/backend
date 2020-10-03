@@ -1,12 +1,10 @@
 use crate::schema::*;
 use async_trait::async_trait;
-use cardbox_core::{
-    models,
-    repo::{RepoResult, UnexpectedError, UserCreate, UserCreateError, UserRepo},
-};
+use cardbox_core::{models, repo};
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use diesel::r2d2::ConnectionManager;
+use repo::{RepoResult, UnexpectedError};
 use uuid::Uuid;
 
 type Connection = r2d2::PooledConnection<ConnectionManager<PgConnection>>;
@@ -34,6 +32,7 @@ impl Database {
 
 mod impl_user {
     use super::*;
+    use repo::{UserCreate, UserCreateError, UserRepo};
 
     #[async_trait]
     impl UserRepo for Database {
@@ -141,6 +140,102 @@ mod impl_user {
                     accesso_id: create.accesso_id,
                     first_name: create.first_name,
                     last_name: create.last_name,
+                }
+            }
+        }
+    }
+}
+
+mod impl_access_token {
+    use super::*;
+    use repo::SessionTokenRepo;
+
+    #[async_trait]
+    impl SessionTokenRepo for Database {
+        async fn delete_by_user(&mut self, user_id: Uuid) -> RepoResult<u16> {
+            let conn = self.conn();
+
+            diesel::delete(session_tokens::table)
+                .filter(session_tokens::user_id.eq(user_id))
+                .execute(&conn)
+                .map(|count| count as u16)
+                .map_err(diesel_to_unexpected)
+        }
+
+        async fn delete(&mut self, token: String) -> RepoResult<u16> {
+            let conn = self.conn();
+
+            diesel::delete(session_tokens::table)
+                .filter(session_tokens::token.eq(token))
+                .execute(&conn)
+                .map(|count| count as u16)
+                .map_err(diesel_to_unexpected)
+        }
+
+        async fn find_by_token(&self, token: String) -> RepoResult<Option<models::SessionToken>> {
+            let conn = self.conn();
+
+            session_tokens::table
+                .filter(session_tokens::token.eq(token))
+                .get_result::<map::SessionToken>(&conn)
+                .map(Into::into)
+                .optional()
+                .map_err(diesel_to_unexpected)
+        }
+
+        async fn find_by_user(&self, user_id: Uuid) -> RepoResult<Option<models::SessionToken>> {
+            let conn = self.conn();
+
+            session_tokens::table
+                .filter(session_tokens::user_id.eq(user_id))
+                .get_result::<map::SessionToken>(&conn)
+                .map(Into::into)
+                .optional()
+                .map_err(diesel_to_unexpected)
+        }
+
+        async fn create(
+            &mut self,
+            token: models::SessionToken,
+        ) -> RepoResult<models::SessionToken> {
+            let conn = self.conn();
+
+            diesel::insert_into(session_tokens::table)
+                .values(map::SessionToken::from(token))
+                .get_result::<map::SessionToken>(&conn)
+                .map(Into::into)
+                .map_err(diesel_to_unexpected)
+        }
+    }
+
+    mod map {
+        use crate::schema::session_tokens;
+        use cardbox_core::models;
+
+        #[derive(Identifiable, Insertable, Queryable, AsChangeset)]
+        #[primary_key(token)]
+        pub struct SessionToken {
+            pub user_id: uuid::Uuid,
+            pub token: String,
+            pub expires_at: chrono::NaiveDateTime,
+        }
+
+        impl Into<models::SessionToken> for SessionToken {
+            fn into(self) -> models::SessionToken {
+                models::SessionToken {
+                    user_id: self.user_id,
+                    token: self.token,
+                    expires_at: self.expires_at,
+                }
+            }
+        }
+
+        impl From<models::SessionToken> for SessionToken {
+            fn from(token: models::SessionToken) -> Self {
+                Self {
+                    user_id: token.user_id(),
+                    token: token.token(),
+                    expires_at: token.expires_at(),
                 }
             }
         }
