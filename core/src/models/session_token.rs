@@ -1,13 +1,13 @@
 /// TODO: how to guarantee model validity
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct AccessToken {
+pub struct SessionToken {
     /// cardbox user
     pub user_id: uuid::Uuid,
     pub token: String,
     pub expires_at: chrono::NaiveDateTime,
 }
 
-impl AccessToken {
+impl SessionToken {
     pub fn lifetime() -> chrono::Duration {
         chrono::Duration::days(14)
     }
@@ -32,7 +32,7 @@ impl AccessToken {
         self.expires_at.clone()
     }
 
-    /// Check, is access token expired from current time
+    /// Check, is session token expired from current time
     pub fn is_expired(&self) -> bool {
         chrono::Utc::now().naive_utc() > self.expires_at
     }

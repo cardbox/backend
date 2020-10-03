@@ -6,7 +6,7 @@ pub trait AccessoAuthorize {
     async fn authorize(
         &mut self,
         user: UserInfo,
-    ) -> Result<(models::User, models::AccessToken), UpdateUserFailure>;
+    ) -> Result<(models::User, models::SessionToken), UpdateUserFailure>;
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -21,18 +21,18 @@ pub enum UpdateUserFailure {
     Unexpected,
 }
 
-const ACCESS_TOKEN_LENGTH: u8 = 40;
+const ACCESS_TOKEN_LENGTH: u8 = 60;
 
 #[async_trait]
 impl<Database, Generator> AccessoAuthorize for App<Database, Generator>
 where
-    Database: repo::UserRepo + repo::AccessTokenRepo + Send + Sync,
+    Database: repo::UserRepo + repo::SessionTokenRepo + Send + Sync,
     Generator: generator::Generator + Send + Sync,
 {
     async fn authorize(
         &mut self,
         info: UserInfo,
-    ) -> Result<(models::User, models::AccessToken), UpdateUserFailure> {
+    ) -> Result<(models::User, models::SessionToken), UpdateUserFailure> {
         let user = self.db.find_by_accesso(info.accesso_id).await?;
 
         let actual_user = if let Some(mut user) = user {
@@ -54,8 +54,8 @@ where
         }?;
 
         let token = self.generator.secure_token(ACCESS_TOKEN_LENGTH);
-        let access_token = models::AccessToken::new(actual_user.id, token);
-        let token = repo::AccessTokenRepo::save(&mut self.db, access_token).await?;
+        let access_token = models::SessionToken::new(actual_user.id, token);
+        let token = repo::SessionTokenRepo::create(&mut self.db, access_token).await?;
 
         Ok((actual_user, token))
     }

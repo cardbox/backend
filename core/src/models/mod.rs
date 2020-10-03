@@ -1,5 +1,5 @@
-mod access_token;
+mod session_token;
 mod user;
 
-pub use access_token::*;
+pub use session_token::*;
 pub use user::*;
