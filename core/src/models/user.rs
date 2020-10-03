@@ -5,6 +5,7 @@ pub struct User {
     pub accesso_id: uuid::Uuid,
     pub first_name: String,
     pub last_name: String,
+    // pub registered_at: chrono::NaiveDateTime,
 }
 
 impl User {

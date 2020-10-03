@@ -1,9 +1,12 @@
-use crate::{models, repo, App};
+use crate::{generator, models, repo, App};
 use async_trait::async_trait;
 
 #[async_trait]
 pub trait AccessoAuthorize {
-    async fn authorize(&mut self, user: UserInfo) -> Result<models::User, UpdateUserFailure>;
+    async fn authorize(
+        &mut self,
+        user: UserInfo,
+    ) -> Result<(models::User, models::AccessToken), UpdateUserFailure>;
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -18,26 +21,43 @@ pub enum UpdateUserFailure {
     Unexpected,
 }
 
+const ACCESS_TOKEN_LENGTH: u8 = 40;
+
 #[async_trait]
-impl<Database> AccessoAuthorize for App<Database>
+impl<Database, Generator> AccessoAuthorize for App<Database, Generator>
 where
-    Database: repo::UserRepo + Send + Sync,
+    Database: repo::UserRepo + repo::AccessTokenRepo + Send + Sync,
+    Generator: generator::Generator + Send + Sync,
 {
-    async fn authorize(&mut self, info: UserInfo) -> Result<models::User, UpdateUserFailure> {
+    async fn authorize(
+        &mut self,
+        info: UserInfo,
+    ) -> Result<(models::User, models::AccessToken), UpdateUserFailure> {
         let user = self.db.find_by_accesso(info.accesso_id).await?;
 
-        if let Some(mut user) = user {
+        let actual_user = if let Some(mut user) = user {
             user.set_first_name(info.first_name)
                 .set_last_name(info.last_name);
-
-            Ok(self.db.save(user).await?)
+            Ok(repo::UserRepo::save(&mut self.db, user).await?)
         } else {
-            match self.db.create(info.clone().into()).await {
+            match repo::UserRepo::create(&mut self.db, info.clone().into()).await {
                 Ok(user) => Ok(user),
                 Err(repo::UserCreateError::UnexpectedFailure) => Err(UpdateUserFailure::Unexpected),
-                Err(repo::UserCreateError::UserAlreadyExists) => self.authorize(info).await,
+
+                // potentially impossible
+                Err(repo::UserCreateError::UserAlreadyExists) => self
+                    .db
+                    .find_by_accesso(info.accesso_id)
+                    .await?
+                    .ok_or(UpdateUserFailure::Unexpected),
             }
-        }
+        }?;
+
+        let token = self.generator.secure_token(ACCESS_TOKEN_LENGTH);
+        let access_token = models::AccessToken::new(actual_user.id, token);
+        let token = repo::AccessTokenRepo::save(&mut self.db, access_token).await?;
+
+        Ok((actual_user, token))
     }
 }
 
