@@ -1,4 +1,4 @@
-FROM docker.pkg.github.com/cardboxdev/backend/builder:1.45.2 as build
+FROM docker.pkg.github.com/cardboxdev/backend/builder:1.46.0 as build
 
 ARG API_NAME
 ENV USER="root"
@@ -9,7 +9,7 @@ COPY ./diesel.toml ./diesel.toml
 COPY ./Cargo.lock ./Cargo.toml ./
 COPY ./migrations ./migrations
 COPY ./db ./db
-COPY ./logic ./logic
+COPY ./core ./core
 COPY ./api-admin ./api-admin
 COPY ./api-internal ./api-internal
 COPY ./api-private ./api-private

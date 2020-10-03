@@ -1,12 +1,13 @@
 [package]
 authors = ["Sergey Sova <mail@sergeysova.com>"]
 edition = "2018"
-name = "cardbox-logic"
+name = "cardbox-core"
 version = "0.1.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+async-trait = "0.1.40"
 chrono = {version = "0.4.15", features = ["std"]}
 serde = {version = "1.0.115", features = ["derive"]}
 time = "0.2.16"

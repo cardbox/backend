@@ -8,23 +8,23 @@ version = "0.1.0"
 
 [dependencies]
 actix-rt = "1.1.1"
+actix-swagger = "0.2.1"
 actix-web = "2.0.0"
-cardbox-logic = {path = "../logic"}
+async-trait = "0.1.40"
+awc = {version = "1.0.1", features = ["compress", "openssl"]}
+cardbox-core = {path = "../core"}
+cardbox-db = {path = "../db"}
+cardbox-generator = {path = "../generator"}
 chrono = {version = "0.4.15", features = ["serde"]}
-diesel = {version = "1.4.5", features = [
-  "postgres",
-  "uuidv07",
-  "chrono",
-  "r2d2",
-  "serde_json",
-]}
 dotenv = "0.15.0"
-env_logger = "0.7.1"
 lazy_static = "1.4.0"
 log = "0.4.11"
+openssl = "0.10.30"
 pretty_env_logger = "0.4.0"
-r2d2 = "0.8.9"
 serde = {version = "1.0.115", features = ["derive"]}
 serde_json = "1.0.57"
 serde_plain = "0.3.0"
+time = "0.1.43"
+tokio = {version = "0.2.22", features = ["sync"]}
+url = "2.1.1"
 uuid = {version = "0.8.1", features = ["serde", "v4"]}
