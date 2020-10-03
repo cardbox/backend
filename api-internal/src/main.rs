@@ -1,24 +1,19 @@
-#[macro_use]
-extern crate diesel;
-
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
 mod accesso;
 mod routes;
 mod server;
-mod services;
 
 /// Useful to extract app data at handler
 /// ```rust
 /// async fn handler(app: web::Data<crate::App>) {}
 /// ```
-pub type App = Arc<Mutex<cardbox_core::App<services::Database>>>;
+pub type App = Arc<Mutex<cardbox_core::App<cardbox_db::Database>>>;
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
     dotenv::dotenv().ok();
-    // env_logger::init();
     pretty_env_logger::init();
 
     let is_dev = read_var_bool("DEV");

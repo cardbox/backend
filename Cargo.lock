@@ -457,14 +457,11 @@ dependencies = [
  "cardbox-core",
  "cardbox-db",
  "chrono",
- "diesel",
  "dotenv",
- "env_logger",
  "lazy_static",
  "log",
  "openssl",
  "pretty_env_logger",
- "r2d2",
  "serde",
  "serde_json",
  "serde_plain",
@@ -500,10 +497,15 @@ dependencies = [
 name = "cardbox-db"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
+ "cardbox-core",
  "chrono",
  "diesel",
+ "log",
+ "r2d2",
  "serde",
  "serde_json",
+ "uuid",
 ]
 
 [[package]]

@@ -1,6 +1,3 @@
-#[macro_use]
-extern crate validator_derive;
-
 pub mod app;
 pub mod models;
 pub mod repo;

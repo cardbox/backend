@@ -1,9 +1,9 @@
+use crate::schema::*;
 use async_trait::async_trait;
 use cardbox_core::{
     models,
     repo::{RepoResult, UnexpectedError, UserCreate, UserCreateError, UserRepo},
 };
-use cardbox_db::schema::*;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use diesel::r2d2::ConnectionManager;
@@ -13,20 +13,22 @@ type Connection = r2d2::PooledConnection<ConnectionManager<PgConnection>>;
 type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
 #[derive(Clone)]
-pub struct Database(DbPool);
+pub struct Database {
+    pub(crate) pool: DbPool,
+}
 
 impl Database {
     pub fn new(connection_url: String) -> Result<Self, r2d2::Error> {
         let manager = ConnectionManager::<PgConnection>::new(connection_url);
         let pool = r2d2::Pool::builder().build(manager)?;
 
-        Ok(Self(pool))
+        Ok(Self { pool })
     }
 
     /// Waits for at most the configured connection timeout before returning an
     /// error.
     pub fn conn(&self) -> Connection {
-        self.0.get().expect("Database connection timeout")
+        self.pool.get().expect("Database connection timeout")
     }
 }
 
@@ -92,8 +94,8 @@ mod impl_user {
     }
 
     mod map {
+        use crate::schema::users;
         use cardbox_core::{models, repo};
-        use cardbox_db::schema::users;
 
         #[derive(Identifiable, Insertable, Queryable, AsChangeset)]
         pub struct User {

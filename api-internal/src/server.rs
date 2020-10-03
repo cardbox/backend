@@ -1,6 +1,6 @@
 use super::routes::{self, AnswerFailure, FailureCode};
-use crate::services::Database;
 use actix_web::{error, middleware, web, App, HttpResponse, HttpServer};
+use cardbox_db::Database;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
