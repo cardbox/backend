@@ -1,9 +1,10 @@
 [workspace]
 members = [
-  "db",
-  "core",
-  "api-private",
-  "api-internal",
   "api-admin",
+  "api-internal",
+  "api-private",
   "api-public",
+  "core",
+  "db",
+  "generator",
 ]
