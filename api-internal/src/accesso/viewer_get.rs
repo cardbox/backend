@@ -4,10 +4,14 @@ pub mod response {
     #[derive(Deserialize, Debug)]
     #[serde(untagged)]
     pub enum Answer {
-        #[serde(rename_all = "camelCase")]
         Authorized {
+            #[serde(rename = "firstName")]
             first_name: String,
+
+            #[serde(rename = "lastName")]
             last_name: String,
+
+            #[serde(rename = "id")]
             id: uuid::Uuid,
         },
 
