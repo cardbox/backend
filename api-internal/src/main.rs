@@ -4,6 +4,7 @@ use tokio::sync::Mutex;
 mod accesso;
 mod routes;
 mod server;
+mod session;
 
 /// Useful to extract app data at handler
 /// ```rust

@@ -121,6 +121,7 @@ pub async fn route(
 
                     let result = client
                         .get(viewer_get_url)
+                        // TODO: migrate to Authorization header after https://github.com/accesso-app/backend/issues/16
                         .set_header("X-Access-Token", access_token)
                         .send()
                         .await

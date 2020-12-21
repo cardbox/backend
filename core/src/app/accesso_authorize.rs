@@ -53,8 +53,8 @@ where
             }
         }?;
 
-        let token = self.generator.secure_token(ACCESS_TOKEN_LENGTH);
-        let access_token = models::SessionToken::new(actual_user.id, token);
+        let token_string = self.generator.secure_token(ACCESS_TOKEN_LENGTH);
+        let access_token = models::SessionToken::new(actual_user.id, token_string);
         let token = repo::SessionTokenRepo::create(&mut self.db, access_token).await?;
 
         Ok((actual_user, token))

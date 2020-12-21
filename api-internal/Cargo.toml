@@ -7,6 +7,7 @@ version = "0.1.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+actix-http = {version = "1.0.1", features = ["failure"]}
 actix-rt = "1.1.1"
 actix-swagger = "0.2.1"
 actix-web = "2.0.0"
@@ -17,6 +18,7 @@ cardbox-db = {path = "../db"}
 cardbox-generator = {path = "../generator"}
 chrono = {version = "0.4.15", features = ["serde"]}
 dotenv = "0.15.0"
+futures = "0.3.1"
 lazy_static = "1.4.0"
 log = "0.4.11"
 openssl = "0.10.30"
