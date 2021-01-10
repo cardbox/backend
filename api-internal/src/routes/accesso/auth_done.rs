@@ -115,8 +115,7 @@ pub async fn route(
                     let viewer_get_url = {
                         let mut uri =
                             Url::parse(&config.accesso_url).expect("Failed to parse accesso_url");
-                        // TODO replace to /api/v0/viewer after https://github.com/accesso-app/backend/issues/29
-                        uri.set_path("/api/internal/viewer");
+                        uri.set_path("/api/v0/viewer");
                         uri.to_string()
                     };
 
