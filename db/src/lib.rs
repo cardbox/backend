@@ -1,3 +1,6 @@
+#![deny(warnings)]
+#![forbid(unsafe_code)]
+
 #[macro_use]
 pub extern crate diesel;
 

@@ -104,13 +104,13 @@ mod impl_user {
             pub last_name: String,
         }
 
-        impl Into<models::User> for User {
-            fn into(self) -> models::User {
-                models::User {
-                    id: self.id,
-                    accesso_id: self.accesso_id,
-                    first_name: self.first_name,
-                    last_name: self.last_name,
+        impl From<User> for models::User {
+            fn from(user: User) -> Self {
+                Self {
+                    id: user.id,
+                    accesso_id: user.accesso_id,
+                    first_name: user.first_name,
+                    last_name: user.last_name,
                 }
             }
         }
@@ -220,12 +220,12 @@ mod impl_access_token {
             pub expires_at: chrono::NaiveDateTime,
         }
 
-        impl Into<models::SessionToken> for SessionToken {
-            fn into(self) -> models::SessionToken {
-                models::SessionToken {
-                    user_id: self.user_id,
-                    token: self.token,
-                    expires_at: self.expires_at,
+        impl From<SessionToken> for models::SessionToken {
+            fn from(token: SessionToken) -> Self {
+                Self {
+                    user_id: token.user_id,
+                    token: token.token,
+                    expires_at: token.expires_at,
                 }
             }
         }

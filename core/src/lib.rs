@@ -1,3 +1,6 @@
+#![deny(warnings)]
+#![forbid(unsafe_code)]
+
 pub mod app;
 pub mod generator;
 pub mod models;
