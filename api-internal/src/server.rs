@@ -44,7 +44,7 @@ pub async fn create_server(config: Config) -> std::io::Result<()> {
     let database_url = config.database_url.clone();
     let bind_address = config.bind_address.clone();
     let app = cardbox_core::App {
-        db: Database::new(database_url).expect("Failed to create database"),
+        db: Database::new(&database_url).await.expect("Failed to create database"),
         generator: cardbox_generator::Generator::new(),
     };
 

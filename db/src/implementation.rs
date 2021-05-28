@@ -1,14 +1,12 @@
-use crate::schema::*;
+use crate::Error;
 use async_trait::async_trait;
 use cardbox_core::{models, repo};
-use diesel::pg::PgConnection;
-use diesel::prelude::*;
-use diesel::r2d2::ConnectionManager;
 use repo::{RepoResult, UnexpectedError};
+use sqlx::pool::PoolConnection;
+use sqlx::Postgres;
 use uuid::Uuid;
 
-type Connection = r2d2::PooledConnection<ConnectionManager<PgConnection>>;
-type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
+type DbPool = sqlx::PgPool;
 
 #[derive(Clone)]
 pub struct Database {
@@ -16,74 +14,99 @@ pub struct Database {
 }
 
 impl Database {
-    pub fn new(connection_url: String) -> Result<Self, r2d2::Error> {
-        let manager = ConnectionManager::<PgConnection>::new(connection_url);
-        let pool = r2d2::Pool::builder().build(manager)?;
+    pub async fn new(connection_url: &str) -> Result<Self, Error> {
+        let pool = DbPool::connect(connection_url).await?;
 
         Ok(Self { pool })
     }
 
     /// Waits for at most the configured connection timeout before returning an
     /// error.
-    pub fn conn(&self) -> Connection {
-        self.pool.get().expect("Database connection timeout")
+    pub async fn conn(&self) -> Result<PoolConnection<Postgres>, Error> {
+        self.pool.acquire().await.map_err(Into::into)
     }
 }
 
 mod impl_user {
     use super::*;
     use repo::{UserCreate, UserCreateError, UserRepo};
+    use sqlx::postgres::PgDatabaseError;
 
     #[async_trait]
     impl UserRepo for Database {
         async fn find_by_id(&self, user_id: Uuid) -> RepoResult<Option<models::User>> {
-            let conn = self.conn();
-
-            users::table
-                .filter(users::id.eq(user_id))
-                .get_result::<map::User>(&conn)
-                .map(Into::into)
-                .optional()
-                .map_err(diesel_to_unexpected)
+            sqlx::query_as!(
+                map::User,
+                "SELECT id, accesso_id, first_name, last_name FROM users WHERE id = $1",
+                user_id
+            )
+            .fetch_optional(&self.pool)
+            .await
+            .map_err(sqlx_to_unexpected)
+            .map(|opt| opt.map(Into::into))
         }
 
         async fn find_by_accesso(&self, accesso_id: Uuid) -> RepoResult<Option<models::User>> {
-            let conn = self.conn();
-
-            users::table
-                .filter(users::accesso_id.eq(accesso_id))
-                .get_result::<map::User>(&conn)
-                .map(Into::into)
-                .optional()
-                .map_err(diesel_to_unexpected)
+            sqlx::query_as!(
+                map::User,
+                "SELECT id, accesso_id, first_name, last_name FROM users WHERE accesso_id = $1",
+                accesso_id
+            )
+            .fetch_optional(&self.pool)
+            .await
+            .map_err(sqlx_to_unexpected)
+            .map(|opt| opt.map(Into::into))
         }
 
         async fn save(&mut self, user: models::User) -> RepoResult<models::User> {
-            let conn = self.conn();
-
-            diesel::update(users::table.find(user.id))
-                .set(map::User::from(user))
-                .get_result::<map::User>(&conn)
-                .map(Into::into)
-                .map_err(diesel_to_unexpected)
+            sqlx::query!(
+                r#"
+                    UPDATE users SET
+                    id = $1,
+                    accesso_id = $2,
+                    first_name = $3,
+                    last_name = $4
+                    WHERE id = $1
+                "#,
+                &user.id,
+                &user.accesso_id,
+                &user.first_name,
+                &user.last_name
+            )
+            .execute(&self.pool)
+            .await
+            .map_err(sqlx_to_unexpected)?;
+            Ok(user)
         }
 
         async fn create(&mut self, user: UserCreate) -> Result<models::User, UserCreateError> {
-            let conn = self.conn();
-
-            diesel::insert_into(users::table)
-                .values(map::UserNew::from(user))
-                .get_result::<map::User>(&conn)
-                .map(Into::into)
-                .map_err(diesel_to_user_create_error)
+            sqlx::query_as!(
+                map::User,
+                r#"
+                    INSERT INTO users (accesso_id, first_name, last_name)
+                    VALUES ($1, $2, $3)
+                    RETURNING id, accesso_id, first_name, last_name
+                "#,
+                &user.accesso_id,
+                &user.first_name,
+                &user.last_name
+            )
+            .fetch_one(&self.pool)
+            .await
+            .map(Into::into)
+            .map_err(sqlx_to_user_create_error)
         }
     }
 
-    fn diesel_to_user_create_error(error: diesel::result::Error) -> UserCreateError {
-        use diesel::result::{DatabaseErrorKind, Error as DieselError};
+    fn sqlx_to_user_create_error(error: sqlx::Error) -> UserCreateError {
+        use sqlx::error::Error;
         match error {
-            DieselError::DatabaseError(DatabaseErrorKind::UniqueViolation, _) => {
-                UserCreateError::UserAlreadyExists
+            Error::Database(e) => {
+                let pg_error = e.downcast_ref::<PgDatabaseError>();
+                match pg_error.message() {
+                    "unique_violation" => UserCreateError::UserAlreadyExists,
+                    _ => UserCreateError::UnexpectedFailure,
+                }
             }
             failure => {
                 log::error!(target: "services/database", "Unable to create user {:?}", failure);
@@ -93,10 +116,9 @@ mod impl_user {
     }
 
     mod map {
-        use crate::schema::users;
         use cardbox_core::{models, repo};
 
-        #[derive(Identifiable, Insertable, Queryable, AsChangeset)]
+        #[derive(sqlx::FromRow, Debug)]
         pub struct User {
             pub id: uuid::Uuid,
             pub accesso_id: uuid::Uuid,
@@ -126,8 +148,7 @@ mod impl_user {
             }
         }
 
-        #[derive(Insertable)]
-        #[table_name = "users"]
+        #[derive(sqlx::FromRow)]
         pub struct UserNew {
             pub accesso_id: uuid::Uuid,
             pub first_name: String,
@@ -153,67 +174,66 @@ mod impl_access_token {
     #[async_trait]
     impl SessionTokenRepo for Database {
         async fn delete_by_user(&mut self, user_id: Uuid) -> RepoResult<u16> {
-            let conn = self.conn();
-
-            diesel::delete(session_tokens::table)
-                .filter(session_tokens::user_id.eq(user_id))
-                .execute(&conn)
-                .map(|count| count as u16)
-                .map_err(diesel_to_unexpected)
+            sqlx::query!("DELETE FROM session_tokens WHERE user_id = $1", user_id)
+                .execute(&self.pool)
+                .await
+                .map(|query_result| query_result.rows_affected() as u16)
+                .map_err(sqlx_to_unexpected)
         }
 
         async fn delete(&mut self, token: String) -> RepoResult<u16> {
-            let conn = self.conn();
-
-            diesel::delete(session_tokens::table)
-                .filter(session_tokens::token.eq(token))
-                .execute(&conn)
-                .map(|count| count as u16)
-                .map_err(diesel_to_unexpected)
+            sqlx::query!("DELETE FROM session_tokens WHERE token = $1", token)
+                .execute(&self.pool)
+                .await
+                .map(|query_result| query_result.rows_affected() as u16)
+                .map_err(sqlx_to_unexpected)
         }
 
         async fn find_by_token(&self, token: String) -> RepoResult<Option<models::SessionToken>> {
-            let conn = self.conn();
-
-            session_tokens::table
-                .filter(session_tokens::token.eq(token))
-                .get_result::<map::SessionToken>(&conn)
-                .map(Into::into)
-                .optional()
-                .map_err(diesel_to_unexpected)
+            sqlx::query_as!(
+                map::SessionToken,
+                "SELECT user_id, token, expires_at FROM session_tokens WHERE token = $1",
+                token
+            )
+            .fetch_optional(&self.pool)
+            .await
+            .map_err(sqlx_to_unexpected)
+            .map(|opt| opt.map(Into::into))
         }
 
         async fn find_by_user(&self, user_id: Uuid) -> RepoResult<Option<models::SessionToken>> {
-            let conn = self.conn();
-
-            session_tokens::table
-                .filter(session_tokens::user_id.eq(user_id))
-                .get_result::<map::SessionToken>(&conn)
-                .map(Into::into)
-                .optional()
-                .map_err(diesel_to_unexpected)
+            sqlx::query_as!(
+                map::SessionToken,
+                "SELECT user_id, token, expires_at FROM session_tokens WHERE user_id = $1",
+                user_id
+            )
+            .fetch_optional(&self.pool)
+            .await
+            .map_err(sqlx_to_unexpected)
+            .map(|opt| opt.map(Into::into))
         }
 
         async fn create(
             &mut self,
             token: models::SessionToken,
         ) -> RepoResult<models::SessionToken> {
-            let conn = self.conn();
-
-            diesel::insert_into(session_tokens::table)
-                .values(map::SessionToken::from(token))
-                .get_result::<map::SessionToken>(&conn)
-                .map(Into::into)
-                .map_err(diesel_to_unexpected)
+            sqlx::query!(
+                "INSERT INTO session_tokens VALUES ($1, $2, $3)",
+                &token.user_id,
+                &token.token,
+                &token.expires_at
+            )
+            .execute(&self.pool)
+            .await
+            .map_err(sqlx_to_unexpected)?;
+            Ok(token)
         }
     }
 
     mod map {
-        use crate::schema::session_tokens;
         use cardbox_core::models;
 
-        #[derive(Identifiable, Insertable, Queryable, AsChangeset)]
-        #[primary_key(token)]
+        #[derive(sqlx::FromRow)]
         pub struct SessionToken {
             pub user_id: uuid::Uuid,
             pub token: String,
@@ -242,7 +262,7 @@ mod impl_access_token {
     }
 }
 
-fn diesel_to_unexpected(error: diesel::result::Error) -> UnexpectedError {
+fn sqlx_to_unexpected(error: sqlx::Error) -> UnexpectedError {
     log::error!(target: "services/database", "Unexpected error happened {:?}", error);
     UnexpectedError
 }

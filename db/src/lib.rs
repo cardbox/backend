@@ -1,10 +1,8 @@
-#![deny(warnings)]
-#![forbid(unsafe_code)]
+// #![deny(warnings)]
+// #![forbid(unsafe_code)]
 
-#[macro_use]
-pub extern crate diesel;
-
+mod error;
 mod implementation;
-pub mod schema;
 
+pub use error::Error;
 pub use implementation::Database;
