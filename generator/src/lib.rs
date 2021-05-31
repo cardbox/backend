@@ -1,4 +1,7 @@
-#[derive(Clone)]
+#![deny(warnings)]
+#![forbid(unsafe_code)]
+
+#[derive(Clone, Default)]
 pub struct Generator {}
 
 impl Generator {
@@ -14,6 +17,7 @@ impl cardbox_core::generator::Generator for Generator {
 
         thread_rng()
             .sample_iter(&Alphanumeric)
+            .map(char::from)
             .take(length as usize)
             .collect()
     }

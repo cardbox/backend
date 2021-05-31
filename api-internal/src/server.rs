@@ -1,4 +1,5 @@
 use super::routes::{self, AnswerFailure, FailureCode};
+use actix_http::Response;
 use actix_web::{error, middleware, web, App, HttpResponse, HttpServer};
 use cardbox_db::Database;
 use std::sync::Arc;
@@ -23,8 +24,8 @@ pub struct ConfigSession {
     pub http_only: bool,
 }
 
-pub fn create_request_client(config: &Config) -> actix_web::client::Client {
-    use actix_web::client::{Client, Connector};
+pub fn create_request_client(config: &Config) -> awc::Client {
+    use awc::{Client, Connector};
     use openssl::ssl::{SslConnector, SslMethod, SslVerifyMode};
 
     let mut builder = SslConnector::builder(SslMethod::tls()).unwrap();
@@ -34,9 +35,9 @@ pub fn create_request_client(config: &Config) -> actix_web::client::Client {
         SslVerifyMode::NONE
     });
 
-    Client::build()
-        .connector(Connector::new().ssl(builder.build()).finish())
-        .finish()
+    let connector = Connector::new().ssl(builder.build());
+
+    Client::builder().connector(connector).finish()
 }
 
 pub async fn create_server(config: Config) -> std::io::Result<()> {
@@ -68,10 +69,10 @@ pub async fn create_server(config: Config) -> std::io::Result<()> {
                 let error_message = format!("{}", err);
                 error::InternalError::from_response(
                     err,
-                    HttpResponse::BadRequest().json(AnswerFailure {
+                    Response::from(HttpResponse::BadRequest().json(AnswerFailure {
                         error: FailureCode::InvalidPayload,
                         message: Some(error_message),
-                    }),
+                    })),
                 )
                 .into()
             }))
@@ -79,10 +80,10 @@ pub async fn create_server(config: Config) -> std::io::Result<()> {
                 let error_message = format!("{}", err);
                 error::InternalError::from_response(
                     err,
-                    HttpResponse::BadRequest().json(AnswerFailure {
+                    Response::from(HttpResponse::BadRequest().json(AnswerFailure {
                         error: FailureCode::InvalidQueryParams,
                         message: Some(error_message),
-                    }),
+                    })),
                 )
                 .into()
             }))

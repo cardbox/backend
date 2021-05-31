@@ -29,7 +29,7 @@ impl SessionToken {
     }
 
     pub fn expires_at(&self) -> chrono::NaiveDateTime {
-        self.expires_at.clone()
+        self.expires_at
     }
 
     /// Check, is session token expired from current time

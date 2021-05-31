@@ -66,13 +66,3 @@ impl From<repo::UnexpectedError> for UpdateUserFailure {
         UpdateUserFailure::Unexpected
     }
 }
-
-impl Into<repo::UserCreate> for UserInfo {
-    fn into(self) -> repo::UserCreate {
-        repo::UserCreate {
-            accesso_id: self.accesso_id,
-            first_name: self.first_name,
-            last_name: self.last_name,
-        }
-    }
-}

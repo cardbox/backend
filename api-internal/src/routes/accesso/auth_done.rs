@@ -121,7 +121,7 @@ pub async fn route(
 
                     let result = client
                         .get(viewer_get_url)
-                        .set_header("X-Access-Token", access_token)
+                        .insert_header(("X-Access-Token", access_token))
                         .send()
                         .await
                         .expect("sent request")
@@ -160,14 +160,13 @@ pub async fn route(
                                         session_token.token(),
                                     )
                                     // TODO: extract to function or Trait
-                                    .expires(time::at(time::Timespec::new(
+                                    .expires(time::OffsetDateTime::from_unix_timestamp(
                                         chrono::DateTime::<chrono::Utc>::from_utc(
                                             session_token.expires_at(),
                                             chrono::Utc,
                                         )
                                         .timestamp(),
-                                        0,
-                                    )))
+                                    ))
                                     .path(config_session.path.clone())
                                     .secure(config_session.secure)
                                     .http_only(config_session.http_only)

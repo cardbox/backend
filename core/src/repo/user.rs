@@ -1,7 +1,8 @@
 use super::{RepoResult, UnexpectedError};
-use crate::models;
+use crate::{models, app};
 use async_trait::async_trait;
 use uuid::Uuid;
+use crate::app::UserInfo;
 
 #[async_trait]
 pub trait UserRepo {
@@ -15,6 +16,16 @@ pub struct UserCreate {
     pub accesso_id: Uuid,
     pub first_name: String,
     pub last_name: String,
+}
+
+impl From<app::UserInfo> for UserCreate {
+    fn from(info: UserInfo) -> Self {
+        Self {
+            accesso_id: info.accesso_id,
+            first_name: info.first_name,
+            last_name: info.last_name,
+        }
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Eq)]

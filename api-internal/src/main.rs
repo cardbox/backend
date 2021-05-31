@@ -1,3 +1,6 @@
+#![deny(warnings)]
+#![forbid(unsafe_code)]
+
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -34,24 +37,24 @@ async fn main() -> std::io::Result<()> {
     if is_dev {
         log::info!("api-internal run in DEVELOPMENT MODE");
     } else {
-        println!("==> Be careful! api-internal in PRODUCTION MODE");
+        log::info!("==> Be careful! api-internal in PRODUCTION MODE");
     }
 
     server::create_server(server::Config {
+        accesso_client_id,
+        accesso_client_secret,
+        accesso_redirect_back_url,
+        accesso_url,
         bind_address,
         database_url,
-        accesso_url,
-        accesso_client_id,
-        accesso_redirect_back_url,
-        accesso_client_secret,
-        openssl_validate,
+        openssl_validate
     })
     .await
 }
 
 #[inline]
 fn read_var<T: AsRef<str>>(name: T) -> String {
-    std::env::var(name.as_ref()).expect(name.as_ref())
+    std::env::var(name.as_ref()).unwrap_or_else(|_| panic!("{}", name.as_ref()))
 }
 
 #[inline]
