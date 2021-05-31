@@ -8,7 +8,7 @@ version = "0.1.0"
 
 [dependencies]
 async-trait = "0.1.50"
-actix-web = { version = "4.0.0-beta.6", default-features = false, features = [] }
+actix-web = { version = "4.0.0-beta.6", default-features = false, features = ["cookies"] }
 chrono = { version = "0.4.19", features = ["std"] }
 serde = { version = "1.0.126", features = ["derive"] }
 time = "0.2.26"
@@ -22,3 +22,4 @@ log = "0.4.14"
 [dev-dependencies]
 insta = "1.7.1"
 mockall = "0.9.1"
+actix-rt = "2.2.0"
