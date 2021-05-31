@@ -1,8 +1,8 @@
 use super::{RepoResult, UnexpectedError};
-use crate::{models, app};
+use crate::app::UserInfo;
+use crate::{app, models};
 use async_trait::async_trait;
 use uuid::Uuid;
-use crate::app::UserInfo;
 
 #[async_trait]
 pub trait UserRepo {
