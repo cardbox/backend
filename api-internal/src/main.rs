@@ -47,7 +47,7 @@ async fn main() -> std::io::Result<()> {
         accesso_url,
         bind_address,
         database_url,
-        openssl_validate
+        openssl_validate,
     })
     .await
 }

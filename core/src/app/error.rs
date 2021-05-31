@@ -1,12 +1,12 @@
-use thiserror::Error;
-use actix_web::ResponseError;
 use actix_web::http::StatusCode;
+use actix_web::ResponseError;
+use thiserror::Error;
 
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum SessionTokenExtractorError {
     #[error("No session token present in cookie")]
-    NoSessionToken
+    NoSessionToken,
 }
 
 impl ResponseError for SessionTokenExtractorError {
