@@ -1,4 +1,4 @@
-FROM debian:9-slim
+FROM debian:buster-slim
 
 RUN seq 1 8 | xargs -I{} mkdir -p /usr/share/man/man{} && \
     apt update && \
@@ -6,4 +6,4 @@ RUN seq 1 8 | xargs -I{} mkdir -p /usr/share/man/man{} && \
     update-ca-certificates && \
     apt clean
 
-LABEL version=1.2
+LABEL version=1.3
