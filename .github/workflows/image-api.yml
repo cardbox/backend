@@ -122,7 +122,7 @@ jobs:
     steps:
       - name: Trigger deploy to Dev
         if: github.ref == 'refs/heads/master'
-        uses: peter-evans/repository-dispatch@dv1
+        uses: peter-evans/repository-dispatch@v1
         with:
           token: ${{ secrets.TRIGGER_DEPLOY_TOKEN }}
           repository: cardbox/releases
