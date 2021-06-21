@@ -1,0 +1,304 @@
+openapi: '3.0.2'
+info:
+  title: Cardbox API Internal
+  description: |-
+    API for service's base logic implementation
+
+    **NOTE:** If you have idea to simplify API - simplify it =)
+
+    ## General
+
+    - Supposed to use standard HTTP methods (GET, POST, PUT, PATCH, DELETE)
+
+    - There is specified `{ data: ..., ... }` response format for future expandability
+
+    - For a while there is no need to return error messages. They will be generated on client from error codes
+
+        - But later - we should add this functionality from API
+  version: '1.0'
+servers:
+  - url: https://dev-api.cardbox.ru/api/v1
+
+paths:
+  /card:
+    post:
+      tags:
+        - Cards
+      summary: Create card
+      operationId: createCard
+      requestBody:
+        description: |-
+          - author = AuthToken
+          - createdAt = DateTime.Now()
+          - updatedAt = DateTime.Now()
+        content:
+          application/json:
+            schema:
+              properties:
+                title:
+                  type: string
+                content:
+                  type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        201:
+          description: OK
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Card'
+        400:
+          description: Invalid request. Please check data
+        403:
+          description: Not enough permissions
+    get:
+      summary: Get cards list
+      operationId: getCardsList
+      tags:
+        - Cards
+      description: |-
+        Common endpoint for few usecases:
+        1. **Personal cards**
+            - `GET /api/v1/card?authorId={USER_ID}`
+
+        2. **Search cards**
+            - `GET /api/v1/card?search={SEARCH_TERM}`
+            - By title, content, tags (and maybe by author)
+
+        - `TODO:` Add later pagination
+
+        - `TODO:` Maybe there is should be OData-like format instead of partial params
+
+        - `TODO:` Add later access control for card by it's visibilty and user permissions
+      parameters:
+        - name: search
+          in: query
+          
+          description: Full-text search
+          required: false
+          schema:
+            type: string
+        - name: authorId
+          in: query
+          description: Search by author / Get personal cards
+          required: false
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Card'
+                  total:
+                    type: integer
+        400:
+          description: Invalid params supplied
+  /card/{cardId}:
+    get:
+      summary: Get card
+      operationId: getCard
+      tags:
+        - Cards
+      parameters:
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Card'
+        400:
+          description: Invalid params supplied
+        404:
+          description: Card not found
+    put:
+      tags:
+        - Cards
+      summary: Update card
+      description: |-
+          `IMPORTANT:` There is should be check that user has required permissions for editing card
+            - **For prototype**: that he is card's author
+      operationId: updateCard
+      parameters:
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        description: |-
+          - Not all properties are required (title, content, tags)
+          - author = AuthToken
+          - createdAt = DateTime.Now()
+          - updatedAt = DateTime.Now()
+        content:
+          application/json:
+            schema:
+              properties:
+                title:
+                  type: string
+                  nullable: true
+                content:
+                  type: string
+                  nullable: true
+                tags:
+                  type: array
+                  nullable: true
+                  items:
+                    type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Card'
+        400:
+          description: Invalid request. Please check data
+        403:
+          description: Not enough permissions
+    delete:
+      tags:
+        - Cards
+      summary: Delete card
+      operationId: deleteCard
+      parameters:
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        200:
+          description: OK
+        400:
+          description: Invalid ID supplied
+        403:
+          description: Not enough permissions
+  /card/{cardId}/add-favorite:
+    put:
+      tags:
+        - Cards
+      summary: Add card to favorites
+      operationId: addFavoriteCard
+      parameters:
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        200:
+          description: OK
+        400:
+          description: Invalid ID supplied
+        403:
+          description: Not enough permissions
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID
+        username:
+          type: string
+        firstName:
+          type: string
+          nullable: true
+        lastName:
+          type: string
+          nullable: true
+        bio:
+          type: string
+          nullable: true
+        avatar:
+          type: string
+          nullable: true
+          description: |-
+            Later, can implement as `File` entity
+        cards:
+          type: array
+          items:
+            $ref: '#/components/schemas/Card'
+        favorites:
+          type: array
+          items:
+            $ref: '#/components/schemas/Card'
+        socials:
+          type: object
+          properties:
+            github:
+              type: string
+              nullable: true
+            devto:
+              type: string
+              nullable: true
+            twitter:
+              type: string
+              nullable: true
+        work:
+          type: string
+          nullable: true
+          description: |-
+            Later, can implement as `Work` entity
+        roles:
+          type: array
+          items:
+            type: string
+          nullable: true
+          deprecated: true
+          description: |-
+            Later, can implement checking user permissions by `Role` entity
+    Card:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        author:
+          $ref: "#/components/schemas/User"
+        tags:
+          type: array
+          items:
+            type: string
+          description: |-
+            Later, we can create `Tag` entity 
+        summary:
+          type: string
+          nullable: true
+          deprecated: true
+          description: |-
+            Later, we can add this field
+            For custom text-overflow (instead of truncating with emphasizing)
+          
