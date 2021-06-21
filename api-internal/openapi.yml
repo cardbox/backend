@@ -20,12 +20,86 @@ servers:
   - url: https://dev-api.cardbox.ru/api/v1
 
 paths:
-  /card:
+  /card/list:
+    post:
+      summary: Get cards list
+      operationId: cardsList
+      tags:
+        - Cards
+      description: |-
+        Common endpoint for few usecases:
+        1. **Personal cards**
+            - `POST /api/v1/card/list '{"authorId": USER_ID}'`
+
+        2. **Search cards**
+            - `POST /api/v1/card/list '{"search": SEARCH_TERM}'`
+            - By title, content, tags (and maybe by author)
+
+        - `TODO:` Add later pagination
+
+        - `TODO:` Maybe there is should be OData-like format instead of partial params
+
+        - `TODO:` Add later access control for card by it's visibilty and user permissions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                search:
+                  type: string
+                  description: Full-text search
+                  nullable: true
+                authorId:
+                  type: integer
+                  description: Search by author / Get personal cards
+                  nullable: true
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Card'
+                  total:
+                    type: integer
+        400:
+          description: Invalid params supplied
+  /card/get:
+    post:
+      summary: Get card
+      operationId: cardGet
+      tags:
+        - Cards
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                cardId:
+                  type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Card'
+        400:
+          description: Invalid params supplied
+        404:
+          description: Card not found
+  /card/create:
     post:
       tags:
         - Cards
       summary: Create card
-      operationId: createCard
+      operationId: cardCreate
       requestBody:
         description: |-
           - author = AuthToken
@@ -56,93 +130,15 @@ paths:
           description: Invalid request. Please check data
         403:
           description: Not enough permissions
-    get:
-      summary: Get cards list
-      operationId: getCardsList
-      tags:
-        - Cards
-      description: |-
-        Common endpoint for few usecases:
-        1. **Personal cards**
-            - `GET /api/v1/card?authorId={USER_ID}`
-
-        2. **Search cards**
-            - `GET /api/v1/card?search={SEARCH_TERM}`
-            - By title, content, tags (and maybe by author)
-
-        - `TODO:` Add later pagination
-
-        - `TODO:` Maybe there is should be OData-like format instead of partial params
-
-        - `TODO:` Add later access control for card by it's visibilty and user permissions
-      parameters:
-        - name: search
-          in: query
-          
-          description: Full-text search
-          required: false
-          schema:
-            type: string
-        - name: authorId
-          in: query
-          description: Search by author / Get personal cards
-          required: false
-          schema:
-            type: integer
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Card'
-                  total:
-                    type: integer
-        400:
-          description: Invalid params supplied
-  /card/{cardId}:
-    get:
-      summary: Get card
-      operationId: getCard
-      tags:
-        - Cards
-      parameters:
-        - name: cardId
-          in: path
-          required: true
-          schema:
-            type: number
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/Card'
-        400:
-          description: Invalid params supplied
-        404:
-          description: Card not found
-    put:
+  /card/update:
+    post:
       tags:
         - Cards
       summary: Update card
       description: |-
           `IMPORTANT:` There is should be check that user has required permissions for editing card
             - **For prototype**: that he is card's author
-      operationId: updateCard
-      parameters:
-        - name: cardId
-          in: path
-          required: true
-          schema:
-            type: number
+      operationId: cardUpdate
       requestBody:
         description: |-
           - Not all properties are required (title, content, tags)
@@ -153,6 +149,8 @@ paths:
           application/json:
             schema:
               properties:
+                cardId:
+                  type: integer
                 title:
                   type: string
                   nullable: true
@@ -177,17 +175,19 @@ paths:
           description: Invalid request. Please check data
         403:
           description: Not enough permissions
-    delete:
+  /card/delete:
+    post:
       tags:
         - Cards
       summary: Delete card
-      operationId: deleteCard
-      parameters:
-        - name: cardId
-          in: path
-          required: true
-          schema:
-            type: number
+      operationId: cardDelete
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                cardId:
+                  type: integer
       responses:
         200:
           description: OK
@@ -195,18 +195,19 @@ paths:
           description: Invalid ID supplied
         403:
           description: Not enough permissions
-  /card/{cardId}/add-favorite:
-    put:
+  /card/favourite:
+    post:
       tags:
         - Cards
       summary: Add card to favorites
-      operationId: addFavoriteCard
-      parameters:
-        - name: cardId
-          in: path
-          required: true
-          schema:
-            type: number
+      operationId: cardFavourite
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                cardId:
+                  type: integer
       responses:
         200:
           description: OK
