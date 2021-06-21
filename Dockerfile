@@ -1,19 +1,22 @@
-FROM docker.pkg.github.com/cardboxdev/backend/builder:1.46.0 as build
+FROM docker.pkg.github.com/cardbox/backend/builder:1.53.0-1.4.1 as build
 
-ARG API_NAME
 ENV USER="root"
 WORKDIR /app
 
+COPY ./resources ./resources
 COPY ./diesel.toml ./diesel.toml
 
 COPY ./Cargo.lock ./Cargo.toml ./
 COPY ./migrations ./migrations
 COPY ./db ./db
-COPY ./core ./core
+COPY ./settings ./settings
 COPY ./api-admin ./api-admin
-COPY ./api-internal ./api-internal
-COPY ./api-private ./api-private
 COPY ./api-public ./api-public
+COPY ./api-private ./api-private
+COPY ./api-internal ./api-internal
+COPY ./core ./core
+
+ARG API_NAME
 
 RUN cargo test --release --verbose --package cardbox-api-$API_NAME
 
@@ -21,7 +24,7 @@ RUN cargo build --release --package cardbox-api-$API_NAME
 
 # ----------------------------------------------------------------
 
-FROM docker.pkg.github.com/cardboxdev/backend/start-tools:1.2
+FROM docker.pkg.github.com/cardbox/backend/start-tools:1.3
 
 ARG API_NAME
 
@@ -34,6 +37,7 @@ COPY --from=build /app/target/release/cardbox-api-$API_NAME ./server
 
 COPY --from=build /app/migrations ./migrations
 COPY --from=build /app/diesel.toml ./
+COPY ./config ./config
 COPY ./docker-entrypoint.sh ./entrypoint.sh
 
 RUN chmod +x entrypoint.sh && chmod +x server
