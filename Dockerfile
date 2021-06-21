@@ -3,18 +3,18 @@ FROM docker.pkg.github.com/cardbox/backend/builder:1.53.0-1.4.1 as build
 ENV USER="root"
 WORKDIR /app
 
-COPY ./resources ./resources
 COPY ./diesel.toml ./diesel.toml
 
 COPY ./Cargo.lock ./Cargo.toml ./
 COPY ./migrations ./migrations
 COPY ./db ./db
-COPY ./settings ./settings
+# COPY ./settings ./settings
 COPY ./api-admin ./api-admin
 COPY ./api-public ./api-public
 COPY ./api-private ./api-private
 COPY ./api-internal ./api-internal
 COPY ./core ./core
+COPY ./generator ./generator  
 
 ARG API_NAME
 
