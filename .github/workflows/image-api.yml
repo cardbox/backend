@@ -64,7 +64,7 @@ jobs:
         if: steps.changes.outputs.tools == 'true'
         uses: sergeysova/docker-publish-action@master
         with:
-          image: cardboxd/backend/start-tools
+          image: cardbox/backend/start-tools
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: docker.pkg.github.com
@@ -112,7 +112,7 @@ jobs:
           snapshot: "true"
           tag_extra: latest
           tag_semver: skip
-          tag_separator: "@"d
+          tag_separator: "@"
           semver_higher: "true"
 
   deploy:
@@ -122,7 +122,7 @@ jobs:
     steps:
       - name: Trigger deploy to Dev
         if: github.ref == 'refs/heads/master'
-        uses: peter-evans/repository-dispatch@v1
+        uses: peter-evans/repository-dispatch@dv1
         with:
           token: ${{ secrets.TRIGGER_DEPLOY_TOKEN }}
           repository: cardbox/releases
