@@ -68,7 +68,7 @@ jobs:
               - 'start-tools.Dockerfile'
 
       - name: Publish Docker
-        if: steps.changes.outputs.tools == 'true' || github.event.inputs.force_rebuild == 'yes'ddddd
+        if: steps.changes.outputs.tools == 'true' || github.event.inputs.force_rebuild == 'yes'
         uses: sergeysova/docker-publish-action@master
         with:
           image: cardbox/backend/start-tools
