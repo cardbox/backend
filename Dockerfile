@@ -37,7 +37,7 @@ COPY --from=build /app/target/release/cardbox-api-$API_NAME ./server
 
 COPY --from=build /app/migrations ./migrations
 COPY --from=build /app/diesel.toml ./
-COPY ./config ./config
+# COPY ./config ./config
 COPY ./docker-entrypoint.sh ./entrypoint.sh
 
 RUN chmod +x entrypoint.sh && chmod +x server
