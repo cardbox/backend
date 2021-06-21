@@ -67,7 +67,19 @@ paths:
                   total:
                     type: integer
         400:
-          description: Invalid params supplied
+          description: CLIENT_ERROR
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  code:
+                    type: string
+                    enum:
+                      - invalid_params
+        500:
+          description: SERVER_ERROR
   /card/get:
     post:
       summary: Get card
@@ -91,9 +103,19 @@ paths:
                   data:
                     $ref: '#/components/schemas/Card'
         400:
-          description: Invalid params supplied
-        404:
-          description: Card not found
+          description: CLIENT_ERROR
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  code:
+                    type: string
+                    enum:
+                      - card_not_found
+        500:
+          description: SERVER_ERROR
   /card/create:
     post:
       tags:
@@ -118,7 +140,7 @@ paths:
                   items:
                     type: string
       responses:
-        201:
+        200:
           description: OK
           content:
             application/json:
@@ -127,9 +149,19 @@ paths:
                   data:
                     $ref: '#/components/schemas/Card'
         400:
-          description: Invalid request. Please check data
-        403:
-          description: Not enough permissions
+          description: CLIENT_ERROR
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  code:
+                    type: string
+                    enum:
+                      - invalid_payload
+        500:
+          description: SERVER_ERROR
   /card/update:
     post:
       tags:
@@ -172,9 +204,21 @@ paths:
                   data:
                     $ref: '#/components/schemas/Card'
         400:
-          description: Invalid request. Please check data
-        403:
-          description: Not enough permissions
+          description: CLIENT_ERROR
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  code:
+                    type: string
+                    enum:
+                      - card_not_found
+                      - invalid_payload
+                      - no_access
+        500:
+          description: SERVER_ERROR
   /card/delete:
     post:
       tags:
@@ -192,15 +236,27 @@ paths:
         200:
           description: OK
         400:
-          description: Invalid ID supplied
-        403:
-          description: Not enough permissions
-  /card/favourite:
+          description: CLIENT_ERROR
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  code:
+                    type: string
+                    enum:
+                      - already_deleted
+                      - card_not_found
+                      - no_access
+        500:
+          description: SERVER_ERROR
+  /card/save:
     post:
       tags:
         - Cards
       summary: Add card to favorites
-      operationId: cardFavourite
+      operationId: cardSave
       requestBody:
         content:
           application/json:
@@ -212,9 +268,22 @@ paths:
         200:
           description: OK
         400:
-          description: Invalid ID supplied
-        403:
-          description: Not enough permissions
+          description: CLIENT_ERROR
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                  code:
+                    type: string
+                    enum:
+                      - already_saved
+                      - card_not_found
+                      - no_access
+                  
+        500:
+          description: SERVER_ERROR
 components:
   schemas:
     User:
@@ -287,6 +356,9 @@ components:
         updatedAt:
           type: string
           format: date-time
+        deleted:
+          type: boolean
+          default: false
         author:
           $ref: "#/components/schemas/User"
         tags:
