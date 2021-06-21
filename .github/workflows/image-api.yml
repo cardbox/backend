@@ -15,6 +15,13 @@ on:
       - "api-internal@*"
       - "api-private@*"
       - "api-public@*"
+  
+  workflow_dispatch:
+    inputs:
+      force_rebuild:
+        description: 'Set "yes" to force rebuild images'
+        required: true
+        default: 'no'
 
 jobs:
   builder-image:
@@ -33,7 +40,7 @@ jobs:
               - 'builder.Dockerfile'
 
       - name: Publish Docker
-        if: steps.changes.outputs.builder == 'true'
+        if: steps.changes.outputs.builder == 'true' || github.event.inputs.force_rebuild == 'yes'
         uses: sergeysova/docker-publish-action@master
         with:
           image: cardbox/backend/builder
@@ -61,7 +68,7 @@ jobs:
               - 'start-tools.Dockerfile'
 
       - name: Publish Docker
-        if: steps.changes.outputs.tools == 'true'
+        if: steps.changes.outputs.tools == 'true' || github.event.inputs.force_rebuild == 'yes'ddddd
         uses: sergeysova/docker-publish-action@master
         with:
           image: cardbox/backend/start-tools
@@ -101,7 +108,7 @@ jobs:
               - 'Dockerfile'
 
       - name: Publish Docker image
-        if: steps.changes.outputs.source == 'true'
+        if: steps.changes.outputs.source == 'true' || github.event.inputs.force_rebuild == 'yes'
         uses: sergeysova/docker-publish-action@v1
         with:
           image: cardbox/backend/api-${{ matrix.api }}
