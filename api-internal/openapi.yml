@@ -1,23 +1,14 @@
-openapi: '3.0.2'
+openapi: 3.0.2
 info:
   title: Cardbox API Internal
-  description: |-
-    API for service's base logic implementation
-
-    **NOTE:** If you have idea to simplify API - simplify it =)
-
-    ## General
-
-    - Supposed to use standard HTTP methods (GET, POST, PUT, PATCH, DELETE)
-
-    - There is specified `{ data: ..., ... }` response format for future expandability
-
-    - For a while there is no need to return error messages. They will be generated on client from error codes
-
-        - But later - we should add this functionality from API
-  version: '1.0'
+  description: API for the main frontend application.
+  version: 0.1.0
+externalDocs:
+  description: Source code
+  url: https://github.com/cardbox/backend/tree/master/api-internal
 servers:
   - url: http://localhost:9020/
+  - url: https://cardbox.local/api/internal
   - url: https://cardbox.sova.dev/api/internal
 
 paths:
@@ -36,7 +27,7 @@ paths:
             - `POST /api/v1/card/list '{"search": SEARCH_TERM}'`
             - By title, content, tags (and maybe by author)
 
-        - `TODO:` Add later pagination
+        - `TODO:` Add pagination later
 
         - `TODO:` Maybe there is should be OData-like format instead of partial params
 
