@@ -17,7 +17,8 @@ info:
         - But later - we should add this functionality from API
   version: '1.0'
 servers:
-  - url: https://dev-api.cardbox.ru/api/v1
+  - url: http://localhost:9020/
+  - url: https://cardbox.sova.dev/api/internal
 
 paths:
   /cards.list:
