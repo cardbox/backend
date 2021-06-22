@@ -20,7 +20,7 @@ servers:
   - url: https://dev-api.cardbox.ru/api/v1
 
 paths:
-  /card/list:
+  /cards.list:
     post:
       summary: Get cards list
       operationId: cardsList
@@ -48,19 +48,19 @@ paths:
                 search:
                   type: string
                   description: Full-text search
-                  nullable: true
                 authorId:
-                  type: integer
+                  type: string
+                  format: uuid
                   description: Search by author / Get personal cards
-                  nullable: true
       responses:
         200:
           description: OK
           content:
             application/json:
               schema:
+                required: [cards, total]
                 properties:
-                  data:
+                  cards:
                     type: array
                     items:
                       $ref: '#/components/schemas/Card'
@@ -71,57 +71,63 @@ paths:
           content:
             application/json:
               schema:
+                required: [error, code]
                 properties:
                   error:
-                    type: string
+                    type: boolean
                   code:
                     type: string
                     enum:
                       - invalid_params
         500:
           description: SERVER_ERROR
-  /card/get:
+  /cards.get:
     post:
       summary: Get card
-      operationId: cardGet
+      operationId: cardsGet
       tags:
         - Cards
       requestBody:
         content:
           application/json:
             schema:
+              required: [cardId]
               properties:
                 cardId:
-                  type: integer
+                  type: string
+                  format: uuid
+
       responses:
         200:
           description: OK
           content:
             application/json:
               schema:
+                required: [card]
                 properties:
-                  data:
+                  card:
                     $ref: '#/components/schemas/Card'
         400:
           description: CLIENT_ERROR
           content:
             application/json:
               schema:
+                required: [error, code]
                 properties:
                   error:
-                    type: string
+                    type: boolean
                   code:
                     type: string
                     enum:
                       - card_not_found
         500:
           description: SERVER_ERROR
-  /card/create:
+  /cards.create:
     post:
       tags:
         - Cards
       summary: Create card
-      operationId: cardCreate
+      operationId: cardsCreate
       requestBody:
         description: |-
           - author = AuthToken
@@ -130,11 +136,12 @@ paths:
         content:
           application/json:
             schema:
+              required: [title, content]
               properties:
                 title:
                   type: string
                 content:
-                  type: string
+                  type: object
                 tags:
                   type: array
                   items:
@@ -145,24 +152,27 @@ paths:
           content:
             application/json:
               schema:
+                required: [card]
                 properties:
-                  data:
+                  card:
                     $ref: '#/components/schemas/Card'
         400:
           description: CLIENT_ERROR
           content:
             application/json:
               schema:
+                required: [error, code]
                 properties:
                   error:
-                    type: string
+                    type: boolean
                   code:
                     type: string
                     enum:
-                      - invalid_payload
+                      - empty_title
+                      - invalid_content
         500:
           description: SERVER_ERROR
-  /card/update:
+  /cards.edit:
     post:
       tags:
         - Cards
@@ -170,7 +180,7 @@ paths:
       description: |-
           `IMPORTANT:` There is should be check that user has required permissions for editing card
             - **For prototype**: that he is card's author
-      operationId: cardUpdate
+      operationId: cardsEdit
       requestBody:
         description: |-
           - Not all properties are required (title, content, tags)
@@ -180,18 +190,17 @@ paths:
         content:
           application/json:
             schema:
+              required: [cardId]
               properties:
                 cardId:
-                  type: integer
+                  type: string
+                  format: uuid
                 title:
                   type: string
-                  nullable: true
                 content:
-                  type: string
-                  nullable: true
+                  type: object
                 tags:
                   type: array
-                  nullable: true
                   items:
                     type: string
       responses:
@@ -200,17 +209,19 @@ paths:
           content:
             application/json:
               schema:
+                required: [card]
                 properties:
-                  data:
+                  card:
                     $ref: '#/components/schemas/Card'
         400:
           description: CLIENT_ERROR
           content:
             application/json:
               schema:
+                required: [error, code]
                 properties:
                   error:
-                    type: string
+                    type: boolean
                   code:
                     type: string
                     enum:
@@ -219,19 +230,21 @@ paths:
                       - no_access
         500:
           description: SERVER_ERROR
-  /card/delete:
+  /cards.delete:
     post:
       tags:
         - Cards
       summary: Delete card
-      operationId: cardDelete
+      operationId: cardsDelete
       requestBody:
         content:
           application/json:
             schema:
+              required: [cardId]
               properties:
                 cardId:
-                  type: integer
+                  type: string
+                  format: uuid
       responses:
         200:
           description: OK
@@ -240,41 +253,48 @@ paths:
           content:
             application/json:
               schema:
+                required: [error, code]
                 properties:
                   error:
-                    type: string
+                    type: boolean
                   code:
                     type: string
                     enum:
-                      - already_deleted
                       - card_not_found
                       - no_access
         500:
           description: SERVER_ERROR
-  /card/save:
+  /cards.save:
     post:
       tags:
         - Cards
       summary: Add card to favorites
-      operationId: cardSave
+      operationId: cardsSave
       requestBody:
         content:
           application/json:
             schema:
+              required: [cardId]
               properties:
                 cardId:
-                  type: integer
+                  type: string
+                  format: uuid
       responses:
         200:
           description: OK
+          content:
+            application/json:
+              schema:
+                type: object
         400:
           description: CLIENT_ERROR
           content:
             application/json:
               schema:
+                required: [error, code]
                 properties:
                   error:
-                    type: string
+                    type: boolean
                   code:
                     type: string
                     enum:
@@ -288,18 +308,18 @@ components:
   schemas:
     User:
       type: object
+      required: [id, username, firstName, lastName, bio, avatar]
       properties:
         id:
-          type: integer
+          type: string
+          format: uuid
           description: ID
         username:
           type: string
         firstName:
           type: string
-          nullable: true
         lastName:
           type: string
-          nullable: true
         bio:
           type: string
           nullable: true
@@ -343,22 +363,21 @@ components:
             Later, can implement checking user permissions by `Role` entity
     Card:
       type: object
+      required: [id, content, title, createdAt, updatedAt, author, tags]
       properties:
         id:
-          type: integer
+          type: string
+          format: uuid
         title:
           type: string
         content:
-          type: string
+          type: object
         createdAt:
           type: string
           format: date-time
         updatedAt:
           type: string
           format: date-time
-        deleted:
-          type: boolean
-          default: false
         author:
           $ref: "#/components/schemas/User"
         tags:
