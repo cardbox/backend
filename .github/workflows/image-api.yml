@@ -1,29 +1,27 @@
 name: API Docker Image CI
 
 on:
+  pull_request:
+    branches:
+      - master
+      - dev
+
   push:
     branches:
       - master
       - dev
-    paths:
-      - ".github/workflows/image-api.yml"
-      - "db/**"
-      - "core/**"
-      - "migrations/**"
-      - "api-admin/**"
-      - "api-internal/**"
-      - "api-private/**"
-      - "api-public/**"
-      - "docker-entrypoint.sh"
-      - "Dockerfile"
-      - "builder.Dockerfile"
-      - "start-tools.Dockerfile"
-      - "Cargo.lock"
     tags:
       - "api-admin@*"
       - "api-internal@*"
       - "api-private@*"
       - "api-public@*"
+  
+  workflow_dispatch:
+    inputs:
+      force_rebuild:
+        description: 'Set "yes" to force rebuild images'
+        required: true
+        default: 'no'
 
 jobs:
   builder-image:
@@ -32,15 +30,26 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Detect changes
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          list-files: none
+          filters: |
+            builder:
+              - 'builder.Dockerfile'
+
       - name: Publish Docker
+        if: steps.changes.outputs.builder == 'true' || github.event.inputs.force_rebuild == 'yes'
         uses: sergeysova/docker-publish-action@master
         with:
-          image: cardboxdev/backend/builder
+          image: cardbox/backend/builder
           registry: docker.pkg.github.com
           username: sergeysova
           password: ${{ secrets.GITHUB_TOKEN }}
           dockerfile: builder.Dockerfile
           tag_from_label: version
+          tag_separator: "@"
           cache: true
 
   start-tools-image:
@@ -49,15 +58,26 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Detect changes
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          list-files: none
+          filters: |
+            tools:
+              - 'start-tools.Dockerfile'
+
       - name: Publish Docker
+        if: steps.changes.outputs.tools == 'true' || github.event.inputs.force_rebuild == 'yes'
         uses: sergeysova/docker-publish-action@master
         with:
-          image: cardboxdev/backend/start-tools
+          image: cardbox/backend/start-tools
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: docker.pkg.github.com
           dockerfile: start-tools.Dockerfile
           tag_from_label: version
+          tag_separator: "@"
           cache: true
 
   api-image:
@@ -72,10 +92,26 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Publish Docker
+      - name: Detect changes
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          list-files: none
+          filters: |
+            source:
+              - 'api-${{ matrix.api }}/**'
+              - 'core/**'
+              - 'db/**'
+              - 'resources/**'
+              - 'Cargo.lock'
+              - 'Cargo.toml'
+              - 'Dockerfile'
+
+      - name: Publish Docker image
+        if: steps.changes.outputs.source == 'true' || github.event.inputs.force_rebuild == 'yes'
         uses: sergeysova/docker-publish-action@v1
         with:
-          image: cardboxdev/backend/api-${{ matrix.api }}
+          image: cardbox/backend/api-${{ matrix.api }}
           registry: docker.pkg.github.com
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
@@ -86,10 +122,15 @@ jobs:
           tag_separator: "@"
           semver_higher: "true"
 
+  deploy:
+    name: Trigger deploy to DEV
+    runs-on: ubuntu-latest
+    needs: [api-image]
+    steps:
       - name: Trigger deploy to Dev
+        if: github.ref == 'refs/heads/master'
         uses: peter-evans/repository-dispatch@v1
         with:
           token: ${{ secrets.TRIGGER_DEPLOY_TOKEN }}
-          repository: cardboxdev/releases
+          repository: cardbox/releases
           event-type: deploy-dev
-          client-payload: '{"github": ${{ toJson(github) }}}'

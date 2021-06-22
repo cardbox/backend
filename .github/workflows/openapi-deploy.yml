@@ -1,0 +1,63 @@
+name: OpenAPI Deploy
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "api-*/openapi.yaml"
+      - ".github/workflows/openapi-deploy.yml"
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        api: [admin, internal, public, private]
+
+    name: build docs for api-${{ matrix.api }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Generate OpenAPI UI
+        uses: Legion2/swagger-ui-action@v1
+        with:
+          output: dist/api-${{ matrix.api }}
+          spec-file: api-${{ matrix.api }}/openapi.yaml
+
+      - name: Upload api-${{ matrix.api }} as artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: api-${{ matrix.api }}
+          path: dist/api-${{ matrix.api }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [build]
+
+    steps:
+      - run: mkdir dist/
+      - uses: actions/download-artifact@v2
+        with:
+          path: dist/
+      - run: ls -R
+        working-directory: dist/
+
+      - name: Create index.html
+        run: |
+          echo '<h2>Accesso OpenAPI</h2>' >> dist/index.html
+          echo '<ul>' >> dist/index.html
+          echo '  <li><a href="/backend/api-internal/index.html">api-internal</a></li>' >> dist/index.html
+          echo '  <li><a href="/backend/api-private/index.html">api-private</a></li>' >> dist/index.html
+          echo '  <li><a href="/backend/api-public/index.html">api-public</a></li>' >> dist/index.html
+          echo '  <li><a href="/backend/api-admin/index.html">api-admin</a></li>' >> dist/index.html
+          echo '</ul>' >> dist/index.html
+
+      - name: Deploy to Github Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: dist/
