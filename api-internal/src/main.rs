@@ -1,65 +1,92 @@
 #![deny(warnings)]
 #![forbid(unsafe_code)]
 
+use actix_web::middleware;
+use actix_web::{web, HttpServer};
+use cardbox_app::install_logger;
+use cardbox_settings::Settings;
+use eyre::WrapErr;
 use std::sync::Arc;
-use tokio::sync::Mutex;
+use tracing_actix_web::TracingLogger;
 
 mod accesso;
 mod routes;
-mod server;
 
-/// Useful to extract app data at handler
-/// ```rust
-/// async fn handler(app: web::Data<crate::App>) {}
-/// ```
-pub type App = Arc<Mutex<cardbox_core::App<cardbox_db::Database, cardbox_generator::Generator>>>;
+pub static APP_NAME: &str = "cardbox-api-internal";
 
-#[actix_rt::main]
-async fn main() -> std::io::Result<()> {
-    dotenv::dotenv().ok();
-    pretty_env_logger::init();
+pub fn create_request_client(config: &Settings) -> Result<reqwest::Client, eyre::Report> {
+    let mut builder = reqwest::ClientBuilder::new();
 
-    let is_dev = read_var_bool("DEV");
-
-    let openssl_validate = !read_var_bool("OPENSSL_NO_VALIDATE");
-
-    let listen_port = read_var("LISTEN_PORT");
-    let listen_host = read_var("LISTEN_HOST");
-    let database_url = read_var("DATABASE_URL");
-
-    let accesso_url = read_var("ACCESSO_URL");
-    let accesso_client_id = read_var("ACCESSO_CLIENT_ID");
-    let accesso_redirect_back_url = read_var("ACCESSO_REDIRECT_BACK_URL");
-    let accesso_client_secret = read_var("ACCESSO_CLIENT_SECRET");
-
-    let bind_address = format!("{host}:{port}", host = listen_host, port = listen_port);
-
-    if is_dev {
-        log::info!("api-internal run in DEVELOPMENT MODE");
-    } else {
-        log::info!("==> Be careful! api-internal in PRODUCTION MODE");
+    if !config.accesso.ssl_validate {
+        tracing::warn!(
+            "!!! SSL validation is disabled in config, check if this is what you REALLY want !!!"
+        );
+        builder = builder.danger_accept_invalid_certs(true);
     }
 
-    server::create_server(server::Config {
-        accesso_client_id,
-        accesso_client_secret,
-        accesso_redirect_back_url,
-        accesso_url,
-        bind_address,
-        database_url,
-        openssl_validate,
-    })
-    .await
+    builder.build().wrap_err("Could not create http client!")
 }
 
-#[inline]
-fn read_var<T: AsRef<str>>(name: T) -> String {
-    std::env::var(name.as_ref()).unwrap_or_else(|_| panic!("{}", name.as_ref()))
-}
+#[actix_rt::main]
+async fn main() -> eyre::Result<()> {
+    let settings = Arc::new(Settings::new("internal").wrap_err("failed to parse settings")?);
 
-#[inline]
-fn read_var_bool<T: AsRef<str>>(name: T) -> bool {
-    std::env::var(name.as_ref())
-        .map(|dev| dev != "false")
-        .unwrap_or(false)
+    if settings.debug {
+        tracing::info!("==> Starting {} in DEBUG mode!", APP_NAME);
+        color_eyre::install()?;
+    } else {
+        tracing::info!("==> Starting {} in PRODUCTION mode!", APP_NAME);
+    };
+
+    dotenv::dotenv().wrap_err("Failed to initialize dotenv")?;
+
+    let _guard = install_logger(APP_NAME.into(), &settings)?;
+
+    let bind_address = settings.server.bind_address();
+
+    let client = create_request_client(&settings)?;
+
+    let settings_clone = settings.clone();
+    let client_clone = client.clone();
+
+    let mut server = HttpServer::new(move || {
+        let settings = settings_clone.clone();
+        let client = client_clone.clone();
+        actix_web::App::new()
+            .configure(|config| {
+                let settings = settings.clone();
+                cardbox_app::configure(config, settings);
+            })
+            .wrap(middleware::Compress::default())
+            .wrap(
+                middleware::DefaultHeaders::new()
+                    // .header("X-Frame-Options", "deny")
+                    .header("X-Content-Type-Options", "nosniff")
+                    .header("X-XSS-Protection", "1; mode=block"),
+            )
+            .wrap(TracingLogger::default())
+            .app_data(web::Data::new(client))
+            .service(routes::scope())
+            .default_service(web::route().to(cardbox_app::not_found))
+    });
+
+    if let Some(workers) = settings.server.workers {
+        server = server.workers(workers as usize);
+    }
+    if let Some(backlog) = settings.server.backlog {
+        server = server.backlog(backlog);
+    }
+    if let Some(keep_alive) = settings.server.keep_alive {
+        server = server.keep_alive(actix_http::KeepAlive::Timeout(keep_alive as usize));
+    }
+    if let Some(client_shutdown) = settings.server.client_shutdown {
+        server = server.client_shutdown(client_shutdown);
+    }
+
+    server.bind(bind_address)?.run().await?;
+
+    #[cfg(not(debug_assertions))]
+    opentelemetry::global::shutdown_tracer_provider();
+
+    Ok(())
 }

@@ -7,8 +7,9 @@ use futures::future::{err, ok, Ready};
 /// Extractor for the session token. Right now works only for cookies.
 ///
 /// # Examples
-/// ```rust
+/// ```
 /// use cardbox_core::app::extractors::SessionToken;
+/// use actix_web::get;
 ///
 /// #[get("/")]
 /// async fn index(session_token: SessionToken) -> String {
@@ -16,7 +17,7 @@ use futures::future::{err, ok, Ready};
 /// }
 /// ```
 #[derive(Debug)]
-pub struct SessionToken(pub(crate) String);
+pub struct SessionToken(String);
 
 impl FromRequest for SessionToken {
     type Config = ();
@@ -31,9 +32,9 @@ impl FromRequest for SessionToken {
             .unwrap_or_else(move || {
                 let e = SessionTokenExtractorError::NoSessionToken;
 
-                log::debug!(
-                    "Failed during SessionToken extractor from cookies. Cookies: {:?}",
-                    req.cookies()
+                tracing::debug!(
+                    cookies = ?req.cookies(),
+                    "Failed during SessionToken extractor from cookies"
                 );
 
                 err(e.into())
@@ -77,10 +78,10 @@ mod test {
         session_token
             .err()
             .map(|e| {
-                assert_eq!(
+                assert!(matches!(
                     e.as_error::<SessionTokenExtractorError>(),
                     Some(&SessionTokenExtractorError::NoSessionToken)
-                )
+                ))
             })
             .unwrap();
 

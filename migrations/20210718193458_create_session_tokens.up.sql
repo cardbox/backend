@@ -1,3 +1,4 @@
+-- Add up migration script here
 CREATE TABLE "session_tokens"
 (
     "user_id"    uuid      NOT NULL REFERENCES users (id),

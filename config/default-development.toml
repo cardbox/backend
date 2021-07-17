@@ -1,0 +1,24 @@
+debug = true
+
+[cookies]
+http_only = false
+secure = false
+
+[database]
+database = "cardbox"
+host = "localhost"
+password = "cardbox"
+user = "cardbox"
+pool_size = 2
+openssl_validate = false
+
+[server]
+host = "localhost"
+port = 9005
+
+[accesso]
+url = "https://accesso.app"
+client_id = 1234567890
+redirect_back_url = "https://cardbox.dev/accesso/done"
+client_secret = "C481E2BD8746181FE4419123AD6AE9FB3C5B43A4D35D1F299385AF3E7F"
+ssl_validate = false

@@ -1,13 +1,10 @@
 #![deny(warnings)]
 #![forbid(unsafe_code)]
 
-pub mod app;
-pub mod generator;
-pub mod models;
-pub mod repo;
+#[macro_use]
+extern crate async_trait;
 
-#[derive(Clone)]
-pub struct App<Database = (), Generator = ()> {
-    pub db: Database,
-    pub generator: Generator,
-}
+pub mod app;
+pub mod contracts;
+pub mod models;
+pub mod services;

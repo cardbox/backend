@@ -1,11 +1,13 @@
 use crate::accesso::exchange_token::{self, ExchangeToken, GrantType};
-use crate::server::{create_request_client, Config, ConfigSession};
 use actix_swagger::{Answer, ContentType};
 use actix_web::http::StatusCode;
 use actix_web::{
     cookie::CookieBuilder,
     web::{Data, Json},
 };
+use cardbox_app::SessionCookieConfig;
+use cardbox_settings::Settings;
+use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
@@ -49,37 +51,33 @@ pub enum PublicError {
 
 pub async fn route(
     body: Json<Body>,
-    config: Data<Config>,
-    config_session: Data<ConfigSession>,
-    app: Data<crate::App>,
+    config: Data<Settings>,
+    config_session: Data<SessionCookieConfig>,
+    client: Data<Client>,
+    app: Data<cardbox_app::App>,
 ) -> Answer<'static, Response> {
     let grant_type = GrantType::AuthorizationCode;
 
     let payload = ExchangeToken {
         grant_type: grant_type.clone(),
-        redirect_uri: config.accesso_redirect_back_url.clone(),
+        redirect_uri: config.accesso.redirect_back_url.clone(),
         code: body.authorization_code.clone(),
-        client_id: config.accesso_client_id.clone(),
-        client_secret: config.accesso_client_secret.clone(),
+        client_id: config.accesso.client_id.clone(),
+        client_secret: config.accesso.client_secret.clone(),
     };
 
     let exchange_token_url = {
-        let mut uri = Url::parse(&config.accesso_url).expect("Failed to parse accesso_url");
+        let mut uri = Url::parse(&config.accesso.url).expect("Failed to parse accesso_url");
         uri.set_path("/api/v0/oauth/token");
         uri.to_string()
     };
 
-    println!("Send request to {} -> {:#?}", exchange_token_url, payload);
-    println!(
-        "JSON:::: {}",
-        serde_json::to_string_pretty(&payload).unwrap()
-    );
-
-    let client = create_request_client(&config);
+    tracing::debug!(%exchange_token_url, ?payload, "Sending request");
 
     let response = client
         .post(exchange_token_url)
-        .send_json(&payload)
+        .json(&payload)
+        .send()
         .await
         .expect("sent request")
         .json::<exchange_token::response::Answer>()
@@ -114,14 +112,14 @@ pub async fn route(
 
                     let viewer_get_url = {
                         let mut uri =
-                            Url::parse(&config.accesso_url).expect("Failed to parse accesso_url");
+                            Url::parse(&config.accesso.url).expect("Failed to parse accesso_url");
                         uri.set_path("/api/v0/viewer");
                         uri.to_string()
                     };
 
                     let result = client
                         .get(viewer_get_url)
-                        .insert_header(("X-Access-Token", access_token))
+                        .header("X-Access-Token", access_token)
                         .send()
                         .await
                         .expect("sent request")
@@ -137,8 +135,6 @@ pub async fn route(
                             use cardbox_core::app::{AccessoAuthorize, UpdateUserFailure};
 
                             let created = app
-                                .lock()
-                                .await
                                 .authorize(cardbox_core::app::UserInfo {
                                     accesso_id: id,
                                     first_name,
@@ -149,31 +145,27 @@ pub async fn route(
                             match created {
                                 Ok((user, session_token)) => Response::Done {
                                     user_info: UserInfo {
-                                        first_name: user.first_name(),
-                                        last_name: user.last_name(),
+                                        first_name: user.first_name,
+                                        last_name: user.last_name,
                                     },
                                 }
                                 .answer()
                                 .cookie(
                                     CookieBuilder::new(
                                         config_session.name.clone(),
-                                        session_token.token(),
+                                        session_token.token,
                                     )
                                     // TODO: extract to function or Trait
                                     .expires(time::OffsetDateTime::from_unix_timestamp(
-                                        chrono::DateTime::<chrono::Utc>::from_utc(
-                                            session_token.expires_at(),
-                                            chrono::Utc,
-                                        )
-                                        .timestamp(),
+                                        session_token.expires_at.timestamp(),
                                     ))
                                     .path(config_session.path.clone())
                                     .secure(config_session.secure)
                                     .http_only(config_session.http_only)
                                     .finish(),
                                 ),
-                                Err(UpdateUserFailure::Unexpected) => {
-                                    log::error!(
+                                Err(UpdateUserFailure::Unexpected(_)) => {
+                                    tracing::error!(
                                         "Failed to update user due to database unexpected error"
                                     );
                                     PublicError::Unexpected.answer()
@@ -184,7 +176,7 @@ pub async fn route(
                         Ok(Failure {
                             error: Error::InvalidToken,
                         }) => {
-                            log::info!(
+                            tracing::info!(
                                 "Request for user data failed because access token is invalid"
                             );
                             PublicError::AccessoFailed.answer()
@@ -193,12 +185,14 @@ pub async fn route(
                         Ok(Failure {
                             error: Error::Unauthorized,
                         }) => {
-                            log::info!("Unauthorized request to get user data with access token");
+                            tracing::info!(
+                                "Unauthorized request to get user data with access token"
+                            );
                             PublicError::Unauthorized.answer()
                         }
 
                         Err(error) => {
-                            log::error!(
+                            tracing::error!(
                                 "Failed to parse json answer for accesso::viewer_get {:?}",
                                 error
                             );
@@ -210,13 +204,13 @@ pub async fn route(
         }
         Ok(Failure { error }) => match error {
             Error::InvalidRequest => {
-                log::error!("Invalid request to accesso");
+                tracing::error!("Invalid request to accesso");
                 PublicError::AccessoFailed.answer()
             }
             Error::InvalidClient => {
-                log::error!(
+                tracing::error!(
                     "Invalid accesso client '{:#?}'",
-                    config.accesso_client_id.clone()
+                    config.accesso.client_id.clone()
                 );
                 PublicError::AccessoFailed.answer()
             }
@@ -227,27 +221,27 @@ pub async fn route(
                 PublicError::TryLater.answer()
             }
             Error::InvalidScope => {
-                log::error!("Invalid scope for accesso");
+                tracing::error!("Invalid scope for accesso");
                 PublicError::AccessoFailed.answer()
             }
             Error::UnauthorizedClient => {
-                log::error!(
+                tracing::error!(
                     "Unauthorized accesso client '{:#?}'",
-                    config.accesso_client_id.clone()
+                    config.accesso.client_id.clone()
                 );
                 PublicError::Unauthorized.answer()
             }
             Error::UnsupportedGrantType => {
-                log::error!("Unsupported grant type '{:#?}' for accesso", grant_type);
+                tracing::error!("Unsupported grant type '{:#?}' for accesso", grant_type);
                 PublicError::AccessoFailed.answer()
             }
             Error::UnknownAccessoError => {
-                log::error!("Unknown error from accesso");
+                tracing::error!("Unknown error from accesso");
                 PublicError::AccessoFailed.answer()
             }
         },
         Err(failure) => {
-            log::error!("Failed to get response from accesso: {:#?}", failure);
+            tracing::error!("Failed to get response from accesso: {:#?}", failure);
             PublicError::Unexpected.answer()
         }
     }

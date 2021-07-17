@@ -6,5 +6,6 @@ members = [
   "api-public",
   "core",
   "db",
-  "generator",
+  "app",
+  "settings"
 ]

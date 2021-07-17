@@ -1,7 +1,7 @@
-use crate::server::Config;
 use actix_swagger::{Answer, ContentType};
 use actix_web::http::StatusCode;
 use actix_web::web::{Data, Json};
+use cardbox_settings::Settings;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
@@ -17,8 +17,8 @@ pub struct Response {
     accesso_url: String,
 }
 
-pub async fn route(body: Json<Body>, config: Data<Config>) -> Answer<'static, Response> {
-    let mut accesso = Url::parse(&config.accesso_url).expect("Failed to parse accesso_url");
+pub async fn route(body: Json<Body>, config: Data<Settings>) -> Answer<'static, Response> {
+    let mut accesso = Url::parse(&config.accesso.url).expect("Failed to parse accesso_url");
 
     accesso.set_path("/oauth/authorize");
 
@@ -26,8 +26,8 @@ pub async fn route(body: Json<Body>, config: Data<Config>) -> Answer<'static, Re
         let mut pairs = accesso.query_pairs_mut();
         pairs
             .append_pair("response_type", "code")
-            .append_pair("redirect_uri", &config.accesso_redirect_back_url)
-            .append_pair("client_id", &config.accesso_client_id)
+            .append_pair("redirect_uri", &config.accesso.redirect_back_url)
+            .append_pair("client_id", &config.accesso.client_id)
             .append_pair("state", &body.state);
     }
 
