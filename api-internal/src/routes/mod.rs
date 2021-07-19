@@ -1,4 +1,3 @@
-use actix_web::{web, Scope};
 use serde::{Deserialize, Serialize};
 
 pub mod accesso;

@@ -8,12 +8,12 @@ pub struct SessionToken {
     pub expires_at: DateTime<Utc>,
 }
 
-impl Into<models::SessionToken> for SessionToken {
-    fn into(self) -> models::SessionToken {
-        models::SessionToken {
-            user_id: self.user_id,
-            token: self.token,
-            expires_at: self.expires_at,
+impl From<SessionToken> for models::SessionToken {
+    fn from(token: SessionToken) -> Self {
+        Self {
+            user_id: token.user_id,
+            token: token.token,
+            expires_at: token.expires_at,
         }
     }
 }

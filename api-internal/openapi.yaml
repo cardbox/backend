@@ -12,6 +12,28 @@ servers:
   - url: https://cardbox.sova.dev/api/internal
 
 paths:
+  /auth.done:
+    post:
+      summary: Redirect endpoint
+      operationId: authDone
+      tags: [ Auth ]
+      description: |-
+        Redirect endpoint
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                authorizationCode:
+                  type: string
+                  description: Authorization code
+      responses:
+        200:
+          $ref: "#/components/responses/AuthDoneSuccess"
+        401:
+          $ref: "#/components/responses/AuthDoneFailed"
+        500:
+          description: "Something went wrong"
   /auth.url:
     post:
       summary: Get auth url
@@ -313,6 +335,27 @@ paths:
           description: SERVER_ERROR
 components:
   responses:
+    AuthDoneFailed:
+      description: Failed to authorize
+      content:
+        application/json:
+          schema:
+            required: [ error ]
+            properties:
+              error:
+                type: string
+                enum:
+                  - "accesso_failed"
+                  - "try_later"
+    AuthDoneSuccess:
+      description: ""
+      content:
+        application/json:
+          schema:
+            required: [ userInfo ]
+            properties:
+              userInfo:
+                $ref: "#/components/schemas/UserInfo"
     AuthUrlSuccess:
       description: ""
       content:
@@ -324,6 +367,14 @@ components:
                 type: string
                 description: Accesso Url
   schemas:
+    UserInfo:
+      type: object
+      required: [ firstName, lastName ]
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
     User:
       type: object
       required: [id, username, firstName, lastName, bio, avatar]

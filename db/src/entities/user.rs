@@ -9,13 +9,13 @@ pub(crate) struct User {
     pub(crate) last_name: String,
 }
 
-impl Into<models::User> for User {
-    fn into(self) -> models::User {
-        models::User {
-            id: self.id,
-            accesso_id: self.accesso_id,
-            first_name: self.first_name,
-            last_name: self.last_name,
+impl From<User> for models::User {
+    fn from(u: User) -> Self {
+        Self {
+            id: u.id,
+            accesso_id: u.accesso_id,
+            first_name: u.first_name,
+            last_name: u.last_name,
         }
     }
 }

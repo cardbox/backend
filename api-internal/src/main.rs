@@ -67,7 +67,11 @@ async fn main() -> eyre::Result<()> {
             )
             .wrap(TracingLogger::default())
             .app_data(web::Data::new(client))
-            .service(generated::api::create().bind_auth_url(routes::accesso::auth_url::route))
+            .service(
+                generated::api::create()
+                    .bind_auth_url(routes::accesso::auth_url::route)
+                    .bind_auth_done(routes::accesso::auth_done::route),
+            )
             .default_service(web::route().to(cardbox_app::not_found))
     });
 

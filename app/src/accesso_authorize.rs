@@ -26,7 +26,7 @@ impl AccessoAuthorize for App {
                 Err(err @ UserCreateError::UserAlreadyExists) => db
                     .find_user_by_accesso(info.accesso_id)
                     .await?
-                    .ok_or(UpdateUserFailure::Unexpected(err.into())),
+                    .ok_or_else(|| UpdateUserFailure::Unexpected(err.into())),
             }
         }?;
 

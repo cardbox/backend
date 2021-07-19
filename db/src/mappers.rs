@@ -12,5 +12,5 @@ pub fn sqlx_error_to_user_create_error(error: sqlx::Error) -> UserCreateError {
         }
     }
 
-    return UserCreateError::UnexpectedFailure(error.into());
+    UserCreateError::UnexpectedFailure(error.into())
 }
