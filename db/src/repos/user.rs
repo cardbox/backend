@@ -7,7 +7,7 @@ use sqlx::types::Uuid;
 
 #[async_trait]
 impl UserRepo for Database {
-    async fn find_by_id(&self, user_id: Uuid) -> RepoResult<Option<models::User>> {
+    async fn find_user_by_id(&self, user_id: Uuid) -> RepoResult<Option<models::User>> {
         Ok(sqlx::query_as!(
             User,
             // language=PostgreSQL
@@ -23,7 +23,7 @@ impl UserRepo for Database {
         .map(Into::into))
     }
 
-    async fn find_by_accesso(&self, accesso_id: Uuid) -> RepoResult<Option<models::User>> {
+    async fn find_user_by_accesso(&self, accesso_id: Uuid) -> RepoResult<Option<models::User>> {
         Ok(sqlx::query_as!(
             User,
             // language=PostgreSQL

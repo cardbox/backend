@@ -36,7 +36,7 @@ impl SessionTokenRepo for Database {
         .rows_affected())
     }
 
-    async fn find_by_token(&self, token: String) -> RepoResult<Option<models::SessionToken>> {
+    async fn find_token(&self, token: String) -> RepoResult<Option<models::SessionToken>> {
         Ok(sqlx::query_as!(
             SessionToken,
             // language=PostgreSQL

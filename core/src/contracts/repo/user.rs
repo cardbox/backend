@@ -9,8 +9,8 @@ use mockall::*;
 #[cfg_attr(feature = "testing", automock)]
 #[async_trait]
 pub trait UserRepo {
-    async fn find_by_id(&self, user_id: Uuid) -> RepoResult<Option<models::User>>;
-    async fn find_by_accesso(&self, accesso_id: Uuid) -> RepoResult<Option<models::User>>;
+    async fn find_user_by_id(&self, user_id: Uuid) -> RepoResult<Option<models::User>>;
+    async fn find_user_by_accesso(&self, accesso_id: Uuid) -> RepoResult<Option<models::User>>;
     async fn user_update(&self, user: models::User) -> RepoResult<models::User>;
     async fn user_create(&self, user: models::UserCreate) -> Result<models::User, UserCreateError>;
 }
@@ -26,12 +26,12 @@ pub enum UserCreateError {
 #[cfg(feature = "testing")]
 #[async_trait]
 impl UserRepo for crate::contracts::MockDb {
-    async fn find_by_id(&self, user_id: Uuid) -> RepoResult<Option<models::User>> {
-        self.users.find_by_id(user_id).await
+    async fn find_user_by_id(&self, user_id: Uuid) -> RepoResult<Option<models::User>> {
+        self.users.find_user_by_id(user_id).await
     }
 
-    async fn find_by_accesso(&self, accesso_id: Uuid) -> RepoResult<Option<models::User>> {
-        self.users.find_by_accesso(accesso_id).await
+    async fn find_user_by_accesso(&self, accesso_id: Uuid) -> RepoResult<Option<models::User>> {
+        self.users.find_user_by_accesso(accesso_id).await
     }
 
     async fn user_update(&self, user: models::User) -> RepoResult<models::User> {
