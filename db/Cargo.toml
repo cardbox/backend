@@ -26,5 +26,6 @@ features = [
     "chrono",
     "macros",
     "runtime-actix-native-tls",
-    "offline"
+    "offline",
+    "json"
 ]

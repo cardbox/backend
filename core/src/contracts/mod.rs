@@ -4,6 +4,6 @@ pub mod repo;
 pub use generator::*;
 pub use repo::*;
 
-pub trait Repository: UserRepo + SessionTokenRepo + Send + Sync {}
+pub trait Repository: UserRepo + SessionTokenRepo + CardRepo + Send + Sync {}
 
-impl<T> Repository for T where T: UserRepo + SessionTokenRepo + Send + Sync {}
+impl<T> Repository for T where T: UserRepo + SessionTokenRepo + CardRepo + Send + Sync {}

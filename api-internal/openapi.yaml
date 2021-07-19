@@ -179,8 +179,8 @@ paths:
                   items:
                     type: string
       responses:
-        200:
-          description: OK
+        201:
+          description: Created
           content:
             application/json:
               schema:
@@ -193,11 +193,9 @@ paths:
           content:
             application/json:
               schema:
-                required: [error, code]
+                required: [error]
                 properties:
                   error:
-                    type: boolean
-                  code:
                     type: string
                     enum:
                       - empty_title
@@ -448,7 +446,9 @@ components:
           type: string
           format: date-time
         author:
-          $ref: "#/components/schemas/User"
+          type: string
+          format: uuid
+          description: Author user uuid
         tags:
           type: array
           items:
