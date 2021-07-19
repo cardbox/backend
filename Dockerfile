@@ -4,8 +4,6 @@ ENV USER="root"
 ENV SQLX_OFFLINE=true
 WORKDIR /app
 
-COPY
-
 COPY ./Cargo.lock ./Cargo.toml ./sqlx-data.json ./
 COPY ./migrations ./migrations
 COPY ./db ./db
