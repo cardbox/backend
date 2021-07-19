@@ -1,24 +1,20 @@
+use crate::generated::{
+    components::{request_bodies::AuthUrlRequestBody, responses::AuthUrlSuccess},
+    paths::auth_url::{Error, Response},
+};
 use actix_swagger::{Answer, ContentType};
 use actix_web::http::StatusCode;
 use actix_web::web::{Data, Json};
 use cardbox_settings::Settings;
+use eyre::WrapErr;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Body {
-    state: String,
-}
-
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Response {
-    accesso_url: String,
-}
-
-pub async fn route(body: Json<Body>, config: Data<Settings>) -> Answer<'static, Response> {
-    let mut accesso = Url::parse(&config.accesso.url).expect("Failed to parse accesso_url");
+pub async fn route(
+    body: Json<AuthUrlRequestBody>,
+    config: Data<Settings>,
+) -> Result<Response, Error> {
+    let mut accesso = Url::parse(&config.accesso.url).wrap_err("Could not parse url")?;
 
     accesso.set_path("/oauth/authorize");
 
@@ -31,9 +27,9 @@ pub async fn route(body: Json<Body>, config: Data<Settings>) -> Answer<'static, 
             .append_pair("state", &body.state);
     }
 
-    Answer::new(Response {
+    let response = Response::Ok(AuthUrlSuccess {
         accesso_url: accesso.to_string(),
-    })
-    .content_type(Some(ContentType::Json))
-    .status(StatusCode::OK)
+    });
+
+    Ok(response)
 }

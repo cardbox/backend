@@ -12,6 +12,27 @@ servers:
   - url: https://cardbox.sova.dev/api/internal
 
 paths:
+  /auth.url:
+    post:
+      summary: Get auth url
+      operationId: authUrl
+      tags: [ Auth ]
+      description: |-
+        Get accesso auth url
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                state:
+                  type: string
+                  description: oauth state
+      responses:
+        200:
+          $ref: "#/components/responses/AuthUrlSuccess"
+        500:
+          description: SERVER_ERROR
+
   /cards.list:
     post:
       summary: Get cards list
@@ -291,6 +312,17 @@ paths:
         500:
           description: SERVER_ERROR
 components:
+  responses:
+    AuthUrlSuccess:
+      description: ""
+      content:
+        application/json:
+          schema:
+            required: [ accessoUrl ]
+            properties:
+              accessoUrl:
+                type: string
+                description: Accesso Url
   schemas:
     User:
       type: object

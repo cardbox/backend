@@ -83,7 +83,7 @@ pub async fn route(
         .json::<exchange_token::response::Answer>()
         .await;
 
-    println!("DONE — {:#?}", response);
+    tracing::debug!(?response, "DONE");
 
     use exchange_token::response::{
         Answer::{Failure, TokenCreated},

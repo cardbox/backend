@@ -1,4 +1,4 @@
-#![deny(warnings)]
+// #![deny(warnings)]
 #![forbid(unsafe_code)]
 
 use actix_web::middleware;
@@ -10,6 +10,7 @@ use std::sync::Arc;
 use tracing_actix_web::TracingLogger;
 
 mod accesso;
+mod generated;
 mod routes;
 
 pub static APP_NAME: &str = "cardbox-api-internal";
@@ -66,7 +67,7 @@ async fn main() -> eyre::Result<()> {
             )
             .wrap(TracingLogger::default())
             .app_data(web::Data::new(client))
-            .service(routes::scope())
+            .service(generated::api::create().bind_auth_url(routes::accesso::auth_url::route))
             .default_service(web::route().to(cardbox_app::not_found))
     });
 
