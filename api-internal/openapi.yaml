@@ -179,7 +179,7 @@ paths:
                   items:
                     type: string
       responses:
-        201:
+        200:
           description: Created
           content:
             application/json:
@@ -445,7 +445,7 @@ components:
         updatedAt:
           type: string
           format: date-time
-        author:
+        authorId:
           type: string
           format: uuid
           description: Author user uuid

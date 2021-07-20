@@ -194,7 +194,7 @@ pub mod components {
             pub created_at: DateTime<Utc>,
             pub updated_at: DateTime<Utc>,
             /// Author user uuid
-            pub author: Uuid,
+            pub author_id: Uuid,
             pub tags: Vec<String>,
         }
     }

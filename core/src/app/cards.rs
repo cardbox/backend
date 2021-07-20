@@ -3,15 +3,15 @@ use crate::models;
 
 #[async_trait]
 pub trait Cards {
-    async fn new_card(
+    async fn card_create(
         &self,
-        card: NewCardForm,
+        card: CardCreateForm,
         token: String,
-    ) -> Result<models::Card, NewCardError>;
+    ) -> Result<models::Card, CardCreateError>;
 }
 
 #[derive(Debug, Validate)]
-pub struct NewCardForm {
+pub struct CardCreateForm {
     #[validate(length(min = 1))]
     pub title: String,
     pub contents: serde_json::Value,
@@ -19,7 +19,7 @@ pub struct NewCardForm {
 }
 
 #[derive(Debug, thiserror::Error)]
-pub enum NewCardError {
+pub enum CardCreateError {
     #[error("Unauthorized")]
     Unauthorized,
     #[error(transparent)]
@@ -30,7 +30,7 @@ pub enum NewCardError {
     Unexpected(#[from] eyre::Report),
 }
 
-impl From<UnexpectedDatabaseError> for NewCardError {
+impl From<UnexpectedDatabaseError> for CardCreateError {
     fn from(e: UnexpectedDatabaseError) -> Self {
         Self::Unexpected(e.into())
     }

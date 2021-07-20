@@ -5,7 +5,7 @@ use uuid::Uuid;
 #[derive(Debug, sqlx::FromRow)]
 pub(crate) struct Card {
     pub(crate) id: Uuid,
-    pub(crate) user_id: Uuid,
+    pub(crate) author_id: Uuid,
     pub(crate) title: String,
     pub(crate) created_at: DateTime<Utc>,
     pub(crate) updated_at: DateTime<Utc>,
@@ -17,7 +17,7 @@ impl From<Card> for models::Card {
     fn from(card: Card) -> Self {
         Self {
             id: card.id,
-            user_id: card.user_id,
+            author_id: card.author_id,
             title: card.title,
             created_at: card.created_at,
             updated_at: card.updated_at,
@@ -37,7 +37,7 @@ impl From<models::Card> for Card {
 
         Self {
             id: card.id,
-            user_id: card.user_id,
+            author_id: card.author_id,
             title: card.title,
             created_at: card.created_at,
             updated_at: card.updated_at,

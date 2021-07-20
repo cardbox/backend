@@ -163,8 +163,8 @@
       ]
     }
   },
-  "77e9dbe1a30183c3dc37e24580117fa4350d43c722471230798c427641b466f2": {
-    "query": "\n            INSERT INTO cards (user_id, title, contents)\n            VALUES ($1, $2, $3)\n            RETURNING id, user_id, title, created_at, updated_at, contents, tags\n            ",
+  "8c727d3a0b7ffc1be9d7b5ecc84630309f3c90c508dab7900b317b7d85710109": {
+    "query": "\n            INSERT INTO cards (author_id, title, contents)\n            VALUES ($1, $2, $3)\n            RETURNING id, author_id, title, created_at, updated_at, contents, tags\n            ",
     "describe": {
       "columns": [
         {
@@ -174,7 +174,7 @@
         },
         {
           "ordinal": 1,
-          "name": "user_id",
+          "name": "author_id",
           "type_info": "Uuid"
         },
         {
