@@ -1,20 +1,19 @@
-FROM docker.pkg.github.com/cardbox/backend/builder:1.53.0-1.4.1 as build
+FROM docker.pkg.github.com/cardbox/backend/builder:rust1.53.0-sqlx0.5.5 as build
 
 ENV USER="root"
+ENV SQLX_OFFLINE=true
 WORKDIR /app
 
-COPY ./diesel.toml ./diesel.toml
-
-COPY ./Cargo.lock ./Cargo.toml ./
+COPY ./Cargo.lock ./Cargo.toml ./sqlx-data.json ./
 COPY ./migrations ./migrations
 COPY ./db ./db
-# COPY ./settings ./settings
+COPY ./settings ./settings
 COPY ./api-admin ./api-admin
 COPY ./api-public ./api-public
 COPY ./api-private ./api-private
 COPY ./api-internal ./api-internal
 COPY ./core ./core
-COPY ./generator ./generator  
+COPY ./app ./app
 
 ARG API_NAME
 
@@ -32,12 +31,11 @@ WORKDIR /app
 
 RUN touch .env
 
-COPY --from=build /out/diesel /bin/
+COPY --from=build /out/sqlx /bin/
 COPY --from=build /app/target/release/cardbox-api-$API_NAME ./server
 
 COPY --from=build /app/migrations ./migrations
-COPY --from=build /app/diesel.toml ./
-# COPY ./config ./config
+COPY ./config ./config
 COPY ./docker-entrypoint.sh ./entrypoint.sh
 
 RUN chmod +x entrypoint.sh && chmod +x server

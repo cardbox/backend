@@ -1,0 +1,41 @@
+# Enable logging
+debug = false
+
+[cookies]
+http_only = true
+name = "session-token"
+path = "/"
+secure = true
+
+[database]
+# database = "cardbox"
+# host = "localhost"
+# password = "cardbox"
+# pool_size = 8
+port = 5432
+openssl_validate = true
+# user = "cardbox"
+
+[server]
+host = "localhost"
+port = 9005
+
+# By default server uses number of available logical cpu as threads
+# workers = 8
+
+# This refers to the number of clients that can be waiting to be served.
+# Exceeding this number results in the client getting an error when
+# attempting to connect. It should only affect servers under significant
+# load. Generally set in the 64-2048 range.
+# backlog = 2048
+
+# Set server keep-alive setting in seconds
+# keep_alive = 5
+
+# Set server connection shutdown timeout in milliseconds.
+#
+# Defines a timeout for shutdown connection. If a shutdown procedure does not complete
+# within this time, the request is dropped.
+#
+# To disable timeout set value to 0.
+# client_shutdown = 5000

@@ -12,6 +12,49 @@ servers:
   - url: https://cardbox.sova.dev/api/internal
 
 paths:
+  /accesso/auth.done:
+    post:
+      summary: Redirect endpoint
+      operationId: authDone
+      tags: [ Auth ]
+      description: |-
+        Redirect endpoint
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                authorizationCode:
+                  type: string
+                  description: Authorization code
+      responses:
+        200:
+          $ref: "#/components/responses/AuthDoneSuccess"
+        401:
+          $ref: "#/components/responses/AuthDoneFailed"
+        500:
+          description: "Something went wrong"
+  /accesso/auth.params:
+    post:
+      summary: Get auth params
+      operationId: authParams
+      tags: [ Auth ]
+      description: |-
+        Get accesso auth url
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                state:
+                  type: string
+                  description: oauth state
+      responses:
+        200:
+          $ref: "#/components/responses/AuthUrlSuccess"
+        500:
+          description: SERVER_ERROR
+
   /cards.list:
     post:
       summary: Get cards list
@@ -137,7 +180,7 @@ paths:
                     type: string
       responses:
         200:
-          description: OK
+          description: Ok
           content:
             application/json:
               schema:
@@ -150,11 +193,9 @@ paths:
           content:
             application/json:
               schema:
-                required: [error, code]
+                required: [error]
                 properties:
                   error:
-                    type: boolean
-                  code:
                     type: string
                     enum:
                       - empty_title
@@ -291,7 +332,47 @@ paths:
         500:
           description: SERVER_ERROR
 components:
+  responses:
+    AuthDoneFailed:
+      description: Failed to authorize
+      content:
+        application/json:
+          schema:
+            required: [ error ]
+            properties:
+              error:
+                type: string
+                enum:
+                  - "accesso_failed"
+                  - "try_later"
+    AuthDoneSuccess:
+      description: ""
+      content:
+        application/json:
+          schema:
+            required: [ userInfo ]
+            properties:
+              userInfo:
+                $ref: "#/components/schemas/UserInfo"
+    AuthUrlSuccess:
+      description: ""
+      content:
+        application/json:
+          schema:
+            required: [ accessoUrl ]
+            properties:
+              accessoUrl:
+                type: string
+                description: Accesso Url
   schemas:
+    UserInfo:
+      type: object
+      required: [ firstName, lastName ]
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
     User:
       type: object
       required: [id, username, firstName, lastName, bio, avatar]
@@ -364,8 +445,10 @@ components:
         updatedAt:
           type: string
           format: date-time
-        author:
-          $ref: "#/components/schemas/User"
+        authorId:
+          type: string
+          format: uuid
+          description: Author user uuid
         tags:
           type: array
           items:
