@@ -27,11 +27,11 @@ pub enum UserCreateError {
 #[async_trait]
 impl UserRepo for crate::contracts::MockDb {
     async fn user_find_by_id(&self, user_id: Uuid) -> RepoResult<Option<models::User>> {
-        self.users.find_user_by_id(user_id).await
+        self.users.user_find_by_id(user_id).await
     }
 
     async fn user_find_by_accesso(&self, accesso_id: Uuid) -> RepoResult<Option<models::User>> {
-        self.users.find_user_by_accesso(accesso_id).await
+        self.users.user_find_by_accesso(accesso_id).await
     }
 
     async fn user_update(&self, user: models::User) -> RepoResult<models::User> {
