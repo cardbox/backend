@@ -6,3 +6,5 @@ CREATE TABLE IF NOT EXISTS socials
     name    varchar NOT NULL,
     link    varchar NOT NULL
 );
+
+CREATE UNIQUE INDEX "socials_user_id" ON socials USING btree ("user_id");

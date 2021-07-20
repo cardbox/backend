@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS cards
 (
     id         uuid DEFAULT uuid_generate_v4(),
-    user_id    uuid        NOT NULL REFERENCES users ("id"),
+    author_id  uuid        NOT NULL REFERENCES users ("id"),
     title      varchar     NOT NULL,
     created_at timestamptz NOT NULL,
     updated_at timestamptz NOT NULL,
@@ -12,4 +12,4 @@ CREATE TABLE IF NOT EXISTS cards
     PRIMARY KEY ("id")
 );
 
-CREATE UNIQUE INDEX "cards_user_id" ON cards USING btree ("user_id");
+CREATE UNIQUE INDEX "cards_author_id" ON cards USING btree ("author_id");
