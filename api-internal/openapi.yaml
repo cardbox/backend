@@ -12,7 +12,7 @@ servers:
   - url: https://cardbox.sova.dev/api/internal
 
 paths:
-  /auth.done:
+  /accesso/auth.done:
     post:
       summary: Redirect endpoint
       operationId: authDone
@@ -34,7 +34,7 @@ paths:
           $ref: "#/components/responses/AuthDoneFailed"
         500:
           description: "Something went wrong"
-  /auth.url:
+  /accesso/auth.params:
     post:
       summary: Get auth url
       operationId: authUrl
