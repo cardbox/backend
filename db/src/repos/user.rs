@@ -12,7 +12,7 @@ impl UserRepo for Database {
             User,
             // language=PostgreSQL
             r#"
-            SELECT users.*
+            SELECT id, accesso_id, first_name, last_name
             FROM users
             WHERE users.id = $1
             "#,
@@ -28,7 +28,7 @@ impl UserRepo for Database {
             User,
             // language=PostgreSQL
             r#"
-            SELECT users.*
+            SELECT id, accesso_id, first_name, last_name
             FROM users
             WHERE users.accesso_id = $1
             "#,

@@ -2,10 +2,10 @@ use cardbox_core::models;
 use chrono::{DateTime, Utc};
 
 #[derive(Debug, sqlx::FromRow)]
-pub struct SessionToken {
-    pub user_id: uuid::Uuid,
-    pub token: String,
-    pub expires_at: DateTime<Utc>,
+pub(crate) struct SessionToken {
+    pub(crate) user_id: uuid::Uuid,
+    pub(crate) token: String,
+    pub(crate) expires_at: DateTime<Utc>,
 }
 
 impl From<SessionToken> for models::SessionToken {
