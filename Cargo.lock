@@ -510,6 +510,7 @@ dependencies = [
  "mockall",
  "rand",
  "serde",
+ "serde_json",
  "sqlx-core",
  "thiserror",
  "time 0.2.27",
