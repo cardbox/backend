@@ -28,7 +28,7 @@ pub async fn route(
         .await
         .map_err(map_new_card_error)?;
 
-    Ok(Response::Created(CardsCreateSuccess {
+    Ok(Response::Ok(CardsCreateSuccess {
         card: created_card.into(),
     }))
 }

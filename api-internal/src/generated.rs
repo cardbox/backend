@@ -322,7 +322,7 @@ pub mod paths {
         #[derive(Debug, Serialize)]
         #[serde(untagged)]
         pub enum Response {
-            Created(responses::CardsCreateSuccess),
+            Ok(responses::CardsCreateSuccess),
         }
 
         #[derive(Debug, Serialize, thiserror::Error)]
@@ -343,7 +343,7 @@ pub mod paths {
         impl Responder for Response {
             fn respond_to(self, _: &HttpRequest) -> HttpResponse {
                 match self {
-                    Response::Created(r) => HttpResponse::build(StatusCode::CREATED).json(r),
+                    Response::Ok(r) => HttpResponse::build(StatusCode::OK).json(r),
                 }
             }
         }
