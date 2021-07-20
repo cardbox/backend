@@ -180,7 +180,7 @@ paths:
                     type: string
       responses:
         200:
-          description: Created
+          description: Ok
           content:
             application/json:
               schema:
