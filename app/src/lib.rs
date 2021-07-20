@@ -5,6 +5,7 @@
 extern crate async_trait;
 
 mod accesso_authorize;
+mod cards;
 mod configure;
 mod cookie;
 mod health;

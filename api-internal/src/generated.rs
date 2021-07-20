@@ -49,6 +49,21 @@ pub mod api {
             self.api = self.api.bind("/auth.done".into(), Method::POST, handler);
             self
         }
+
+        pub fn bind_cards_create<F, T, R>(mut self, handler: F) -> Self
+        where
+            F: Handler<T, R>,
+            T: FromRequest + 'static,
+            R: Future<
+                    Output = Result<
+                        super::paths::cards_create::Response,
+                        super::paths::cards_create::Error,
+                    >,
+                > + 'static,
+        {
+            self.api = self.api.bind("/cards.create".into(), Method::POST, handler);
+            self
+        }
     }
 }
 
@@ -94,9 +109,10 @@ pub mod components {
         }
 
         #[derive(Debug, Serialize, thiserror::Error)]
+        #[error(transparent)]
         pub struct CardsCreateFailed {
             #[from]
-            error: CardsCreateError,
+            pub error: CardsCreateError,
         }
 
         #[derive(Debug, Serialize, thiserror::Error)]
@@ -300,7 +316,8 @@ pub mod paths {
         use super::responses;
         use actix_swagger::ContentType;
         use actix_web::http::StatusCode;
-        use actix_web::{HttpRequest, HttpResponse, Responder};
+        use actix_web::{HttpRequest, HttpResponse, Responder, ResponseError};
+        use serde::Serialize;
 
         #[derive(Debug, Serialize)]
         #[serde(untagged)]
@@ -313,6 +330,8 @@ pub mod paths {
         pub enum Error {
             #[error(transparent)]
             BadRequest(#[from] responses::CardsCreateFailed),
+            #[error("Unauthorized")]
+            Unauthorized,
             #[error(transparent)]
             InternalServerError(
                 #[from]
@@ -334,6 +353,7 @@ pub mod paths {
                 match self {
                     Error::InternalServerError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                     Error::BadRequest(_) => StatusCode::BAD_REQUEST,
+                    Error::Unauthorized => StatusCode::UNAUTHORIZED,
                 }
             }
 

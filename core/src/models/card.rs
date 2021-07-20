@@ -12,7 +12,6 @@ pub struct Card {
 }
 
 pub struct CardCreate {
-    pub id: Uuid,
     pub user_id: Uuid,
     pub title: String,
     pub contents: Option<serde_json::Value>,
