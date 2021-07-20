@@ -8,6 +8,7 @@ use cardbox_settings::Settings;
 use eyre::WrapErr;
 use std::sync::Arc;
 use tracing_actix_web::TracingLogger;
+use url::Url;
 
 mod accesso;
 mod generated;
@@ -50,6 +51,8 @@ async fn main() -> eyre::Result<()> {
     let settings_clone = settings.clone();
     let client_clone = client.clone();
 
+    let accesso_url = Arc::new(Url::parse(&settings.accesso.url)?);
+
     let mut server = HttpServer::new(move || {
         let settings = settings_clone.clone();
         let client = client_clone.clone();
@@ -69,7 +72,7 @@ async fn main() -> eyre::Result<()> {
             .app_data(web::Data::new(client))
             .service(
                 generated::api::create()
-                    .bind_auth_url(routes::accesso::auth_url::route)
+                    .bind_auth_url(routes::accesso::auth_params::route)
                     .bind_auth_done(routes::accesso::auth_done::route),
             )
             .default_service(web::route().to(cardbox_app::not_found))

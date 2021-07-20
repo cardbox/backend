@@ -11,7 +11,7 @@ impl AccessoAuthorize for App {
         let db = self.get::<Service<dyn Repository>>()?;
         let generator = self.get::<Service<dyn Generator>>()?;
 
-        let user = db.find_user_by_accesso(info.accesso_id).await?;
+        let user = db.user_find_by_accesso(info.accesso_id).await?;
 
         let actual_user = if let Some(mut user) = user {
             user.first_name = info.first_name;
@@ -24,7 +24,7 @@ impl AccessoAuthorize for App {
 
                 // potentially impossible
                 Err(err @ UserCreateError::UserAlreadyExists) => db
-                    .find_user_by_accesso(info.accesso_id)
+                    .user_find_by_accesso(info.accesso_id)
                     .await?
                     .ok_or_else(|| UpdateUserFailure::Unexpected(err.into())),
             }
@@ -32,7 +32,7 @@ impl AccessoAuthorize for App {
 
         let token = generator.secure_token(ACCESS_TOKEN_LENGTH);
         let access_token = SessionToken::new(actual_user.id, token);
-        let token = db.create_token(access_token).await?;
+        let token = db.token_create(access_token).await?;
 
         Ok((actual_user, token))
     }

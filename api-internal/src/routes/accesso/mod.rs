@@ -1,2 +1,2 @@
 pub mod auth_done;
-pub mod auth_url;
+pub mod auth_params;

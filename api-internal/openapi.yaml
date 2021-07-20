@@ -36,8 +36,8 @@ paths:
           description: "Something went wrong"
   /accesso/auth.params:
     post:
-      summary: Get auth url
-      operationId: authUrl
+      summary: Get auth params
+      operationId: authParams
       tags: [ Auth ]
       description: |-
         Get accesso auth url
