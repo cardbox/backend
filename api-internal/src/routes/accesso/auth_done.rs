@@ -25,6 +25,7 @@ pub async fn route(
     config_session: Data<SessionCookieConfig>,
     client: Data<Client>,
     app: Data<cardbox_app::App>,
+    accesso_url: Data<Url>,
     req: HttpRequest,
 ) -> Result<impl Responder, AuthDoneFailure> {
     let grant_type = GrantType::AuthorizationCode;
@@ -38,7 +39,7 @@ pub async fn route(
     };
 
     let exchange_token_url = {
-        let mut uri = Url::parse(&config.accesso.url).wrap_err("Could not parse accesso url")?;
+        let mut uri = Url::clone(&accesso_url);
         uri.set_path("/api/v0/oauth/token");
         uri.to_string()
     };
@@ -82,8 +83,7 @@ pub async fn route(
                     };
 
                     let viewer_get_url = {
-                        let mut uri = Url::parse(&config.accesso.url)
-                            .wrap_err("Could not parse accesso url")?;
+                        let mut uri = Url::clone(&accesso_url);
                         uri.set_path("/api/v0/viewer");
                         uri.to_string()
                     };

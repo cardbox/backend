@@ -56,6 +56,7 @@ async fn main() -> eyre::Result<()> {
     let mut server = HttpServer::new(move || {
         let settings = settings_clone.clone();
         let client = client_clone.clone();
+        let accesso_url = accesso_url.clone();
         actix_web::App::new()
             .configure(|config| {
                 let settings = settings.clone();
@@ -70,6 +71,7 @@ async fn main() -> eyre::Result<()> {
             )
             .wrap(TracingLogger::default())
             .app_data(web::Data::new(client))
+            .app_data(web::Data::from(accesso_url))
             .service(
                 generated::api::create()
                     .bind_auth_url(routes::accesso::auth_params::route)

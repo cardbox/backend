@@ -4,14 +4,14 @@ use crate::generated::{
 };
 use actix_web::web::{Data, Json};
 use cardbox_settings::Settings;
-use eyre::WrapErr;
 use url::Url;
 
 pub async fn route(
     body: Json<AuthUrlRequestBody>,
     config: Data<Settings>,
+    accesso_url: Data<Url>,
 ) -> Result<Response, Error> {
-    let mut accesso = Url::parse(&config.accesso.url).wrap_err("Could not parse url")?;
+    let mut accesso = Url::clone(&accesso_url);
 
     accesso.set_path("/oauth/authorize");
 
