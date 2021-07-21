@@ -207,8 +207,8 @@ paths:
       tags: [ Cards ]
       summary: Update card
       description: |-
-          `IMPORTANT:` There is should be check that user has required permissions for editing card
-            - **For prototype**: that he is card's author
+        `IMPORTANT:` There is should be check that user has required permissions for editing card
+          - **For prototype**: that he is card's author
       operationId: cardsEdit
       requestBody:
         description: |-
@@ -328,9 +328,45 @@ paths:
                       - already_saved
                       - card_not_found
                       - no_access
-                  
+
         500:
           description: SERVER_ERROR
+
+  /account.edit:
+    post:
+      tags: [Account]
+      summary: Edit current account with session
+      operationId: 'account.edit'
+      requestBody:
+        content:
+          applicaion/json:
+            schema:
+              properties:
+                user:
+                  $ref: '#/components/schemas/UserInfo'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                properties:
+                  user:
+                    $ref: '#/components/schemas/UserInfo'
+        400:
+          description: CLIENT_ERROR
+          content:
+            application/json:
+              schema:
+                properties:
+                  type:
+                    type: string
+                    enum:
+                      - no_access
+                      - not_valid_user
+        500:
+          description: SERVER_ERROR
+
 components:
   responses:
     AuthDoneFailed:
