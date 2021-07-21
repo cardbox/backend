@@ -62,7 +62,7 @@ paths:
       tags: [ Cards ]
       description: |-
         Full text search of cards
-          - `POST /api/v1/card/list '{"search": SEARCH_TERM}'`
+          - `POST /api/internal/cards.search '{"search": SEARCH_TERM}'`
           - By title, content, tags (and maybe by author)
       requestBody:
         content:
