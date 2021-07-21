@@ -53,7 +53,7 @@ pub fn install_logger(app_name: String, _settings: &Settings) -> Result<WorkerGu
                 .with_resource(Resource::new(vec![KeyValue::new("service.name", app_name)])),
         )
         .with_tonic()
-        .install_batch(opentelemetry::runtime::Tokio)?;
+        .install_batch(opentelemetry::runtime::TokioCurrentThread)?;
 
     let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
 

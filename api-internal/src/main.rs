@@ -98,6 +98,5 @@ async fn main() -> eyre::Result<()> {
 
     #[cfg(not(debug_assertions))]
     opentelemetry::global::shutdown_tracer_provider();
-
     Ok(())
 }
