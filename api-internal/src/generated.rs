@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 #![allow(clippy::from_over_into)]
+#![allow(clippy::enum_variant_names)]
 
 pub mod api {
     use actix_swagger::{Api, Method};
@@ -64,6 +65,21 @@ pub mod api {
             self.api = self.api.bind("/cards.create".into(), Method::POST, handler);
             self
         }
+
+        pub fn bind_cards_search<F, T, R>(mut self, handler: F) -> Self
+        where
+            F: Handler<T, R>,
+            T: FromRequest + 'static,
+            R: Future<
+                    Output = Result<
+                        super::paths::cards_search::Response,
+                        super::paths::cards_search::Error,
+                    >,
+                > + 'static,
+        {
+            self.api = self.api.bind("/cards.search".into(), Method::POST, handler);
+            self
+        }
     }
 }
 
@@ -123,6 +139,13 @@ pub mod components {
             #[error("Invalid content")]
             InvalidContent,
         }
+
+        #[derive(Debug, Serialize)]
+        #[serde(rename_all = "camelCase")]
+        pub struct CardsSearchSuccess {
+            pub cards: Vec<schemas::Card>,
+            pub total: usize,
+        }
     }
 
     pub mod request_bodies {
@@ -148,6 +171,12 @@ pub mod components {
             pub title: String,
             pub content: serde_json::Value,
             pub tags: Vec<String>,
+        }
+
+        #[derive(Debug, Deserialize)]
+        #[serde(rename_all = "camelCase")]
+        pub struct CardsSearchRequestBody {
+            pub search: String,
         }
     }
 
@@ -374,6 +403,53 @@ pub mod paths {
                 } else {
                     HttpResponse::build(self.status_code()).finish()
                 }
+            }
+        }
+    }
+
+    pub mod cards_search {
+        use super::responses;
+        use actix_web::http::StatusCode;
+        use actix_web::{HttpRequest, HttpResponse, Responder, ResponseError};
+        use serde::Serialize;
+
+        #[derive(Debug, Serialize)]
+        #[serde(untagged)]
+        pub enum Response {
+            Ok(responses::CardsSearchSuccess),
+        }
+
+        #[derive(Debug, Serialize, thiserror::Error)]
+        #[serde(untagged)]
+        pub enum Error {
+            #[error(transparent)]
+            InternalServerError(
+                #[from]
+                #[serde(skip)]
+                eyre::Report,
+            ),
+        }
+
+        impl Responder for Response {
+            #[inline]
+            fn respond_to(self, _: &HttpRequest) -> HttpResponse {
+                match self {
+                    Response::Ok(r) => HttpResponse::build(StatusCode::OK).json(r),
+                }
+            }
+        }
+
+        impl ResponseError for Error {
+            #[inline]
+            fn status_code(&self) -> StatusCode {
+                match self {
+                    Error::InternalServerError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                }
+            }
+
+            #[inline]
+            fn error_response(&self) -> HttpResponse {
+                HttpResponse::build(self.status_code()).finish()
             }
         }
     }

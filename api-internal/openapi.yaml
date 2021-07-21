@@ -55,19 +55,51 @@ paths:
         500:
           description: SERVER_ERROR
 
+  /cards.search:
+    post:
+      summary: Search all cards
+      operationId: cardsSearch
+      tags: [ Cards ]
+      description: |-
+        Full text search of cards
+          - `POST /api/v1/card/list '{"search": SEARCH_TERM}'`
+          - By title, content, tags (and maybe by author)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required: [ search ]
+              properties:
+                search:
+                  type: string
+                  description: Search term
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                required: [cards, total]
+                properties:
+                  cards:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Card'
+                  total:
+                    type: integer
+        500:
+          description: Server error
+
   /cards.list:
     post:
       summary: Get cards list
       operationId: cardsList
       tags: [ Cards ]
       description: |-
-        Common endpoint for few usecases:
         1. **Personal cards**
+            - `POST /api/v1/card/list`
+        2. **Cards of user**
             - `POST /api/v1/card/list '{"authorId": USER_ID}'`
-
-        2. **Search cards**
-            - `POST /api/v1/card/list '{"search": SEARCH_TERM}'`
-            - By title, content, tags (and maybe by author)
 
         - `TODO:` Add pagination later
 
@@ -79,13 +111,10 @@ paths:
           application/json:
             schema:
               properties:
-                search:
-                  type: string
-                  description: Full-text search
                 authorId:
                   type: string
                   format: uuid
-                  description: Search by author / Get personal cards
+                  description: Author id
       responses:
         200:
           description: OK
@@ -113,6 +142,9 @@ paths:
                     type: string
                     enum:
                       - invalid_params
+        # when empty body and no token
+        401:
+          description: UNAUTHORIZED
         500:
           description: SERVER_ERROR
   /cards.get:

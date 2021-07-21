@@ -8,6 +8,8 @@ pub trait Cards {
         card: CardCreateForm,
         token: String,
     ) -> Result<models::Card, CardCreateError>;
+
+    async fn card_search(&self, search: &str) -> Result<Vec<models::Card>, CardSearchError>;
 }
 
 #[derive(Debug, Validate)]
@@ -30,7 +32,21 @@ pub enum CardCreateError {
     Unexpected(#[from] eyre::Report),
 }
 
+#[derive(Debug, thiserror::Error)]
+pub enum CardSearchError {
+    #[error(transparent)]
+    Unexpected(#[from] eyre::Report),
+}
+
 impl From<UnexpectedDatabaseError> for CardCreateError {
+    #[inline]
+    fn from(e: UnexpectedDatabaseError) -> Self {
+        Self::Unexpected(e.into())
+    }
+}
+
+impl From<UnexpectedDatabaseError> for CardSearchError {
+    #[inline]
     fn from(e: UnexpectedDatabaseError) -> Self {
         Self::Unexpected(e.into())
     }

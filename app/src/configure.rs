@@ -15,6 +15,7 @@ use tracing_subscriber::{EnvFilter, Registry};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[allow(clippy::enum_variant_names)]
 pub enum FailureCode {
     InvalidPayload,
     InvalidRoute,

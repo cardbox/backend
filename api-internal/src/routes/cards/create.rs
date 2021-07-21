@@ -56,6 +56,6 @@ fn map_new_card_error(error: CardCreateError) -> Error {
             error: CardsCreateError::EmptyTitle,
         }
         .into(),
-        Unexpected(e) => Error::InternalServerError(e.into()),
+        Unexpected(e) => Error::InternalServerError(e),
     }
 }

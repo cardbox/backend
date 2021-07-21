@@ -16,3 +16,5 @@ CREATE INDEX index_cards_on_contents ON cards USING gin (
         '["string"]'
     )
 );
+
+CREATE INDEX index_cards_on_tags ON cards USING gin (tags);

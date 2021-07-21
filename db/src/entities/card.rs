@@ -22,7 +22,7 @@ impl From<Card> for models::Card {
             created_at: card.created_at,
             updated_at: card.updated_at,
             contents: card.contents,
-            tags: card.tags.unwrap_or_else(|| vec![]),
+            tags: card.tags.unwrap_or_else(Vec::new),
         }
     }
 }
