@@ -24,7 +24,7 @@ impl CardRepo for Database {
         .into())
     }
 
-    async fn cards_find_by_title(&self, title: &str) -> RepoResult<Vec<models::Card>> {
+    async fn cards_search(&self, query: &str, limit: Option<i64>) -> RepoResult<Vec<models::Card>> {
         let found = sqlx::query_as!(
             Card,
             // language=PostgreSQL
@@ -32,45 +32,17 @@ impl CardRepo for Database {
             SELECT id, author_id, title, created_at, updated_at, contents, tags
             FROM cards
             WHERE title ILIKE $1
+               OR tags @> (ARRAY [$2::varchar])
+               OR jsonb_to_tsvector('english',
+                    jsonb_path_query_array(contents, 'strict $.**.text'), '[
+                      "string"
+                    ]')
+                @@ to_tsquery($2)
+            LIMIT $3
             "#,
-            format!("%{}%", title),
-        )
-        .fetch_all(&self.pool)
-        .await?;
-
-        Ok(found.into_iter().map(Into::into).collect())
-    }
-
-    async fn cards_find_by_content(&self, content: &str) -> RepoResult<Vec<models::Card>> {
-        let found = sqlx::query_as!(
-            Card,
-            // language=PostgreSQL
-            r#"
-            SELECT id, author_id, title, created_at, updated_at, contents, tags
-            FROM cards
-            WHERE jsonb_to_tsvector('english', jsonb_path_query_array(contents, 'strict $.**.text'), '[
-              "string"
-            ]')
-            @@ to_tsquery($1)
-            "#,
-            content,
-        )
-        .fetch_all(&self.pool)
-        .await?;
-
-        Ok(found.into_iter().map(Into::into).collect())
-    }
-
-    async fn cards_find_by_tag(&self, tag: &str) -> RepoResult<Vec<models::Card>> {
-        let found = sqlx::query_as!(
-            Card,
-            // language=PostgreSQL
-            r#"
-            SELECT id, author_id, title, created_at, updated_at, contents, tags
-            FROM cards
-            WHERE tags @> (ARRAY[$1::varchar])
-            "#,
-            tag
+            format!("%{}%", query),
+            query,
+            limit.unwrap_or(100)
         )
         .fetch_all(&self.pool)
         .await?;

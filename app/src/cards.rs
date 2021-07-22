@@ -33,19 +33,14 @@ impl Cards for App {
         }
     }
 
-    async fn card_search(&self, search: &str) -> Result<Vec<Card>, CardSearchError> {
+    async fn cards_search(
+        &self,
+        query: &str,
+        limit: Option<i64>,
+    ) -> Result<Vec<Card>, CardSearchError> {
         let db = self.get::<Service<dyn Repository>>()?;
 
-        let (mut title_res, content_res, tags_res) = tokio::try_join!(
-            db.cards_find_by_title(search),
-            db.cards_find_by_content(search),
-            db.cards_find_by_tag(search)
-        )?;
-
-        title_res.extend(content_res);
-        title_res.extend(tags_res);
-
-        let search_results = title_res;
+        let search_results = db.cards_search(query, limit).await?;
 
         Ok(search_results.into_iter().unique_by(|c| c.id).collect())
     }

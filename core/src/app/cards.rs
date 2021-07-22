@@ -9,7 +9,11 @@ pub trait Cards {
         token: String,
     ) -> Result<models::Card, CardCreateError>;
 
-    async fn card_search(&self, search: &str) -> Result<Vec<models::Card>, CardSearchError>;
+    async fn cards_search(
+        &self,
+        query: &str,
+        limit: Option<i64>,
+    ) -> Result<Vec<models::Card>, CardSearchError>;
 }
 
 #[derive(Debug, Validate)]
