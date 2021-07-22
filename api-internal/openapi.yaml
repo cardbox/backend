@@ -68,9 +68,9 @@ paths:
         content:
           application/json:
             schema:
-              required: [ search ]
+              required: [ query ]
               properties:
-                search:
+                query:
                   type: string
                   description: Search term
                 limit:

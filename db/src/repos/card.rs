@@ -33,7 +33,7 @@ impl CardRepo for Database {
             FROM cards
             WHERE title ILIKE $1
                OR tags @> (ARRAY [$2::varchar])
-               OR jsonb_to_tsvector('english',
+               OR jsonb_to_tsvector_multilang(
                     jsonb_path_query_array(contents, 'strict $.**.text'), '[
                       "string"
                     ]')

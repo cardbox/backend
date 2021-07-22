@@ -14,7 +14,7 @@ pub async fn route(
     let body = search.into_inner();
 
     let search_results = app
-        .cards_search(&body.search, body.limit)
+        .cards_search(&body.query, body.limit)
         .await
         .map_err(map_card_search_error)?;
 

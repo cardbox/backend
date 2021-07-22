@@ -176,7 +176,7 @@ pub mod components {
         #[derive(Debug, Deserialize)]
         #[serde(rename_all = "camelCase")]
         pub struct CardsSearchRequestBody {
-            pub search: String,
+            pub query: String,
             pub limit: Option<i64>,
         }
     }
