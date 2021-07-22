@@ -144,6 +144,7 @@ pub mod components {
         #[serde(rename_all = "camelCase")]
         pub struct CardsSearchSuccess {
             pub cards: Vec<schemas::Card>,
+            pub users: Vec<schemas::User>,
             pub total: usize,
         }
     }
@@ -197,15 +198,13 @@ pub mod components {
         #[serde(rename_all = "camelCase")]
         pub struct User {
             pub id: Uuid,
-            pub username: String,
+            //pub username: String,
             pub first_name: String,
             pub last_name: String,
-            pub bio: Option<String>,
-            pub avatar: Option<String>,
-            // TODO: default box card ids
-            // pub favorites: Vec<Uuid>,
-            pub socials: Vec<Social>,
-            pub work: Option<String>,
+            // pub bio: Option<String>,
+            // pub avatar: Option<String>,
+            // pub socials: Vec<Social>,
+            // pub work: Option<String>,
         }
 
         #[derive(Debug, Serialize)]

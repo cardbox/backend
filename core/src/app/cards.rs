@@ -13,7 +13,7 @@ pub trait Cards {
         &self,
         query: &str,
         limit: Option<i64>,
-    ) -> Result<Vec<models::Card>, CardSearchError>;
+    ) -> Result<Vec<(models::Card, models::User)>, CardSearchError>;
 }
 
 #[derive(Debug, Validate)]

@@ -73,22 +73,22 @@ paths:
                 query:
                   type: string
                   description: Search term
-                limit:
-                  type: number
-                  description: Limit max amount of results
-                  default: 100
       responses:
         200:
           description: OK
           content:
             application/json:
               schema:
-                required: [cards, total]
+                required: [cards, total, users]
                 properties:
                   cards:
                     type: array
                     items:
                       $ref: '#/components/schemas/Card'
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
                   total:
                     type: integer
         500:
@@ -241,8 +241,8 @@ paths:
       tags: [ Cards ]
       summary: Update card
       description: |-
-          `IMPORTANT:` There is should be check that user has required permissions for editing card
-            - **For prototype**: that he is card's author
+        `IMPORTANT:` There is should be check that user has required permissions for editing card
+          - **For prototype**: that he is card's author
       operationId: cardsEdit
       requestBody:
         description: |-
@@ -362,7 +362,6 @@ paths:
                       - already_saved
                       - card_not_found
                       - no_access
-                  
         500:
           description: SERVER_ERROR
 components:
@@ -429,14 +428,6 @@ components:
           nullable: true
           description: |-
             Later, can implement as `File` entity
-        cards:
-          type: array
-          items:
-            $ref: '#/components/schemas/Card'
-        favorites:
-          type: array
-          items:
-            $ref: '#/components/schemas/Card'
         socials:
           type: object
           properties:

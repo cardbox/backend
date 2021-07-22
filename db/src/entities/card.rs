@@ -2,7 +2,7 @@ use cardbox_core::models;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-#[derive(Debug, sqlx::FromRow)]
+#[derive(Debug, sqlx::FromRow, sqlx::Type)]
 pub(crate) struct Card {
     pub(crate) id: Uuid,
     pub(crate) author_id: Uuid,

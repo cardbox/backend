@@ -1,7 +1,7 @@
 use crate::{App, Service};
 use cardbox_core::app::{CardCreateError, CardCreateForm, CardSearchError, Cards};
 use cardbox_core::contracts::Repository;
-use cardbox_core::models::{Card, CardCreate};
+use cardbox_core::models::{Card, CardCreate, User};
 use itertools::Itertools;
 use validator::Validate;
 
@@ -37,11 +37,14 @@ impl Cards for App {
         &self,
         query: &str,
         limit: Option<i64>,
-    ) -> Result<Vec<Card>, CardSearchError> {
+    ) -> Result<Vec<(Card, User)>, CardSearchError> {
         let db = self.get::<Service<dyn Repository>>()?;
 
         let search_results = db.cards_search(query, limit).await?;
 
-        Ok(search_results.into_iter().unique_by(|c| c.id).collect())
+        Ok(search_results
+            .into_iter()
+            .unique_by(|(c, _)| c.id)
+            .collect())
     }
 }

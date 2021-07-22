@@ -1,6 +1,7 @@
 use crate::generated::{
     components::{
         request_bodies::CardsSearchRequestBody, responses::CardsSearchSuccess, schemas::Card,
+        schemas::User,
     },
     paths::cards_search::{Error, Response},
 };
@@ -22,8 +23,9 @@ pub async fn route(
 
     Ok(Response::Ok(CardsSearchSuccess {
         cards: search_results
-            .into_iter()
-            .map(|c| Card {
+            .iter()
+            .cloned()
+            .map(|(c, _)| Card {
                 id: c.id,
                 title: c.title,
                 content: c.contents,
@@ -31,6 +33,14 @@ pub async fn route(
                 updated_at: c.updated_at,
                 author_id: c.author_id,
                 tags: c.tags,
+            })
+            .collect(),
+        users: search_results
+            .into_iter()
+            .map(|(_, u)| User {
+                id: u.id,
+                first_name: u.first_name,
+                last_name: u.last_name,
             })
             .collect(),
         total,
