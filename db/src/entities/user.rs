@@ -1,7 +1,7 @@
 use cardbox_core::models;
 use uuid::Uuid;
 
-#[derive(Debug, sqlx::FromRow)]
+#[derive(Debug, sqlx::FromRow, sqlx::Type)]
 pub(crate) struct User {
     pub(crate) id: Uuid,
     pub(crate) accesso_id: Uuid,
@@ -10,6 +10,7 @@ pub(crate) struct User {
 }
 
 impl From<User> for models::User {
+    #[inline]
     fn from(u: User) -> Self {
         Self {
             id: u.id,

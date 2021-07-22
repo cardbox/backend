@@ -42,6 +42,7 @@ pub mod response {
 
     #[derive(Debug, Deserialize)]
     #[serde(rename_all = "snake_case")]
+    #[allow(clippy::enum_variant_names)]
     pub enum Error {
         InvalidClient,
         InvalidGrant,

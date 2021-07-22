@@ -12,4 +12,4 @@ CREATE TABLE IF NOT EXISTS cards
     PRIMARY KEY ("id")
 );
 
-CREATE UNIQUE INDEX "cards_author_id" ON cards USING btree ("author_id");
+CREATE INDEX "cards_author_id" ON cards USING btree ("author_id");

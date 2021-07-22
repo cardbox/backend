@@ -1,7 +1,7 @@
 use crate::app::UserInfo;
 
 /// TODO: how to guarantee model validity
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone)]
 pub struct User {
     pub id: uuid::Uuid,
     pub accesso_id: uuid::Uuid,
@@ -18,6 +18,7 @@ pub struct UserCreate {
 }
 
 impl From<UserInfo> for UserCreate {
+    #[inline]
     fn from(i: UserInfo) -> Self {
         Self {
             accesso_id: i.accesso_id,

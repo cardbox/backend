@@ -1,7 +1,8 @@
 use crate::{App, Service};
-use cardbox_core::app::{CardCreateError, CardCreateForm, Cards};
+use cardbox_core::app::{CardCreateError, CardCreateForm, CardSearchError, Cards};
 use cardbox_core::contracts::Repository;
-use cardbox_core::models::{Card, CardCreate};
+use cardbox_core::models::{Card, CardCreate, User};
+use itertools::Itertools;
 use validator::Validate;
 
 #[async_trait]
@@ -30,5 +31,20 @@ impl Cards for App {
             Some(card) => Ok(db.card_create(card).await?),
             None => Err(CardCreateError::Unauthorized),
         }
+    }
+
+    async fn cards_search(
+        &self,
+        query: &str,
+        limit: Option<i64>,
+    ) -> Result<Vec<(Card, User)>, CardSearchError> {
+        let db = self.get::<Service<dyn Repository>>()?;
+
+        let search_results = db.cards_search(query, limit).await?;
+
+        Ok(search_results
+            .into_iter()
+            .unique_by(|(c, _)| c.id)
+            .collect())
     }
 }

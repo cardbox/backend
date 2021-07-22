@@ -131,6 +131,34 @@
       ]
     }
   },
+  "2fabcd6ae55936150f462fdec48befd26fe32f4186472d7cf160283e745cd1e5": {
+    "query": "\n            SELECT \n               (u.id, u.accesso_id, u.first_name, u.last_name) as \"user!: User\",\n               (c.id, c.author_id, c.title, c.created_at, c.updated_at, c.contents, c.tags) as \"card!: Card\"\n            FROM cards as c\n            JOIN users u on u.id = c.author_id\n            WHERE c.title ILIKE $1\n               OR c.tags @> (ARRAY [$2::varchar])\n               OR jsonb_to_tsvector_multilang(\n                    jsonb_path_query_array(c.contents, 'strict $.**.text'), '[\n                      \"string\"\n                    ]')\n                @@ to_tsquery($2)\n            LIMIT $3\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "user!: User",
+          "type_info": "Record"
+        },
+        {
+          "ordinal": 1,
+          "name": "card!: Card",
+          "type_info": "Record"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Varchar",
+          "Int8"
+        ]
+      },
+      "nullable": [
+        true,
+        true
+      ]
+    }
+  },
   "558ca5c5e0702bbccf834a1a5ecb851b944d1e3c85cf8d11b62844ac68caf2b6": {
     "query": "\n            SELECT user_id, token, expires_at\n            FROM session_tokens\n            WHERE user_id = $1\n            ",
     "describe": {

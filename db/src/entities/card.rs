@@ -2,7 +2,7 @@ use cardbox_core::models;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-#[derive(Debug, sqlx::FromRow)]
+#[derive(Debug, sqlx::FromRow, sqlx::Type)]
 pub(crate) struct Card {
     pub(crate) id: Uuid,
     pub(crate) author_id: Uuid,
@@ -22,7 +22,7 @@ impl From<Card> for models::Card {
             created_at: card.created_at,
             updated_at: card.updated_at,
             contents: card.contents,
-            tags: card.tags.unwrap_or_else(|| vec![]),
+            tags: card.tags.unwrap_or_else(Vec::new),
         }
     }
 }

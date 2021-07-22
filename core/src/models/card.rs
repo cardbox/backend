@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
+#[derive(Debug, Clone)]
 pub struct Card {
     pub id: Uuid,
     pub author_id: Uuid,
@@ -11,6 +12,7 @@ pub struct Card {
     pub tags: Vec<String>,
 }
 
+#[derive(Debug)]
 pub struct CardCreate {
     pub author_id: Uuid,
     pub title: String,

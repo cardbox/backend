@@ -18,7 +18,7 @@ tracing-bunyan-formatter = "0.2.4"
 tracing = "0.1.26"
 opentelemetry-otlp = "0.8.0"
 opentelemetry-jaeger = "0.14.0"
-opentelemetry = { version = "0.15.0", features = ["rt-tokio"] }
+opentelemetry = { version = "0.15.0", features = ["rt-tokio-current-thread"] }
 tracing-opentelemetry = "0.14.0"
 validator = "0.14.0"
 uuid = { version = "0.8.2", features = ["v4"]}
@@ -27,6 +27,8 @@ eyre = "0.6.5"
 serde = {version = "1.0.126", features = ["derive"]}
 actix-web = { version = "4.0.0-beta.8", default-features = false }
 time = "0.2.27"
+tokio = { version = "1.9.0", default-features = false, features = ["macros"] }
+itertools = "0.10.1"
 
 [dev-dependencies]
 cardbox-app = { path = ".", features = ["testing"] }
