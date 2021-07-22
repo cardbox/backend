@@ -1,63 +1,5 @@
 {
   "db": "PostgreSQL",
-  "0beffaf64643956b06fe9d1195c367ac58bd5aa7ebeabcf879e41fb444172517": {
-    "query": "\n            SELECT id, author_id, title, created_at, updated_at, contents, tags\n            FROM cards\n            WHERE title ILIKE $1\n               OR tags @> (ARRAY [$2::varchar])\n               OR jsonb_to_tsvector_multilang(\n                    jsonb_path_query_array(contents, 'strict $.**.text'), '[\n                      \"string\"\n                    ]')\n                @@ to_tsquery($2)\n            LIMIT $3\n            ",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Uuid"
-        },
-        {
-          "ordinal": 1,
-          "name": "author_id",
-          "type_info": "Uuid"
-        },
-        {
-          "ordinal": 2,
-          "name": "title",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 3,
-          "name": "created_at",
-          "type_info": "Timestamptz"
-        },
-        {
-          "ordinal": 4,
-          "name": "updated_at",
-          "type_info": "Timestamptz"
-        },
-        {
-          "ordinal": 5,
-          "name": "contents",
-          "type_info": "Jsonb"
-        },
-        {
-          "ordinal": 6,
-          "name": "tags",
-          "type_info": "VarcharArray"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Text",
-          "Varchar",
-          "Int8"
-        ]
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        true
-      ]
-    }
-  },
   "14f4986d3ed3d38b424f72dd11f37ccea8c488da8e07de3a5c2554c8bc16aec3": {
     "query": "\n            SELECT id, accesso_id, first_name, last_name\n            FROM users\n            WHERE users.accesso_id = $1\n            ",
     "describe": {
@@ -186,6 +128,34 @@
         false,
         false,
         false
+      ]
+    }
+  },
+  "2fabcd6ae55936150f462fdec48befd26fe32f4186472d7cf160283e745cd1e5": {
+    "query": "\n            SELECT \n               (u.id, u.accesso_id, u.first_name, u.last_name) as \"user!: User\",\n               (c.id, c.author_id, c.title, c.created_at, c.updated_at, c.contents, c.tags) as \"card!: Card\"\n            FROM cards as c\n            JOIN users u on u.id = c.author_id\n            WHERE c.title ILIKE $1\n               OR c.tags @> (ARRAY [$2::varchar])\n               OR jsonb_to_tsvector_multilang(\n                    jsonb_path_query_array(c.contents, 'strict $.**.text'), '[\n                      \"string\"\n                    ]')\n                @@ to_tsquery($2)\n            LIMIT $3\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "user!: User",
+          "type_info": "Record"
+        },
+        {
+          "ordinal": 1,
+          "name": "card!: Card",
+          "type_info": "Record"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Varchar",
+          "Int8"
+        ]
+      },
+      "nullable": [
+        true,
+        true
       ]
     }
   },
