@@ -19,3 +19,11 @@ pub struct CardCreate {
     pub contents: Option<serde_json::Value>,
     pub tags: Vec<String>,
 }
+
+#[derive(Debug)]
+pub struct CardUpdate {
+    pub id: Uuid,
+    pub title: Option<String>,
+    pub contents: Option<serde_json::Value>,
+    pub tags: Option<Vec<String>>,
+}

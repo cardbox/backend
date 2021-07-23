@@ -77,7 +77,8 @@ async fn main() -> eyre::Result<()> {
                     .bind_auth_url(routes::accesso::auth_params::route)
                     .bind_auth_done(routes::accesso::auth_done::route)
                     .bind_cards_create(routes::cards::create::route)
-                    .bind_cards_search(routes::cards::search::route),
+                    .bind_cards_search(routes::cards::search::route)
+                    .bind_cards_edit(routes::cards::edit::route),
             )
             .default_service(web::route().to(cardbox_app::not_found))
     });
