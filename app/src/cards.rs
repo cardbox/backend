@@ -1,7 +1,9 @@
 use crate::{App, Service};
-use cardbox_core::app::{CardCreateError, CardCreateForm, CardSearchError, Cards};
+use cardbox_core::app::{
+    CardCreateError, CardCreateForm, CardSearchError, CardUpdateError, CardUpdateForm, Cards,
+};
 use cardbox_core::contracts::Repository;
-use cardbox_core::models::{Card, CardCreate, User};
+use cardbox_core::models::{Card, CardCreate, CardUpdate, User};
 use itertools::Itertools;
 use validator::Validate;
 
@@ -46,5 +48,36 @@ impl Cards for App {
             .into_iter()
             .unique_by(|(c, _)| c.id)
             .collect())
+    }
+
+    async fn card_update(
+        &self,
+        card: CardUpdateForm,
+        token: String,
+    ) -> Result<Card, CardUpdateError> {
+        let db = self.get::<Service<dyn Repository>>()?;
+
+        let token = db.token_find(token).await?;
+
+        if let Some(token) = token {
+            let updated = db
+                .card_update(
+                    CardUpdate {
+                        id: card.id,
+                        contents: card.contents,
+                        title: card.title,
+                        tags: card.tags,
+                    },
+                    token.user_id,
+                )
+                .await?;
+
+            match updated {
+                Some(card) => Ok(card),
+                None => Err(CardUpdateError::CardNotFound),
+            }
+        } else {
+            Err(CardUpdateError::TokenNotFound)
+        }
     }
 }

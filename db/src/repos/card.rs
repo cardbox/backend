@@ -2,7 +2,9 @@ use crate::entities::{Card, User};
 use crate::Database;
 use cardbox_core::contracts::{CardRepo, RepoResult};
 use cardbox_core::models;
+use cardbox_core::models::CardUpdate;
 use serde_json::json;
+use uuid::Uuid;
 
 #[async_trait]
 impl CardRepo for Database {
@@ -64,5 +66,32 @@ impl CardRepo for Database {
             .into_iter()
             .map(|user_card| (user_card.card.into(), user_card.user.into()))
             .collect())
+    }
+
+    async fn card_update(
+        &self,
+        card: CardUpdate,
+        user_id: Uuid,
+    ) -> RepoResult<Option<models::Card>> {
+        Ok(sqlx::query_as!(
+            Card,
+            // language=PostgreSQL
+            r#"
+            UPDATE cards SET
+                title = coalesce($1, title),
+                contents = coalesce($2, contents),
+                tags = coalesce($3, tags)
+            WHERE id = $4 AND author_id = $5
+            RETURNING id, author_id, title, created_at, updated_at, contents, tags
+            "#,
+            card.title,
+            card.contents,
+            card.tags.as_deref(),
+            card.id,
+            user_id
+        )
+        .fetch_optional(&self.pool)
+        .await?
+        .map(Into::into))
     }
 }

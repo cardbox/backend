@@ -80,6 +80,21 @@ pub mod api {
             self.api = self.api.bind("/cards.search".into(), Method::POST, handler);
             self
         }
+
+        pub fn bind_cards_edit<F, T, R>(mut self, handler: F) -> Self
+        where
+            F: Handler<T, R>,
+            T: FromRequest + 'static,
+            R: Future<
+                    Output = Result<
+                        super::paths::cards_edit::Response,
+                        super::paths::cards_edit::Error,
+                    >,
+                > + 'static,
+        {
+            self.api = self.api.bind("/cards.edit".into(), Method::POST, handler);
+            self
+        }
     }
 }
 
@@ -147,10 +162,36 @@ pub mod components {
             pub users: Vec<schemas::User>,
             pub total: usize,
         }
+
+        #[derive(Debug, Serialize)]
+        #[serde(rename_all = "camelCase")]
+        pub struct CardsEditSuccess {
+            pub card: schemas::Card,
+        }
+
+        #[derive(Debug, Serialize, thiserror::Error)]
+        #[serde(rename_all = "camelCase")]
+        #[error(transparent)]
+        pub struct CardsEditFailed {
+            #[from]
+            pub error: CardsEditError,
+        }
+
+        #[derive(Debug, Serialize, thiserror::Error)]
+        #[serde(rename_all = "snake_case")]
+        pub enum CardsEditError {
+            #[error("Card not found")]
+            CardNotFound,
+            #[error("Invalid payload")]
+            InvalidPayload,
+            #[error("No access")]
+            NoAccess,
+        }
     }
 
     pub mod request_bodies {
         use serde::Deserialize;
+        use uuid::Uuid;
 
         #[derive(Debug, Deserialize)]
         #[serde(rename_all = "camelCase")]
@@ -179,6 +220,15 @@ pub mod components {
         pub struct CardsSearchRequestBody {
             pub query: String,
             pub limit: Option<i64>,
+        }
+
+        #[derive(Debug, Deserialize)]
+        #[serde(rename_all = "camelCase")]
+        pub struct CardsEditRequestBody {
+            pub card_id: Uuid,
+            pub title: Option<String>,
+            pub content: Option<serde_json::Value>,
+            pub tags: Option<Vec<String>>,
         }
     }
 
@@ -450,6 +500,69 @@ pub mod paths {
             #[inline]
             fn error_response(&self) -> HttpResponse {
                 HttpResponse::build(self.status_code()).finish()
+            }
+        }
+    }
+
+    pub mod cards_edit {
+        use super::responses;
+        use actix_swagger::ContentType;
+        use actix_web::http::StatusCode;
+        use actix_web::{HttpRequest, HttpResponse, Responder, ResponseError};
+        use serde::Serialize;
+
+        #[derive(Debug, Serialize)]
+        #[serde(untagged)]
+        pub enum Response {
+            Ok(responses::CardsEditSuccess),
+        }
+
+        #[derive(Debug, Serialize, thiserror::Error)]
+        #[serde(untagged)]
+        pub enum Error {
+            #[error(transparent)]
+            BadRequest(#[from] responses::CardsEditFailed),
+            #[error(transparent)]
+            InternalServerError(
+                #[from]
+                #[serde(skip)]
+                eyre::Report,
+            ),
+        }
+
+        impl Responder for Response {
+            fn respond_to(self, _: &HttpRequest) -> HttpResponse {
+                match self {
+                    Response::Ok(r) => HttpResponse::build(StatusCode::OK).json(r),
+                }
+            }
+        }
+
+        impl ResponseError for Error {
+            fn status_code(&self) -> StatusCode {
+                match self {
+                    Error::InternalServerError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                    Error::BadRequest(_) => StatusCode::BAD_REQUEST,
+                }
+            }
+
+            fn error_response(&self) -> HttpResponse {
+                let content_type = match self {
+                    Self::BadRequest(_) => Some(ContentType::Json),
+                    _ => None,
+                };
+
+                let mut res = &mut HttpResponse::build(self.status_code());
+                if let Some(content_type) = content_type {
+                    res = res.content_type(content_type.to_string());
+
+                    match content_type {
+                        ContentType::Json => res.json(self),
+                        ContentType::FormData => res.body(serde_plain::to_string(self).unwrap()),
+                    }
+                } else {
+                    HttpResponse::build(self.status_code()).finish()
+                }
             }
         }
     }
