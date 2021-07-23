@@ -1,4 +1,4 @@
-#![deny(warnings)]
+//#![deny(warnings)]
 #![forbid(unsafe_code)]
 
 use actix_web::middleware;
@@ -6,6 +6,7 @@ use actix_web::{web, HttpServer};
 use cardbox_app::install_logger;
 use cardbox_settings::Settings;
 use eyre::WrapErr;
+use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
 use std::sync::Arc;
 use tracing_actix_web::TracingLogger;
 use url::Url;
@@ -53,6 +54,12 @@ async fn main() -> eyre::Result<()> {
 
     let accesso_url = Arc::new(Url::parse(&settings.accesso.url)?);
 
+    let mut builder = SslAcceptor::mozilla_intermediate(SslMethod::tls()).unwrap();
+    builder
+        .set_private_key_file("mkcert+1-key.pem", SslFiletype::PEM)
+        .unwrap();
+    builder.set_certificate_chain_file("mkcert+1.pem").unwrap();
+
     let mut server = HttpServer::new(move || {
         let settings = settings_clone.clone();
         let client = client_clone.clone();
@@ -95,7 +102,10 @@ async fn main() -> eyre::Result<()> {
         server = server.client_shutdown(client_shutdown);
     }
 
-    server.bind(bind_address)?.run().await?;
+    server
+        .bind_openssl("127.0.0.1:8443", builder)?
+        .run()
+        .await?;
 
     #[cfg(not(debug_assertions))]
     opentelemetry::global::shutdown_tracer_provider();

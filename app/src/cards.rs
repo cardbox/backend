@@ -2,7 +2,8 @@ use crate::{App, Service};
 use cardbox_core::app::{CardCreateError, CardCreateForm, CardSearchError, Cards};
 use cardbox_core::contracts::Repository;
 use cardbox_core::models::{Card, CardCreate, User};
-use itertools::Itertools;
+use futures::stream::BoxStream;
+use futures::{StreamExt, TryStreamExt};
 use validator::Validate;
 
 #[async_trait]
@@ -33,18 +34,13 @@ impl Cards for App {
         }
     }
 
-    async fn cards_search(
-        &self,
+    fn cards_search<'a>(
+        &'a self,
         query: &str,
         limit: Option<i64>,
-    ) -> Result<Vec<(Card, User)>, CardSearchError> {
+    ) -> Result<BoxStream<'a, Result<(Card, User), CardSearchError>>, eyre::Report> {
         let db = self.get::<Service<dyn Repository>>()?;
 
-        let search_results = db.cards_search(query, limit).await?;
-
-        Ok(search_results
-            .into_iter()
-            .unique_by(|(c, _)| c.id)
-            .collect())
+        Ok(db.cards_search(query, limit).map_err(Into::into).boxed())
     }
 }

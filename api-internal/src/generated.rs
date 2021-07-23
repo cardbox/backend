@@ -6,7 +6,7 @@ pub mod api {
     use actix_swagger::{Api, Method};
     use actix_web::{
         dev::{AppService, Handler, HttpServiceFactory},
-        FromRequest, Responder,
+        FromRequest, HttpResponse, Responder,
     };
     use std::future::Future;
 
@@ -70,12 +70,7 @@ pub mod api {
         where
             F: Handler<T, R>,
             T: FromRequest + 'static,
-            R: Future<
-                    Output = Result<
-                        super::paths::cards_search::Response,
-                        super::paths::cards_search::Error,
-                    >,
-                > + 'static,
+            R: Future<Output = Result<HttpResponse, super::paths::cards_search::Error>> + 'static,
         {
             self.api = self.api.bind("/cards.search".into(), Method::POST, handler);
             self

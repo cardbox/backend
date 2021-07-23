@@ -1,5 +1,6 @@
 use crate::contracts::UnexpectedDatabaseError;
 use crate::models;
+use futures::stream::BoxStream;
 
 #[async_trait]
 pub trait Cards {
@@ -9,11 +10,11 @@ pub trait Cards {
         token: String,
     ) -> Result<models::Card, CardCreateError>;
 
-    async fn cards_search(
-        &self,
+    fn cards_search<'a>(
+        &'a self,
         query: &str,
         limit: Option<i64>,
-    ) -> Result<Vec<(models::Card, models::User)>, CardSearchError>;
+    ) -> Result<BoxStream<'a, Result<(models::Card, models::User), CardSearchError>>, eyre::Report>;
 }
 
 #[derive(Debug, Validate)]

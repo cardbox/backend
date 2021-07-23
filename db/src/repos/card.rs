@@ -2,6 +2,9 @@ use crate::entities::{Card, User};
 use crate::Database;
 use cardbox_core::contracts::{CardRepo, RepoResult};
 use cardbox_core::models;
+use futures::stream::BoxStream;
+use futures::StreamExt;
+use futures::TryStreamExt;
 use serde_json::json;
 
 #[async_trait]
@@ -24,26 +27,26 @@ impl CardRepo for Database {
         .into())
     }
 
-    async fn cards_search(
-        &self,
+    fn cards_search<'a>(
+        &'a self,
         query: &str,
         limit: Option<i64>,
-    ) -> RepoResult<Vec<(models::Card, models::User)>> {
+    ) -> BoxStream<'a, RepoResult<(models::Card, models::User)>> {
         #[derive(Debug, sqlx::FromRow)]
         struct UserCard {
             user: User,
             card: Card,
         }
 
-        let found = sqlx::query_as!(
+        sqlx::query_as!(
             UserCard,
             // language=PostgreSQL
             r#"
-            SELECT 
+            SELECT DISTINCT ON (c.id)
                (u.id, u.accesso_id, u.first_name, u.last_name) as "user!: User",
                (c.id, c.author_id, c.title, c.created_at, c.updated_at, c.contents, c.tags) as "card!: Card"
             FROM cards as c
-            JOIN users u on u.id = c.author_id
+            INNER JOIN users u on u.id = c.author_id
             WHERE c.title ILIKE $1
                OR c.tags @> (ARRAY [$2::varchar])
                OR jsonb_to_tsvector_multilang(
@@ -57,12 +60,9 @@ impl CardRepo for Database {
             query.replace(' ', " & "),
             limit.unwrap_or(100)
         )
-        .fetch_all(&self.pool)
-        .await?;
-
-        Ok(found
-            .into_iter()
-            .map(|user_card| (user_card.card.into(), user_card.user.into()))
-            .collect())
+        .fetch(&self.pool)
+        .map_ok(|user_card| (user_card.card.into(), user_card.user.into()))
+        .map_err(Into::into)
+        .boxed()
     }
 }
