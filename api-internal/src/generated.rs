@@ -211,7 +211,7 @@ pub mod components {
         #[serde(rename_all = "camelCase")]
         pub struct CardsCreateRequestBody {
             pub title: String,
-            pub content: serde_json::Value,
+            pub content: Box<serde_json::value::RawValue>,
             pub tags: Vec<String>,
         }
 
@@ -227,7 +227,7 @@ pub mod components {
         pub struct CardsEditRequestBody {
             pub card_id: Uuid,
             pub title: Option<String>,
-            pub content: Option<serde_json::Value>,
+            pub content: Option<Box<serde_json::value::RawValue>>,
             pub tags: Option<Vec<String>>,
         }
     }

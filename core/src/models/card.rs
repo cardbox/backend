@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use sqlx_core::types::Json;
 use uuid::Uuid;
 
 #[derive(Debug, Clone)]
@@ -13,17 +14,17 @@ pub struct Card {
 }
 
 #[derive(Debug)]
-pub struct CardCreate {
+pub struct CardCreate<'a> {
     pub author_id: Uuid,
     pub title: String,
-    pub contents: Option<serde_json::Value>,
+    pub contents: Json<&'a serde_json::value::RawValue>,
     pub tags: Vec<String>,
 }
 
 #[derive(Debug)]
-pub struct CardUpdate {
+pub struct CardUpdate<'a> {
     pub id: Uuid,
     pub title: Option<String>,
-    pub contents: Option<serde_json::Value>,
+    pub contents: Option<Json<&'a serde_json::value::RawValue>>,
     pub tags: Option<Vec<String>>,
 }

@@ -13,7 +13,7 @@ cardbox-settings = { path = "../settings" }
 chrono = { version = "0.4.19", default-features = false, features = ["serde", "std", "clock"] }
 tracing = "0.1.26"
 serde = "1.0.126"
-serde_json = "1.0.64"
+serde_json = { version = "1.0.64", features = ["raw_value"] }
 futures = "0.3.15"
 uuid = { version = "0.8.2", features = ["serde", "v4"] }
 

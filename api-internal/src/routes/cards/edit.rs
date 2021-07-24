@@ -21,7 +21,7 @@ pub async fn route(
             CardUpdateForm {
                 id: body.card_id,
                 title: body.title,
-                contents: body.content,
+                contents: body.content.as_deref(),
                 tags: body.tags,
             },
             session_token.into_inner(),

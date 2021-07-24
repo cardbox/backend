@@ -21,7 +21,7 @@ pub async fn route(
             CardCreateForm {
                 title: body.title,
                 tags: body.tags,
-                contents: body.content,
+                contents: &body.content,
             },
             session_token.into_inner(),
         )
