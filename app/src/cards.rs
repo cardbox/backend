@@ -21,7 +21,7 @@ impl Cards for App {
         let token = db.token_find(token).await?;
 
         let card_create = token
-            .and_then(|token| token.is_expired().then(|| token))
+            .and_then(|token| (!token.is_expired()).then(|| token))
             .map(|token| token.user_id)
             .map(|user_id| CardCreate {
                 author_id: user_id,
@@ -80,5 +80,93 @@ impl Cards for App {
         } else {
             Err(CardUpdateError::TokenNotFound)
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::mock_app;
+    use cardbox_core::app::{CardCreateError, CardCreateForm, Cards};
+    use cardbox_core::contracts::MockDb;
+    use cardbox_core::models::SessionToken;
+    use lazy_static::lazy_static;
+    use uuid::Uuid;
+
+    lazy_static! {
+        static ref JSON_CONTENT: Box<serde_json::value::RawValue> =
+            serde_json::value::RawValue::from_string("[]".into()).unwrap();
+    }
+
+    #[actix_rt::test]
+    async fn card_create_fails_if_no_token_in_database() -> eyre::Result<()> {
+        let mut mock_db = MockDb::new();
+
+        mock_db
+            .session_tokens
+            .expect_token_find()
+            .returning(|_| Ok(None));
+
+        let mock_app = mock_app(mock_db);
+
+        let create_card = CardCreateForm {
+            tags: vec![],
+            contents: &JSON_CONTENT,
+            title: "My card :3".into(),
+        };
+        let token = "non-existent session token".to_string();
+
+        let result = mock_app.card_create(create_card, token).await;
+
+        assert!(matches!(result, Err(CardCreateError::Unauthorized)));
+
+        Ok(())
+    }
+
+    #[actix_rt::test]
+    async fn card_create_fails_if_title_is_empty() -> eyre::Result<()> {
+        let mock_db = MockDb::new();
+
+        let mock_app = mock_app(mock_db);
+
+        let create_card = CardCreateForm {
+            tags: vec![],
+            contents: &JSON_CONTENT,
+            title: "".into(),
+        };
+
+        // We do not care about token here
+        // because we don't want to even try going to the db if request is ill-formed
+        let result = mock_app.card_create(create_card, "".into()).await;
+
+        assert!(matches!(result, Err(CardCreateError::ValidationError(_))));
+
+        Ok(())
+    }
+
+    #[actix_rt::test]
+    async fn card_create_fails_if_token_is_expired() -> eyre::Result<()> {
+        let mut mock_db = MockDb::new();
+        mock_db.session_tokens.expect_token_find().returning(|_| {
+            Ok(Some(SessionToken {
+                // Token is expired by 2 weeks
+                expires_at: chrono::Utc::now() - SessionToken::lifetime(),
+                user_id: Uuid::new_v4(),
+                token: "token".into(),
+            }))
+        });
+
+        let mock_app = mock_app(mock_db);
+
+        let create_card = CardCreateForm {
+            tags: vec![],
+            contents: &JSON_CONTENT,
+            title: "My card :3".into(),
+        };
+
+        let result = mock_app.card_create(create_card, "token".into()).await;
+
+        assert!(matches!(result, Err(CardCreateError::Unauthorized)));
+
+        Ok(())
     }
 }

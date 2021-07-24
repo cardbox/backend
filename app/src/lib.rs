@@ -10,6 +10,11 @@ mod configure;
 mod cookie;
 mod health;
 mod session;
+#[cfg(feature = "testing")]
+mod testing;
+
+#[cfg(feature = "testing")]
+pub use testing::*;
 
 pub use configure::{configure, install_logger, not_found};
 pub use cookie::SessionCookieConfig;
