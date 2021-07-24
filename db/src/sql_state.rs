@@ -6,7 +6,7 @@ pub struct SqlState(Inner);
 
 impl SqlState {
     /// Returns the error code corresponding to the `SqlState`.
-    #[inline]
+    #[inline(always)]
     pub fn code(&self) -> &str {
         match &self.0 {
             Inner::E00000 => "00000",

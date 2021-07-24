@@ -183,7 +183,7 @@ pub mod components {
             #[error("Card not found")]
             CardNotFound,
             #[error("Invalid payload")]
-            InvalidPayload,
+            InvalidPayload(#[serde(skip)] eyre::Report),
             #[error("No access")]
             NoAccess,
         }

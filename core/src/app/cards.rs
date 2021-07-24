@@ -66,6 +66,10 @@ pub enum CardUpdateError {
     CardNotFound,
     #[error("Token not found")]
     TokenNotFound,
+    #[error("Token expired")]
+    TokenExpired,
+    #[error(transparent)]
+    ValidationError(#[from] validator::ValidationErrors),
 }
 
 impl From<UnexpectedDatabaseError> for CardCreateError {

@@ -34,6 +34,8 @@ itertools = "0.10.1"
 [dev-dependencies]
 cardbox-app = { path = ".", features = ["testing"] }
 actix-rt = "2.2.0"
-
+serde_json = { version = "1.0.64", features = ["raw_value"] }
+chrono = { version = "0.4.19", default-features = false, features = ["serde", "std", "clock"] }
+lazy_static = "1.4.0"
 [features]
 testing = ["cardbox-core/testing"]
