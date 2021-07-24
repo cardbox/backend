@@ -4,9 +4,9 @@ use uuid::Uuid;
 
 #[async_trait]
 pub trait Cards {
-    async fn card_create(
+    async fn card_create<'a>(
         &self,
-        card: CardCreateForm,
+        card: CardCreateForm<'a>,
         token: String,
     ) -> Result<models::Card, CardCreateError>;
 
@@ -16,27 +16,27 @@ pub trait Cards {
         limit: Option<i64>,
     ) -> Result<Vec<(models::Card, models::User)>, CardSearchError>;
 
-    async fn card_update(
+    async fn card_update<'a>(
         &self,
-        card: CardUpdateForm,
+        card: CardUpdateForm<'a>,
         token: String,
     ) -> Result<models::Card, CardUpdateError>;
 }
 
 #[derive(Debug, Validate)]
-pub struct CardUpdateForm {
+pub struct CardUpdateForm<'a> {
     pub id: Uuid,
     #[validate(length(min = 1))]
     pub title: Option<String>,
-    pub contents: Option<serde_json::Value>,
+    pub contents: Option<&'a serde_json::value::RawValue>,
     pub tags: Option<Vec<String>>,
 }
 
 #[derive(Debug, Validate)]
-pub struct CardCreateForm {
+pub struct CardCreateForm<'a> {
     #[validate(length(min = 1))]
     pub title: String,
-    pub contents: serde_json::Value,
+    pub contents: &'a serde_json::value::RawValue,
     pub tags: Vec<String>,
 }
 

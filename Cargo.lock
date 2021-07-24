@@ -487,6 +487,7 @@ dependencies = [
  "opentelemetry-jaeger",
  "opentelemetry-otlp",
  "serde",
+ "sqlx-core",
  "time 0.2.27",
  "tokio",
  "tracing",

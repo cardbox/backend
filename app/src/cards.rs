@@ -5,13 +5,14 @@ use cardbox_core::app::{
 use cardbox_core::contracts::Repository;
 use cardbox_core::models::{Card, CardCreate, CardUpdate, User};
 use itertools::Itertools;
+use sqlx_core::types::Json;
 use validator::Validate;
 
 #[async_trait]
 impl Cards for App {
-    async fn card_create(
+    async fn card_create<'a>(
         &self,
-        card: CardCreateForm,
+        card: CardCreateForm<'a>,
         token: String,
     ) -> Result<Card, CardCreateError> {
         card.validate()?;
@@ -26,7 +27,7 @@ impl Cards for App {
                 author_id: user_id,
                 title: card.title,
                 tags: card.tags,
-                contents: Some(card.contents),
+                contents: Json(card.contents),
             });
 
         match card_create {
@@ -50,9 +51,9 @@ impl Cards for App {
             .collect())
     }
 
-    async fn card_update(
+    async fn card_update<'a>(
         &self,
-        card: CardUpdateForm,
+        card: CardUpdateForm<'a>,
         token: String,
     ) -> Result<Card, CardUpdateError> {
         let db = self.get::<Service<dyn Repository>>()?;
@@ -64,7 +65,7 @@ impl Cards for App {
                 .card_update(
                     CardUpdate {
                         id: card.id,
-                        contents: card.contents,
+                        contents: card.contents.map(Json),
                         title: card.title,
                         tags: card.tags,
                     },
