@@ -35,7 +35,7 @@ impl Card {
             id: Uuid::new_v4(),
             author_id: Uuid::new_v4(),
             title: random_string(12),
-            created_at: date.clone(),
+            created_at: date,
             updated_at: date,
             contents: json!([]),
             tags: vec![],
