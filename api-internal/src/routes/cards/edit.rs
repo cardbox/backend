@@ -39,7 +39,15 @@ fn map_card_update_error(error: CardUpdateError) -> Error {
     use CardUpdateError::*;
 
     match error {
+        ValidationError(e) => CardsEditFailed {
+            error: CardsEditError::InvalidPayload(e.into()),
+        }
+        .into(),
         Unexpected(e) => Error::InternalServerError(e),
+        TokenExpired => CardsEditFailed {
+            error: CardsEditError::NoAccess,
+        }
+        .into(),
         TokenNotFound => CardsEditFailed {
             error: CardsEditError::NoAccess,
         }

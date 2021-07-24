@@ -61,6 +61,10 @@ impl Cards for App {
         let token = db.token_find(token).await?;
 
         if let Some(token) = token {
+            if token.is_expired() {
+                return Err(CardUpdateError::TokenExpired);
+            }
+
             let updated = db
                 .card_update(
                     CardUpdate {
@@ -88,7 +92,7 @@ mod tests {
     use crate::mock_app;
     use cardbox_core::app::{CardCreateError, CardCreateForm, Cards};
     use cardbox_core::contracts::MockDb;
-    use cardbox_core::models::SessionToken;
+    use cardbox_core::models::{Card, SessionToken};
     use lazy_static::lazy_static;
     use uuid::Uuid;
 
@@ -166,6 +170,41 @@ mod tests {
         let result = mock_app.card_create(create_card, "token".into()).await;
 
         assert!(matches!(result, Err(CardCreateError::Unauthorized)));
+
+        Ok(())
+    }
+
+    #[actix_rt::test]
+    async fn card_create_happy_path_success() -> eyre::Result<()> {
+        let mock_card = Card::create_random();
+
+        let mut mock_db = MockDb::new();
+
+        mock_db.session_tokens.expect_token_find().returning(|_| {
+            Ok(Some(SessionToken {
+                expires_at: chrono::Utc::now() + SessionToken::lifetime(),
+                user_id: Uuid::new_v4(),
+                token: "token".into(),
+            }))
+        });
+
+        let card_clone = mock_card.clone();
+        mock_db.cards.expect_card_create().returning(move |_| {
+            let card_clone = card_clone.clone();
+            Ok(card_clone)
+        });
+
+        let mock_app = mock_app(mock_db);
+
+        let create_card = CardCreateForm {
+            tags: vec![],
+            contents: &JSON_CONTENT,
+            title: mock_card.title.clone(),
+        };
+
+        let result = mock_app.card_create(create_card, "token".into()).await;
+
+        assert!(matches!(result, Ok(card) if card.id == mock_card.id));
 
         Ok(())
     }
