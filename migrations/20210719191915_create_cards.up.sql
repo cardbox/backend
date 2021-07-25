@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS cards
 (
     id         uuid DEFAULT uuid_generate_v4(),
-    author_id  uuid        NOT NULL REFERENCES users ("id"),
+    author_id  uuid        NOT NULL REFERENCES users ("id") ON DELETE CASCADE,
     title      varchar     NOT NULL,
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now(),
