@@ -99,6 +99,21 @@ pub mod api {
             self.api = self.api.bind("/cards.edit".into(), Method::POST, handler);
             self
         }
+
+        pub fn bind_cards_delete<F, T, R>(mut self, handler: F) -> Self
+        where
+            F: Handler<T, R>,
+            T: FromRequest + 'static,
+            R: Future<
+                    Output = Result<
+                        super::paths::cards_delete::Response,
+                        super::paths::cards_delete::Error,
+                    >,
+                > + 'static,
+        {
+            self.api = self.api.bind("/cards.delete".into(), Method::POST, handler);
+            self
+        }
     }
 }
 
@@ -106,6 +121,7 @@ pub mod components {
     pub mod responses {
         use super::schemas;
         use serde::Serialize;
+        use uuid::Uuid;
 
         #[derive(Debug, Serialize)]
         #[serde(rename_all = "camelCase")]
@@ -191,6 +207,27 @@ pub mod components {
             #[error("No access")]
             NoAccess,
         }
+
+        #[derive(Debug, Serialize)]
+        #[serde(rename_all = "camelCase")]
+        pub struct CardsDeleteSuccess {
+            pub card_id: Uuid,
+        }
+
+        #[derive(Debug, Serialize, thiserror::Error)]
+        #[error(transparent)]
+        pub struct CardsDeleteFailed {
+            #[from]
+            pub error: CardsDeleteError,
+        }
+
+        #[derive(Debug, Serialize, thiserror::Error)]
+        pub enum CardsDeleteError {
+            #[error("Card not found")]
+            CardNotFound,
+            #[error("No access")]
+            NoAccess,
+        }
     }
 
     pub mod request_bodies {
@@ -233,6 +270,12 @@ pub mod components {
             pub title: Option<String>,
             pub content: Option<Box<serde_json::value::RawValue>>,
             pub tags: Option<Vec<String>>,
+        }
+
+        #[derive(Debug, Deserialize)]
+        #[serde(rename_all = "camelCase")]
+        pub struct CardsDeleteRequestBody {
+            pub card_id: Uuid,
         }
     }
 
@@ -526,6 +569,69 @@ pub mod paths {
         pub enum Error {
             #[error(transparent)]
             BadRequest(#[from] responses::CardsEditFailed),
+            #[error(transparent)]
+            InternalServerError(
+                #[from]
+                #[serde(skip)]
+                eyre::Report,
+            ),
+        }
+
+        impl Responder for Response {
+            fn respond_to(self, _: &HttpRequest) -> HttpResponse {
+                match self {
+                    Response::Ok(r) => HttpResponse::build(StatusCode::OK).json(r),
+                }
+            }
+        }
+
+        impl ResponseError for Error {
+            fn status_code(&self) -> StatusCode {
+                match self {
+                    Error::InternalServerError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                    Error::BadRequest(_) => StatusCode::BAD_REQUEST,
+                }
+            }
+
+            fn error_response(&self) -> HttpResponse {
+                let content_type = match self {
+                    Self::BadRequest(_) => Some(ContentType::Json),
+                    _ => None,
+                };
+
+                let mut res = &mut HttpResponse::build(self.status_code());
+                if let Some(content_type) = content_type {
+                    res = res.content_type(content_type.to_string());
+
+                    match content_type {
+                        ContentType::Json => res.json(self),
+                        ContentType::FormData => res.body(serde_plain::to_string(self).unwrap()),
+                    }
+                } else {
+                    HttpResponse::build(self.status_code()).finish()
+                }
+            }
+        }
+    }
+
+    pub mod cards_delete {
+        use super::responses;
+        use actix_swagger::ContentType;
+        use actix_web::http::StatusCode;
+        use actix_web::{HttpRequest, HttpResponse, Responder, ResponseError};
+        use serde::Serialize;
+
+        #[derive(Debug, Serialize)]
+        #[serde(untagged)]
+        pub enum Response {
+            Ok(responses::CardsDeleteSuccess),
+        }
+
+        #[derive(Debug, Serialize, thiserror::Error)]
+        #[serde(untagged)]
+        pub enum Error {
+            #[error(transparent)]
+            BadRequest(#[from] responses::CardsDeleteFailed),
             #[error(transparent)]
             InternalServerError(
                 #[from]

@@ -93,4 +93,36 @@ impl CardRepo for Database {
         .await?
         .map(Into::into))
     }
+
+    async fn card_delete(&self, card_id: Uuid, user_id: Uuid) -> RepoResult<Option<Uuid>> {
+        Ok(sqlx::query_scalar!(
+            // language=PostgreSQL
+            r#"
+            DELETE
+            FROM cards
+            WHERE (id, author_id) = ($1, $2)
+            RETURNING id
+            "#,
+            card_id,
+            user_id
+        )
+        .fetch_optional(&self.pool)
+        .await?)
+    }
+
+    async fn card_find_by_id(&self, card_id: Uuid) -> RepoResult<Option<models::Card>> {
+        Ok(sqlx::query_as!(
+            Card,
+            // language=PostgreSQL
+            r#"
+            SELECT id, author_id, title, created_at, updated_at, contents, tags 
+            FROM cards
+            WHERE id = $1
+            "#,
+            card_id
+        )
+        .fetch_optional(&self.pool)
+        .await?
+        .map(Into::into))
+    }
 }
