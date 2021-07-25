@@ -21,6 +21,8 @@ pub trait Cards {
         card: CardUpdateForm<'a>,
         token: String,
     ) -> Result<models::Card, CardUpdateError>;
+
+    async fn card_delete(&self, card_id: Uuid, token: String) -> Result<Uuid, CardDeleteError>;
 }
 
 #[derive(Debug, Validate)]
@@ -72,6 +74,28 @@ pub enum CardUpdateError {
     ValidationError(#[from] validator::ValidationErrors),
 }
 
+#[derive(Debug, thiserror::Error)]
+pub enum CardDeleteError {
+    #[error(transparent)]
+    Unexpected(#[from] eyre::Report),
+    #[error("Card not found")]
+    CardNotFound,
+    #[error("Token not found")]
+    TokenNotFound,
+    #[error("Token expired")]
+    TokenExpired,
+    #[error("No access")]
+    NoAccess,
+}
+
+//region from db error
+impl From<UnexpectedDatabaseError> for CardDeleteError {
+    #[inline]
+    fn from(e: UnexpectedDatabaseError) -> Self {
+        Self::Unexpected(e.into())
+    }
+}
+
 impl From<UnexpectedDatabaseError> for CardCreateError {
     #[inline]
     fn from(e: UnexpectedDatabaseError) -> Self {
@@ -92,3 +116,4 @@ impl From<UnexpectedDatabaseError> for CardUpdateError {
         Self::Unexpected(e.into())
     }
 }
+//endregion

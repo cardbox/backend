@@ -308,16 +308,22 @@ paths:
       responses:
         200:
           description: OK
+          content:
+            application/json:
+              schema:
+                required: [cardId]
+                properties:
+                  cardId:
+                    type: string
+                    format: uuid
         400:
           description: CLIENT_ERROR
           content:
             application/json:
               schema:
-                required: [error, code]
+                required: [error]
                 properties:
                   error:
-                    type: boolean
-                  code:
                     type: string
                     enum:
                       - card_not_found

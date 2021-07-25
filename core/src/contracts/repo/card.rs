@@ -17,6 +17,10 @@ pub trait CardRepo {
         card: CardUpdate<'a>,
         user_id: Uuid,
     ) -> RepoResult<Option<Card>>;
+
+    async fn card_delete(&self, card_id: Uuid, user_id: Uuid) -> RepoResult<Option<Uuid>>;
+
+    async fn card_find_by_id(&self, card_id: Uuid) -> RepoResult<Option<Card>>;
 }
 
 #[cfg(feature = "testing")]
@@ -36,5 +40,13 @@ impl CardRepo for crate::contracts::MockDb {
         user_id: Uuid,
     ) -> RepoResult<Option<Card>> {
         self.cards.card_update(card, user_id).await
+    }
+
+    async fn card_delete(&self, card_id: Uuid, user_id: Uuid) -> RepoResult<Option<Uuid>> {
+        self.cards.card_delete(card_id, user_id).await
+    }
+
+    async fn card_find_by_id(&self, card_id: Uuid) -> RepoResult<Option<Card>> {
+        self.cards.card_find_by_id(card_id).await
     }
 }

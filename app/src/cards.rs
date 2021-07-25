@@ -1,11 +1,12 @@
 use crate::{App, Service};
 use cardbox_core::app::{
-    CardCreateError, CardCreateForm, CardSearchError, CardUpdateError, CardUpdateForm, Cards,
+    CardCreateError, CardCreateForm, CardDeleteError, CardSearchError, CardUpdateError,
+    CardUpdateForm, Cards,
 };
 use cardbox_core::contracts::Repository;
 use cardbox_core::models::{Card, CardCreate, CardUpdate, User};
 use itertools::Itertools;
-use sqlx_core::types::Json;
+use sqlx_core::types::{Json, Uuid};
 use validator::Validate;
 
 #[async_trait]
@@ -85,12 +86,43 @@ impl Cards for App {
             Err(CardUpdateError::TokenNotFound)
         }
     }
+
+    async fn card_delete(&self, card_id: Uuid, token: String) -> Result<Uuid, CardDeleteError> {
+        let db = self.get::<Service<dyn Repository>>()?;
+        let token = db.token_find(token).await?;
+
+        if let Some(token) = token {
+            if token.is_expired() {
+                return Err(CardDeleteError::TokenExpired);
+            }
+
+            let card_to_delete = db.card_find_by_id(card_id).await?;
+
+            match card_to_delete {
+                Some(card) => {
+                    if card.author_id != token.user_id {
+                        return Err(CardDeleteError::NoAccess);
+                    }
+
+                    let updated = db.card_delete(card_id, token.user_id).await?;
+
+                    match updated {
+                        Some(card_id) => Ok(card_id),
+                        None => Err(CardDeleteError::CardNotFound),
+                    }
+                }
+                None => return Err(CardDeleteError::CardNotFound),
+            }
+        } else {
+            Err(CardDeleteError::TokenNotFound)
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::mock_app;
-    use cardbox_core::app::{CardCreateError, CardCreateForm, Cards};
+    use cardbox_core::app::{CardCreateError, CardCreateForm, CardDeleteError, Cards};
     use cardbox_core::contracts::MockDb;
     use cardbox_core::models::{Card, SessionToken};
     use lazy_static::lazy_static;
@@ -205,6 +237,133 @@ mod tests {
         let result = mock_app.card_create(create_card, "token".into()).await;
 
         assert!(matches!(result, Ok(card) if card.id == mock_card.id));
+
+        Ok(())
+    }
+
+    #[actix_rt::test]
+    async fn card_delete_fails_if_no_token_in_database() -> eyre::Result<()> {
+        let mut mock_db = MockDb::new();
+
+        mock_db
+            .session_tokens
+            .expect_token_find()
+            .returning(|_| Ok(None));
+
+        let mock_app = mock_app(mock_db);
+
+        let random_card = Card::create_random();
+        let token = "non-existent session token".to_string();
+
+        let result = mock_app.card_delete(random_card.id, token).await;
+
+        assert!(matches!(result, Err(CardDeleteError::TokenNotFound)));
+
+        Ok(())
+    }
+
+    #[actix_rt::test]
+    async fn card_delete_fails_if_token_expired() -> eyre::Result<()> {
+        let mut mock_db = MockDb::new();
+
+        mock_db.session_tokens.expect_token_find().returning(|_| {
+            Ok(Some(SessionToken {
+                // Token is expired by 2 weeks
+                expires_at: chrono::Utc::now() - SessionToken::lifetime(),
+                user_id: Uuid::new_v4(),
+                token: "token".into(),
+            }))
+        });
+
+        let mock_app = mock_app(mock_db);
+
+        let random_card = Card::create_random();
+        let token = "token".to_string();
+
+        let result = mock_app.card_delete(random_card.id, token).await;
+
+        assert!(matches!(result, Err(CardDeleteError::TokenExpired)));
+
+        Ok(())
+    }
+
+    #[actix_rt::test]
+    async fn card_delete_fails_if_trying_to_delete_another_user_card() -> eyre::Result<()> {
+        let user_id = Uuid::new_v4();
+        let card_id = Uuid::new_v4();
+
+        let mut mock_db = MockDb::new();
+
+        mock_db.cards.expect_card_find_by_id().returning(move |_| {
+            let mut random_card = Card::create_random();
+            random_card.author_id = card_id;
+
+            Ok(Some(random_card))
+        });
+
+        mock_db
+            .session_tokens
+            .expect_token_find()
+            .returning(move |_| {
+                Ok(Some(SessionToken {
+                    expires_at: chrono::Utc::now() + SessionToken::lifetime(),
+                    user_id,
+                    token: "token".into(),
+                }))
+            });
+
+        let mock_app = mock_app(mock_db);
+
+        let token = "token".to_string();
+
+        let result = mock_app.card_delete(card_id, token).await;
+
+        assert!(matches!(result, Err(CardDeleteError::NoAccess)));
+
+        Ok(())
+    }
+
+    #[actix_rt::test]
+    async fn card_delete_happy_path_success() -> eyre::Result<()> {
+        let user_id = Uuid::new_v4();
+        let card_id = Uuid::new_v4();
+        let mut random_card = Card::create_random();
+        random_card.author_id = user_id;
+        random_card.id = card_id;
+
+        let mut mock_db = MockDb::new();
+
+        mock_db.cards.expect_card_find_by_id().returning(move |_| {
+            let mut card = Card::create_random();
+
+            card.id = card_id;
+            card.author_id = user_id;
+            Ok(Some(card))
+        });
+
+        mock_db
+            .cards
+            .expect_card_delete()
+            .returning(move |_, _| Ok(Some(card_id)));
+
+        mock_db
+            .session_tokens
+            .expect_token_find()
+            .returning(move |_| {
+                Ok(Some(SessionToken {
+                    expires_at: chrono::Utc::now() + SessionToken::lifetime(),
+                    user_id,
+                    token: "token".into(),
+                }))
+            });
+
+        let mock_app = mock_app(mock_db);
+
+        let token = "token".to_string();
+
+        let id = mock_app.card_delete(card_id, token).await?;
+
+        assert_eq!(id, card_id);
 
         Ok(())
     }
