@@ -74,7 +74,7 @@ async fn main() -> eyre::Result<()> {
             .app_data(web::Data::from(accesso_url))
             .service(
                 generated::api::create()
-                    .bind_auth_url(routes::accesso::auth_params::route)
+                    .bind_auth_params(routes::accesso::auth_params::route)
                     .bind_auth_done(routes::accesso::auth_done::route)
                     .bind_cards_create(routes::cards::create::route)
                     .bind_cards_search(routes::cards::search::route)

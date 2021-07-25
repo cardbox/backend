@@ -1,6 +1,6 @@
 use crate::generated::{
     components::{request_bodies::AuthUrlRequestBody, responses::AuthUrlSuccess},
-    paths::auth_url::{Error, Response},
+    paths::auth_params::{Error, Response},
 };
 use actix_web::web::{Data, Json};
 use cardbox_settings::Settings;

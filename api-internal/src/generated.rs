@@ -25,18 +25,20 @@ pub mod api {
     }
 
     impl CardboxAPIInternal {
-        pub fn bind_auth_url<F, T, R>(mut self, handler: F) -> Self
+        pub fn bind_auth_params<F, T, R>(mut self, handler: F) -> Self
         where
             F: Handler<T, R>,
             T: FromRequest + 'static,
             R: Future<
                     Output = Result<
-                        super::paths::auth_url::Response,
-                        super::paths::auth_url::Error,
+                        super::paths::auth_params::Response,
+                        super::paths::auth_params::Error,
                     >,
                 > + 'static,
         {
-            self.api = self.api.bind("/auth.url".into(), Method::POST, handler);
+            self.api = self
+                .api
+                .bind("/accesso/auth.params".into(), Method::POST, handler);
             self
         }
 
@@ -47,7 +49,9 @@ pub mod api {
             Res: Responder + 'static,
             R: Future<Output = Result<Res, super::paths::auth_done::Error>> + 'static,
         {
-            self.api = self.api.bind("/auth.done".into(), Method::POST, handler);
+            self.api = self
+                .api
+                .bind("/accesso/auth.done".into(), Method::POST, handler);
             self
         }
 
@@ -347,7 +351,7 @@ pub mod paths {
         }
     }
 
-    pub mod auth_url {
+    pub mod auth_params {
         use super::responses;
         use actix_web::http::StatusCode;
         use actix_web::{HttpRequest, HttpResponse, Responder, ResponseError};
