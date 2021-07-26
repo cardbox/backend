@@ -6,7 +6,7 @@ info:
 externalDocs:
   url: https://github.com/cardbox/backend
 servers:
-  - url: http://localhost:9020/
+  - url: http://localhost:9115/
   - url: https://cardbox.sova.dev/api/v0/
 
 paths:

@@ -1,6 +1,9 @@
 #![deny(warnings)]
 #![forbid(unsafe_code)]
 
+#[macro_use]
+extern crate shrinkwraprs;
+
 use actix_web::middleware;
 use actix_web::{web, HttpServer};
 use cardbox_app::install_logger;
@@ -15,6 +18,14 @@ mod generated;
 mod routes;
 
 pub static APP_NAME: &str = "cardbox-api-internal";
+
+#[derive(Shrinkwrap, Clone)]
+#[shrinkwrap(mutable)]
+pub struct AccessoPublicUrl(pub Url);
+
+#[derive(Shrinkwrap, Clone)]
+#[shrinkwrap(mutable)]
+pub struct AccessoInternalUrl(pub Url);
 
 pub fn create_request_client(config: &Settings) -> Result<reqwest::Client, eyre::Report> {
     let mut builder = reqwest::ClientBuilder::new();
@@ -51,12 +62,16 @@ async fn main() -> eyre::Result<()> {
     let settings_clone = settings.clone();
     let client_clone = client.clone();
 
-    let accesso_url = Arc::new(Url::parse(&settings.accesso.url)?);
+    let accesso_public_url = Arc::new(AccessoPublicUrl(Url::parse(&settings.accesso.public_url)?));
+    let accesso_internal_url = Arc::new(AccessoInternalUrl(Url::parse(
+        &settings.accesso.internal_url,
+    )?));
 
     let mut server = HttpServer::new(move || {
         let settings = settings_clone.clone();
         let client = client_clone.clone();
-        let accesso_url = accesso_url.clone();
+        let accesso_public_url = accesso_public_url.clone();
+        let accesso_internal_url = accesso_internal_url.clone();
         actix_web::App::new()
             .configure(|config| {
                 let settings = settings.clone();
@@ -71,7 +86,8 @@ async fn main() -> eyre::Result<()> {
             )
             .wrap(TracingLogger::default())
             .app_data(web::Data::new(client))
-            .app_data(web::Data::from(accesso_url))
+            .app_data(web::Data::from(accesso_public_url))
+            .app_data(web::Data::from(accesso_internal_url))
             .service(
                 generated::api::create()
                     .bind_auth_params(routes::accesso::auth_params::route)

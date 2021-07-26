@@ -6,7 +6,7 @@ info:
 externalDocs:
   url: https://cardbox.github.io/backend/api-admin/index.html
 servers:
-  - url: http://localhost:9020/
+  - url: http://localhost:9105/
   - url: https://cardbox.sova.dev/api/admin
 paths:
   "/scope/object-action":

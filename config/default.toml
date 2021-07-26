@@ -18,7 +18,7 @@ openssl_validate = true
 
 [server]
 host = "localhost"
-port = 9005
+port = 9110
 
 # By default server uses number of available logical cpu as threads
 # workers = 8
