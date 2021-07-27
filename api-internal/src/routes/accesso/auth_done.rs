@@ -7,6 +7,7 @@ use crate::generated::{
     },
     paths::auth_done::{Error as AuthDoneFailure, Response},
 };
+use actix_web::http::header;
 use actix_web::{
     web::{Data, Json},
     HttpRequest, Responder,
@@ -98,7 +99,7 @@ pub async fn route(
 
                     let result = client
                         .post(viewer_get_url)
-                        .header("X-Access-Token", access_token)
+                        .header(header::AUTHORIZATION, access_token)
                         .send()
                         .await
                         .wrap_err("Could not send viewer request")?
