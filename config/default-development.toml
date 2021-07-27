@@ -14,11 +14,11 @@ openssl_validate = false
 
 [server]
 host = "localhost"
-port = 9005
+port = 9110
 
 [accesso]
-url = "https://accesso.localhost"
-client_id = 1234567890
-redirect_back_url = "https://cardbox.localhost/accesso/done"
-client_secret = "C481E2BD8746181FE4419123AD6AE9FB3C5B43A4D35D1F299385AF3E7F"
+url = "http://localhost:9115"
+client_id = '00000000-0000-4000-acce-000000009100'
+redirect_back_url = "http://localhost:9100/accesso/done"
+client_secret = "CardboxDev"
 ssl_validate = false
