@@ -2,16 +2,16 @@ use crate::generated::{
     components::{request_bodies::AuthUrlRequestBody, responses::AuthUrlSuccess},
     paths::auth_params::{Error, Response},
 };
-use crate::AccessoInternalUrl;
 use actix_web::web::{Data, Json};
 use cardbox_settings::Settings;
+use url::Url;
 
 pub async fn route(
     body: Json<AuthUrlRequestBody>,
     config: Data<Settings>,
-    accesso_internal_url: Data<AccessoInternalUrl>,
+    accesso_url: Data<Url>,
 ) -> Result<Response, Error> {
-    let mut accesso = AccessoInternalUrl::clone(&accesso_internal_url);
+    let mut accesso = Url::clone(&accesso_url);
 
     accesso.set_path("/oauth/authorize");
 

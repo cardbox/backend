@@ -7,7 +7,6 @@ use crate::generated::{
     },
     paths::auth_done::{Error as AuthDoneFailure, Response},
 };
-use crate::AccessoPublicUrl;
 use actix_web::{
     web::{Data, Json},
     HttpRequest, Responder,
@@ -18,6 +17,7 @@ use cardbox_settings::Settings;
 use eyre::WrapErr;
 use reqwest::Client;
 use tracing::Span;
+use url::Url;
 
 pub async fn route(
     body: Json<AuthDoneRequestBody>,
@@ -25,7 +25,7 @@ pub async fn route(
     config_session: Data<SessionCookieConfig>,
     client: Data<Client>,
     app: Data<cardbox_app::App>,
-    accesso_public_url: Data<AccessoPublicUrl>,
+    accesso_url: Data<Url>,
     req: HttpRequest,
 ) -> Result<impl Responder, AuthDoneFailure> {
     let grant_type = GrantType::AuthorizationCode;
@@ -39,8 +39,12 @@ pub async fn route(
     };
 
     let exchange_token_url = {
-        let mut uri = AccessoPublicUrl::clone(&accesso_public_url);
-        uri.set_path("/oauth/token");
+        let mut uri = Url::clone(&accesso_url);
+        let clone = uri.clone();
+        let host = clone.host_str();
+        uri.set_host(host.map(|host| format!("api.{}", host)).as_deref())
+            .wrap_err("Could not set host")?;
+        uri.set_path("/v0/oauth/token");
         uri.to_string()
     };
 
@@ -52,15 +56,9 @@ pub async fn route(
         .send()
         .await
         .wrap_err("Could not send exchange token request")?
-        .bytes()
+        .json::<exchange_token::response::Answer>()
         .await
-        .wrap_err("Could not get bytes")?;
-
-    let str_body = String::from_utf8(response.to_vec()).unwrap();
-
-    tracing::debug!(%str_body, "DONE");
-    let response = serde_json::from_slice::<exchange_token::response::Answer>(&response)
-        .wrap_err("Could not deserialize into exchange token Answer")?;
+        .wrap_err("Could not deserialize into Answer")?;
 
     tracing::debug!(?response, "DONE");
 
@@ -89,8 +87,12 @@ pub async fn route(
                     };
 
                     let viewer_get_url = {
-                        let mut uri = AccessoPublicUrl::clone(&accesso_public_url);
-                        uri.set_path("/viewer.get");
+                        let mut uri = Url::clone(&accesso_url);
+                        let clone = uri.clone();
+                        let host = clone.host_str();
+                        uri.set_host(host.map(|host| format!("api.{}", host)).as_deref())
+                            .wrap_err("Could not set host")?;
+                        uri.set_path("/v0/viewer.get");
                         uri.to_string()
                     };
 
