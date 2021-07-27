@@ -7,6 +7,7 @@ use crate::generated::{
     },
     paths::auth_done::{Error as AuthDoneFailure, Response},
 };
+use crate::AccessoUrl;
 use actix_web::http::header;
 use actix_web::{
     web::{Data, Json},
@@ -18,7 +19,6 @@ use cardbox_settings::Settings;
 use eyre::WrapErr;
 use reqwest::Client;
 use tracing::Span;
-use url::Url;
 
 pub async fn route(
     body: Json<AuthDoneRequestBody>,
@@ -26,7 +26,7 @@ pub async fn route(
     config_session: Data<SessionCookieConfig>,
     client: Data<Client>,
     app: Data<cardbox_app::App>,
-    accesso_url: Data<Url>,
+    accesso_url: Data<AccessoUrl>,
     req: HttpRequest,
 ) -> Result<impl Responder, AuthDoneFailure> {
     let grant_type = GrantType::AuthorizationCode;
@@ -40,7 +40,7 @@ pub async fn route(
     };
 
     let exchange_token_url = {
-        let mut uri = Url::clone(&accesso_url);
+        let mut uri = AccessoUrl::clone(&accesso_url);
         let clone = uri.clone();
         let host = clone.host_str();
         uri.set_host(host.map(|host| format!("api.{}", host)).as_deref())
@@ -88,7 +88,7 @@ pub async fn route(
                     };
 
                     let viewer_get_url = {
-                        let mut uri = Url::clone(&accesso_url);
+                        let mut uri = AccessoUrl::clone(&accesso_url);
                         let clone = uri.clone();
                         let host = clone.host_str();
                         uri.set_host(host.map(|host| format!("api.{}", host)).as_deref())

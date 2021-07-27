@@ -14,6 +14,12 @@ mod accesso;
 mod generated;
 mod routes;
 
+use shrinkwraprs::Shrinkwrap;
+
+#[derive(Debug, Shrinkwrap, Clone)]
+#[shrinkwrap(mutable)]
+pub struct AccessoUrl(pub Url);
+
 pub static APP_NAME: &str = "cardbox-api-internal";
 
 pub fn create_request_client(config: &Settings) -> Result<reqwest::Client, eyre::Report> {
@@ -51,7 +57,7 @@ async fn main() -> eyre::Result<()> {
     let settings_clone = settings.clone();
     let client_clone = client.clone();
 
-    let accesso_url = Arc::new(Url::parse(&settings.accesso.url)?);
+    let accesso_url = Arc::new(AccessoUrl(Url::parse(&settings.accesso.url)?));
 
     let mut server = HttpServer::new(move || {
         let settings = settings_clone.clone();
