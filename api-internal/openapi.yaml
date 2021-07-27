@@ -7,7 +7,7 @@ externalDocs:
   description: Source code
   url: https://github.com/cardbox/backend/tree/master/api-internal
 servers:
-  - url: http://localhost:9020/
+  - url: http://localhost:9110/
   - url: https://cardbox.local/api/internal
   - url: https://cardbox.sova.dev/api/internal
 
