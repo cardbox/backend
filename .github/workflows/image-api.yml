@@ -106,6 +106,7 @@ jobs:
               - 'Cargo.lock'
               - 'Cargo.toml'
               - 'Dockerfile'
+              - 'migrations/**'
 
       - name: Publish Docker image
         if: steps.changes.outputs.source == 'true' || github.event.inputs.force_rebuild == 'yes'
