@@ -1,7 +1,9 @@
+mod boxes;
 mod card;
 mod session_token;
 mod user;
 
+pub use boxes::*;
 pub use card::*;
 pub use session_token::*;
 pub use user::*;
@@ -11,6 +13,7 @@ pub struct MockDb {
     pub users: MockUserRepo,
     pub session_tokens: MockSessionTokenRepo,
     pub cards: MockCardRepo,
+    pub boxes: MockBoxRepo,
 }
 
 #[cfg(feature = "testing")]
@@ -27,6 +30,7 @@ impl MockDb {
             users: MockUserRepo::new(),
             session_tokens: MockSessionTokenRepo::new(),
             cards: MockCardRepo::new(),
+            boxes: MockBoxRepo::new(),
         }
     }
 }
