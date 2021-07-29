@@ -168,9 +168,11 @@ impl Cards for App {
 #[cfg(test)]
 mod tests {
     use crate::mock_app;
-    use cardbox_core::app::{CardCreateError, CardCreateForm, CardDeleteError, Cards};
+    use cardbox_core::app::{
+        CardCreateError, CardCreateForm, CardDeleteError, CardSaveError, Cards,
+    };
     use cardbox_core::contracts::MockDb;
-    use cardbox_core::models::{Card, SessionToken};
+    use cardbox_core::models::{self, Card, SessionToken};
     use lazy_static::lazy_static;
     use uuid::Uuid;
 
@@ -410,6 +412,113 @@ mod tests {
         let id = mock_app.card_delete(card_id, token).await?;
 
         assert_eq!(id, card_id);
+
+        Ok(())
+    }
+
+    #[actix_rt::test]
+    async fn card_save_fails_if_no_token_in_database() -> eyre::Result<()> {
+        let mut mock_db = MockDb::new();
+
+        mock_db
+            .session_tokens
+            .expect_token_find()
+            .returning(|_| Ok(None));
+
+        let mock_app = mock_app(mock_db);
+
+        let random_card = Card::create_random();
+        let token = "non-existent session token".to_string();
+
+        let result = mock_app.card_add_to_box(random_card.id, None, token).await;
+
+        assert!(matches!(result, Err(CardSaveError::TokenNotFound)));
+
+        Ok(())
+    }
+
+    #[actix_rt::test]
+    async fn card_save_fails_if_token_expired() -> eyre::Result<()> {
+        let mut mock_db = MockDb::new();
+
+        mock_db.session_tokens.expect_token_find().returning(|_| {
+            Ok(Some(SessionToken {
+                // Token is expired by 2 weeks
+                expires_at: chrono::Utc::now() - SessionToken::lifetime(),
+                user_id: Uuid::new_v4(),
+                token: "token".into(),
+            }))
+        });
+
+        let mock_app = mock_app(mock_db);
+
+        let random_card = Card::create_random();
+        let token = "token".to_string();
+
+        let result = mock_app.card_add_to_box(random_card.id, None, token).await;
+
+        assert!(matches!(result, Err(CardSaveError::TokenExpired)));
+
+        Ok(())
+    }
+
+    #[actix_rt::test]
+    async fn card_save_happy_path_success() -> eyre::Result<()> {
+        let user_id = Uuid::new_v4();
+        let card_id = Uuid::new_v4();
+        let box_id = Uuid::new_v4();
+
+        let mut random_box = models::Box::create_random();
+        random_box.user_id = user_id;
+        random_box.id = box_id;
+
+        let mut random_card = Card::create_random();
+        random_card.author_id = user_id;
+        random_card.id = card_id;
+
+        let mut mock_db = MockDb::new();
+
+        mock_db
+            .boxes
+            .expect_box_add_card()
+            .returning(move |_, _| Ok(random_card.clone()));
+
+        mock_db
+            .boxes
+            .expect_box_get_user_default()
+            .returning(move |user_id| {
+                let random_box = random_box.clone();
+                assert_eq!(user_id, random_box.user_id);
+                Ok(random_box)
+            });
+
+        mock_db.cards.expect_card_find_by_id().returning(move |_| {
+            let mut card = Card::create_random();
+
+            card.id = card_id;
+            card.author_id = user_id;
+            Ok(Some(card))
+        });
+
+        mock_db
+            .session_tokens
+            .expect_token_find()
+            .returning(move |_| {
+                Ok(Some(SessionToken {
+                    expires_at: chrono::Utc::now() + SessionToken::lifetime(),
+                    user_id,
+                    token: "token".into(),
+                }))
+            });
+
+        let mock_app = mock_app(mock_db);
+
+        let token = "token".to_string();
+
+        let (card, ret_box_id) = mock_app.card_add_to_box(card_id, None, token).await?;
+
+        assert_eq!(card.id, card_id);
+        assert_eq!(box_id, ret_box_id);
 
         Ok(())
     }
