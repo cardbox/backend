@@ -85,7 +85,8 @@ async fn main() -> eyre::Result<()> {
                     .bind_cards_create(routes::cards::create::route)
                     .bind_cards_search(routes::cards::search::route)
                     .bind_cards_edit(routes::cards::edit::route)
-                    .bind_cards_delete(routes::cards::delete::route),
+                    .bind_cards_delete(routes::cards::delete::route)
+                    .bind_cards_save(routes::cards::save::route),
             )
             .default_service(web::route().to(cardbox_app::not_found))
     });
