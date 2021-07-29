@@ -4,7 +4,6 @@ use mockall::*;
 use super::RepoResult;
 use crate::app::CardSaveError;
 use crate::models;
-use crate::models::Card;
 use uuid::Uuid;
 
 #[cfg_attr(feature = "testing", automock)]
@@ -32,7 +31,11 @@ impl BoxRepo for crate::contracts::MockDb {
         self.boxes.box_get_user_default(user_id).await
     }
 
-    async fn box_add_card(&self, box_id: Uuid, card_id: Uuid) -> Result<Card, CardSaveError> {
+    async fn box_add_card(
+        &self,
+        box_id: Uuid,
+        card_id: Uuid,
+    ) -> Result<models::Card, CardSaveError> {
         self.boxes.box_add_card(box_id, card_id).await
     }
 }
