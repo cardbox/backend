@@ -363,7 +363,13 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                required: [card, boxId]
+                properties:
+                  card:
+                    $ref: "#/components/schemas/Card"
+                  boxId:
+                    type: string
+                    format: uuid
         400:
           description: CLIENT_ERROR
           content:
