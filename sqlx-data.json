@@ -180,6 +180,53 @@
       ]
     }
   },
+  "3304ec781b6561bc2eec1670ae4a3db3368bf57c2516f9896c1ab5e3a14a67b2": {
+    "query": "\n            SELECT id, user_id, type as \"type!: BoxType\", \"default\"\n            FROM boxes\n            WHERE id = $1\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "user_id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 2,
+          "name": "type!: BoxType",
+          "type_info": {
+            "Custom": {
+              "name": "box_type",
+              "kind": {
+                "Enum": [
+                  "user"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "ordinal": 3,
+          "name": "default",
+          "type_info": "Bool"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
   "558ca5c5e0702bbccf834a1a5ecb851b944d1e3c85cf8d11b62844ac68caf2b6": {
     "query": "\n            SELECT user_id, token, expires_at\n            FROM session_tokens\n            WHERE user_id = $1\n            ",
     "describe": {
@@ -320,6 +367,19 @@
       ]
     }
   },
+  "9d5d7b5c461ecd5f66084a1c4d4269ab40c6e26cfb0861ef2b446b6e08eb1060": {
+    "query": "\n                    INSERT INTO boxes_cards\n                    (box_id, card_id) VALUES ($1, $2)\n                    ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Uuid"
+        ]
+      },
+      "nullable": []
+    }
+  },
   "a3108df40ba5f578f78a845911042fbea16e0bddcfd2f6c7be5a4f10587f88b2": {
     "query": "\n            SELECT id, author_id, title, created_at, updated_at, contents, tags \n            FROM cards\n            WHERE id = $1\n            ",
     "describe": {
@@ -402,6 +462,53 @@
         ]
       },
       "nullable": [
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "c05dbafbbf353c4a566f1f92d230d5ce7f20e170c12e73837a1f0951b6a5e95f": {
+    "query": "\n            SELECT id, user_id, type as \"type!: BoxType\", \"default\"\n            FROM boxes\n            WHERE (user_id, \"default\") = ($1, true)\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "user_id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 2,
+          "name": "type!: BoxType",
+          "type_info": {
+            "Custom": {
+              "name": "box_type",
+              "kind": {
+                "Enum": [
+                  "user"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "ordinal": 3,
+          "name": "default",
+          "type_info": "Bool"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        false,
         false,
         false,
         false
