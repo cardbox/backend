@@ -119,6 +119,10 @@ jobs:
 
     name: api-${{ matrix.api }}
     runs-on: ubuntu-latest
+    needs:
+      - test
+      - style
+      - clippy
 
     steps:
       - uses: actions/checkout@v2
@@ -159,7 +163,7 @@ jobs:
       - name: Login to GHCR
         uses: docker/login-action@v1
         with:
-          registry: docker.pkg.github.com
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
