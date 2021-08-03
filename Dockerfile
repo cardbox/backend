@@ -42,13 +42,14 @@ ENV SODIUM_USE_PKG_CONFIG=1
 RUN cargo build --lib ${rustc_opts}
 # Remove fingreprints of pre-built empty project sub-crates
 # to rebuild them correctly later.
-RUN rm -rf /app/target/${rustc_mode}/.fingerprint/cardbox*
+# RUN rm -rf /app/target/${rustc_mode}/.fingerprint/cardbox*
 
 COPY db/ /app/db/
 COPY settings/ /app/settings/
 COPY api-admin/ /app/api-admin/
 COPY api-public/ /app/api-public/
 COPY api-internal/ /app/api-internal/
+COPY api-private/ /app/api-private/
 COPY core/ /app/core/
 COPY app/ /app/app/
 
