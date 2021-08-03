@@ -118,7 +118,6 @@ jobs:
         api: [admin, internal, private, public]
 
     name: api-${{ matrix.api }}
-    needs: [builder-image, start-tools-image]
     runs-on: ubuntu-latest
 
     steps:
