@@ -184,23 +184,8 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new
+          cache-to: type=local,mode=max,dest=/tmp/.buildx-cache-new
           build-args: API_NAME=${{ matrix.api }}
-
-      - name: Publish Docker image
-        if: steps.changes.outputs.source == 'true' || github.event.inputs.force_rebuild == 'yes'
-        uses: sergeysova/docker-publish-action@v1
-        with:
-          image: cardbox/backend/api-${{ matrix.api }}
-          registry: docker.pkg.github.com
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-          buildargs: API_NAME=${{ matrix.api }}
-          snapshot: "true"
-          tag_extra: latest
-          tag_semver: skip
-          tag_separator: "@"
-          semver_higher: "true"
 
       - name: Move cache
         run: |
