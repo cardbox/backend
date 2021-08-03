@@ -39,7 +39,7 @@ pub struct Database {
     pub port: i32,
     pub database: String,
     pub pool_size: u32,
-    pub openssl_validate: bool,
+    pub ssl_validate: bool,
 }
 
 #[derive(Debug, Deserialize, Clone)]

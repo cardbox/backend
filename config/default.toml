@@ -13,7 +13,7 @@ secure = true
 # password = "cardbox"
 # pool_size = 8
 port = 5432
-openssl_validate = true
+ssl_validate = true
 # user = "cardbox"
 
 [server]

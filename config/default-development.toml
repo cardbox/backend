@@ -10,7 +10,7 @@ host = "localhost"
 password = "cardbox"
 user = "cardbox"
 pool_size = 2
-openssl_validate = false
+ssl_validate = false
 
 [server]
 host = "localhost"

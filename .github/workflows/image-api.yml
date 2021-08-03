@@ -24,35 +24,68 @@ on:
         default: 'no'
 
 jobs:
-  builder-image:
+  style:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          components: rustfmt
+
+      - name: fmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+  clippy:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
 
-      - name: Detect changes
-        uses: dorny/paths-filter@v2
-        id: changes
+      - uses: actions-rs/toolchain@v1
         with:
-          list-files: none
-          filters: |
-            builder:
-              - 'builder.Dockerfile'
+          profile: minimal
+          toolchain: stable
+          override: true
+          components: clippy
 
-      - name: Publish Docker
-        if: steps.changes.outputs.builder == 'true' || github.event.inputs.force_rebuild == 'yes'
-        uses: sergeysova/docker-publish-action@master
+      - name: clippy
+        uses: actions-rs/cargo@v1
         with:
-          image: cardbox/backend/builder
-          registry: docker.pkg.github.com
-          username: sergeysova
-          password: ${{ secrets.GITHUB_TOKEN }}
-          dockerfile: builder.Dockerfile
-          tag_from_label: version
-          tag_separator: "@"
-          cache: true
+          command: clippy
+          args: --all-targets --all-features -- -D warnings
 
-  start-tools-image:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --verbose
+
+      - name: test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --verbose
+
+  migrations-image:
     runs-on: ubuntu-latest
 
     steps:
@@ -65,17 +98,16 @@ jobs:
           list-files: none
           filters: |
             tools:
-              - 'start-tools.Dockerfile'
-
+              - 'migrations.Dockerfile'
       - name: Publish Docker
-        if: steps.changes.outputs.tools == 'true' || github.event.inputs.force_rebuild == 'yes'
+        if: steps.changes.outputs.tools == 'true'
         uses: sergeysova/docker-publish-action@master
         with:
-          image: cardbox/backend/start-tools
+          image: cardbox/backend/migrations
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: docker.pkg.github.com
-          dockerfile: start-tools.Dockerfile
+          dockerfile: migrations.Dockerfile
           tag_from_label: version
           tag_separator: "@"
           cache: true
