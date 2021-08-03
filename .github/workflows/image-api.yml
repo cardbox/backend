@@ -166,7 +166,7 @@ jobs:
       - name: Cache Docker layers
         uses: actions/cache@v2
         with:
-          path: /tmp/.buildx-cache
+          path: /tmp/.buildx-cache-${{ matrix.api }}
           key: ${{ runner.os }}-buildx-${{ matrix.api }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-${{ matrix.api }}
@@ -179,14 +179,14 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,mode=max,dest=/tmp/.buildx-cache-new
+          cache-from: type=local,src=/tmp/.buildx-cache-${{ matrix.api }}
+          cache-to: type=local,mode=max,dest=/tmp/.buildx-cache-new-${{ matrix.api }}
           build-args: API_NAME=${{ matrix.api }}
 
       - name: Move cache
         run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+          rm -rf /tmp/.buildx-cache-${{ matrix.api }}
+          mv /tmp/.buildx-cache-new-${{ matrix.api }} /tmp/.buildx-cache-${{ matrix.api }}
 
   deploy:
     name: Trigger deploy to DEV
