@@ -42,48 +42,49 @@ jobs:
           command: fmt
           args: --all -- --check
 
-  clippy:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-          components: clippy
-
-      - name: clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --all-targets --all-features -- -D warnings
-
-  test:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-
-      - name: build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --verbose
-
-      - name: test
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --verbose
+# TODO: do something so that we don't have cold runs each time
+#  clippy:
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - uses: actions/checkout@v2
+#
+#      - uses: actions-rs/toolchain@v1
+#        with:
+#          profile: minimal
+#          toolchain: stable
+#          override: true
+#          components: clippy
+#
+#      - name: clippy
+#        uses: actions-rs/cargo@v1
+#        with:
+#          command: clippy
+#          args: --all-targets --all-features -- -D warnings
+#
+#  test:
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - uses: actions/checkout@v2
+#
+#      - uses: actions-rs/toolchain@v1
+#        with:
+#          profile: minimal
+#          toolchain: stable
+#          override: true
+#
+#      - name: build
+#        uses: actions-rs/cargo@v1
+#        with:
+#          command: build
+#          args: --verbose
+#
+#      - name: test
+#        uses: actions-rs/cargo@v1
+#        with:
+#          command: test
+#          args: --verbose
 
   migrations-image:
     runs-on: ubuntu-latest
