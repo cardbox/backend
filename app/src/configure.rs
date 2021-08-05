@@ -47,13 +47,12 @@ pub fn install_logger(app_name: String, _settings: &Settings) -> Result<WorkerGu
 
     let bunyan_layer = BunyanFormattingLayer::new(app_name.clone(), move || writer.clone());
 
-    let tracer = opentelemetry_otlp::new_pipeline()
-        .with_endpoint(std::env::var("OPENTELEMETRY_ENDPOINT_URL")?)
+    let tracer = opentelemetry_jaeger::new_pipeline()
+        .with_agent_endpoint(std::env::var("OPENTELEMETRY_ENDPOINT_URL")?)
         .with_trace_config(
             trace::config()
                 .with_resource(Resource::new(vec![KeyValue::new("service.name", app_name)])),
         )
-        .with_tonic()
         .install_batch(opentelemetry::runtime::TokioCurrentThread)?;
 
     let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
