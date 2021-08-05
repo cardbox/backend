@@ -183,6 +183,8 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
+          flavor: |
+            latest=true
           # list of Docker images to use as base name for tags
           images: |
             ghcr.io/cardbox/backend/api-${{ matrix.api }}
@@ -224,6 +226,7 @@ jobs:
           build-args: API_NAME=${{ matrix.api }}
 
       - name: Move cache
+        if: steps.changes.outputs.source == 'true' || github.event.inputs.force_rebuild == 'yes'
         run: |
           rm -rf /tmp/.buildx-cache-${{ matrix.api }}
           mv /tmp/.buildx-cache-new-${{ matrix.api }} /tmp/.buildx-cache-${{ matrix.api }}
