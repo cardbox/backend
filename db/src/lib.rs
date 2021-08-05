@@ -26,7 +26,7 @@ impl Database {
             .parse::<PgConnectOptions>()
             .expect("Bad connection url!");
 
-        if settings.database.openssl_validate {
+        if settings.database.ssl_validate {
             connect_options = connect_options.ssl_mode(PgSslMode::VerifyFull);
         };
 
