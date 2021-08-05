@@ -14,6 +14,7 @@ mod accesso;
 mod generated;
 mod routes;
 
+use actix_web_prometheus::PrometheusMetricsBuilder;
 use shrinkwraprs::Shrinkwrap;
 
 #[derive(Debug, Shrinkwrap, Clone)]
@@ -59,6 +60,10 @@ async fn main() -> eyre::Result<()> {
 
     let accesso_url = Arc::new(AccessoUrl(Url::parse(&settings.accesso.url)?));
 
+    let prometheus = PrometheusMetricsBuilder::new("api_internal")
+        .endpoint("/metrics")
+        .build()?;
+
     let mut server = HttpServer::new(move || {
         let settings = settings_clone.clone();
         let client = client_clone.clone();
@@ -68,7 +73,7 @@ async fn main() -> eyre::Result<()> {
                 let settings = settings.clone();
                 cardbox_app::configure(config, settings);
             })
-            .wrap(middleware::Compress::default())
+            //.wrap(middleware::Compress::default())
             .wrap(
                 middleware::DefaultHeaders::new()
                     // .header("X-Frame-Options", "deny")
@@ -76,6 +81,7 @@ async fn main() -> eyre::Result<()> {
                     .header("X-XSS-Protection", "1; mode=block"),
             )
             .wrap(TracingLogger::default())
+            .wrap(prometheus.clone())
             .app_data(web::Data::new(client))
             .app_data(web::Data::from(accesso_url))
             .service(
