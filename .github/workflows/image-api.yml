@@ -104,6 +104,8 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
+          flavor: |
+            latest=true
           # list of Docker images to use as base name for tags
           images: |
             ghcr.io/cardbox/backend/migrations
@@ -145,6 +147,7 @@ jobs:
           file: migrations.Dockerfile
 
       - name: Move cache
+        if: steps.changes.outputs.tools == 'true'
         run: |
           rm -rf /tmp/.buildx-cache-migrations
           mv /tmp/.buildx-cache-new-migrations /tmp/.buildx-cache-migrations
