@@ -49,6 +49,7 @@ COPY settings/ /app/settings/
 COPY api-admin/ /app/api-admin/
 COPY api-public/ /app/api-public/
 COPY api-internal/ /app/api-internal/
+COPY api-private/ /app/api-private/
 COPY core/ /app/core/
 COPY app/ /app/app/
 

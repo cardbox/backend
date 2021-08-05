@@ -8,7 +8,7 @@ mod accesso_authorize;
 mod cards;
 mod configure;
 mod cookie;
-mod health;
+mod services;
 mod session;
 #[cfg(feature = "testing")]
 mod testing;
@@ -18,7 +18,7 @@ pub use testing::*;
 
 pub use configure::{configure, install_logger, not_found};
 pub use cookie::SessionCookieConfig;
-pub(crate) use health::health_service;
+pub(crate) use services::health_service;
 
 use hashbrown::HashMap;
 use std::any::{Any, TypeId};
