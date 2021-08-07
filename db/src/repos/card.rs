@@ -125,4 +125,22 @@ impl CardRepo for Database {
         .await?
         .map(Into::into))
     }
+
+    async fn cards_list(&self, user_id: Uuid) -> RepoResult<Vec<models::Card>> {
+        Ok(sqlx::query_as!(
+            Card,
+            // language=PostgreSQL
+            r#"
+            SELECT id, author_id, title, created_at, updated_at, contents, tags
+            FROM cards
+            WHERE author_id = $1
+            "#,
+            user_id
+        )
+        .fetch_all(&self.pool)
+        .await?
+        .into_iter()
+        .map(Into::into)
+        .collect())
+    }
 }

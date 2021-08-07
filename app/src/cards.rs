@@ -1,7 +1,7 @@
 use crate::{App, Service};
 use cardbox_core::app::{
     CardCreateError, CardCreateForm, CardDeleteError, CardSaveError, CardSearchError,
-    CardUpdateError, CardUpdateForm, Cards,
+    CardUpdateError, CardUpdateForm, Cards, CardsListError,
 };
 use cardbox_core::contracts::Repository;
 use cardbox_core::models::{Card, CardCreate, CardUpdate, User};
@@ -161,6 +161,32 @@ impl Cards for App {
             }
         } else {
             Err(CardSaveError::TokenNotFound)
+        }
+    }
+
+    async fn cards_list(
+        &self,
+        author_id: Option<Uuid>,
+        token: Option<String>,
+    ) -> Result<Vec<Card>, CardsListError> {
+        let db = self.get::<Service<dyn Repository>>()?;
+
+        match token {
+            None => match author_id {
+                Some(author_id) => Ok(db.cards_list(author_id).await?),
+                None => Err(CardsListError::Unauthorized),
+            },
+            Some(token) => match author_id {
+                Some(author_id) => Ok(db.cards_list(author_id).await?),
+                None => {
+                    let token = db.token_find(token).await?;
+
+                    match token {
+                        None => Err(CardsListError::Unauthorized),
+                        Some(token) => Ok(db.cards_list(token.user_id).await?),
+                    }
+                }
+            },
         }
     }
 }

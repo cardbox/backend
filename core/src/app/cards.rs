@@ -30,6 +30,12 @@ pub trait Cards {
         box_id: Option<Uuid>,
         token: String,
     ) -> Result<(models::Card, Uuid), CardSaveError>;
+
+    async fn cards_list(
+        &self,
+        author_id: Option<Uuid>,
+        token: Option<String>,
+    ) -> Result<Vec<models::Card>, CardsListError>;
 }
 
 #[derive(Debug, Validate)]
@@ -114,7 +120,22 @@ pub enum CardSaveError {
     BoxNotFound,
 }
 
+#[derive(Debug, thiserror::Error)]
+pub enum CardsListError {
+    #[error(transparent)]
+    Unexpected(#[from] eyre::Report),
+    #[error("Unauthorized")]
+    Unauthorized,
+}
+
 //region from db error
+impl From<UnexpectedDatabaseError> for CardsListError {
+    #[inline]
+    fn from(e: UnexpectedDatabaseError) -> Self {
+        Self::Unexpected(e.into())
+    }
+}
+
 impl From<UnexpectedDatabaseError> for CardSaveError {
     #[inline]
     fn from(e: UnexpectedDatabaseError) -> Self {
