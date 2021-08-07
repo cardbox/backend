@@ -23,6 +23,8 @@ pub trait CardRepo {
     async fn card_find_by_id(&self, card_id: Uuid) -> RepoResult<Option<Card>>;
 
     async fn cards_list(&self, user_id: Uuid) -> RepoResult<Vec<Card>>;
+
+    async fn cards_favorites_of_user(&self, user_id: Uuid) -> RepoResult<Vec<Card>>;
 }
 
 #[cfg(feature = "testing")]
@@ -54,5 +56,9 @@ impl CardRepo for crate::contracts::MockDb {
 
     async fn cards_list(&self, user_id: Uuid) -> RepoResult<Vec<Card>> {
         self.cards.cards_list(user_id).await
+    }
+
+    async fn cards_favorites_of_user(&self, user_id: Uuid) -> RepoResult<Vec<Card>> {
+        self.cards.cards_favorites_of_user(user_id).await
     }
 }

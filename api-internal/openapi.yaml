@@ -123,6 +123,10 @@ paths:
                   type: string
                   format: uuid
                   description: Author id
+                favorites:
+                  type: boolean
+                  description: Show favorited cards instead of created
+                  default: false
       responses:
         200:
           description: OK

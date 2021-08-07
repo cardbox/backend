@@ -35,6 +35,7 @@ pub trait Cards {
         &self,
         author_id: Option<Uuid>,
         token: Option<String>,
+        favorites: bool,
     ) -> Result<Vec<models::Card>, CardsListError>;
 }
 

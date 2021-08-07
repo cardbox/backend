@@ -143,4 +143,27 @@ impl CardRepo for Database {
         .map(Into::into)
         .collect())
     }
+
+    async fn cards_favorites_of_user(&self, user_id: Uuid) -> RepoResult<Vec<models::Card>> {
+        Ok(sqlx::query_as!(
+            Card,
+            // language=PostgreSQL
+            r#"
+            SELECT c.*
+            FROM boxes AS b
+                     LEFT JOIN boxes_cards bc
+                     ON b.id = bc.box_id
+                     LEFT JOIN cards c
+                     ON c.id = bc.card_id
+            WHERE b.user_id = $1
+              AND b."default" = TRUE
+            "#,
+            user_id
+        )
+        .fetch_all(&self.pool)
+        .await?
+        .into_iter()
+        .map(Into::into)
+        .collect())
+    }
 }

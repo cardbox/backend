@@ -168,22 +168,32 @@ impl Cards for App {
         &self,
         author_id: Option<Uuid>,
         token: Option<String>,
+        favorites: bool,
     ) -> Result<Vec<Card>, CardsListError> {
         let db = self.get::<Service<dyn Repository>>()?;
 
+        let get_cards = |id: Uuid| {
+            Box::pin(async move {
+                match favorites {
+                    true => db.cards_favorites_of_user(id).await,
+                    false => db.cards_list(id).await,
+                }
+            })
+        };
+
         match token {
             None => match author_id {
-                Some(author_id) => Ok(db.cards_list(author_id).await?),
+                Some(author_id) => Ok(get_cards(author_id).await?),
                 None => Err(CardsListError::Unauthorized),
             },
             Some(token) => match author_id {
-                Some(author_id) => Ok(db.cards_list(author_id).await?),
+                Some(author_id) => Ok(get_cards(author_id).await?),
                 None => {
                     let token = db.token_find(token).await?;
 
                     match token {
                         None => Err(CardsListError::Unauthorized),
-                        Some(token) => Ok(db.cards_list(token.user_id).await?),
+                        Some(token) => Ok(get_cards(token.user_id).await?),
                     }
                 }
             },

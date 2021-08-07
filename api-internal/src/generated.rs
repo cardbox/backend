@@ -362,11 +362,17 @@ pub mod components {
             pub card_id: Uuid,
         }
 
+        fn __default_cards_list_request_body_favorites() -> bool {
+            false
+        }
+
         #[derive(Debug, Deserialize)]
         #[serde(rename_all = "camelCase")]
         pub struct CardsListRequestBody {
             /// Author id
             pub author_id: Option<Uuid>,
+            #[serde(default = "__default_cards_list_request_body_favorites")]
+            pub favorites: bool,
         }
     }
 

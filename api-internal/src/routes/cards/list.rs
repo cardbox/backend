@@ -20,7 +20,11 @@ pub async fn route(
     let body = body.into_inner();
 
     let cards = app
-        .cards_list(body.author_id, token.map(|token| token.into_inner()))
+        .cards_list(
+            body.author_id,
+            token.map(|token| token.into_inner()),
+            body.favorites,
+        )
         .await
         .map_err(map_cards_list_error)?;
 
