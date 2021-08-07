@@ -227,6 +227,62 @@
       ]
     }
   },
+  "35408837a3a700172cd1552835ae533051437111d09c0a039efd5abbeb0a75b4": {
+    "query": "\n            SELECT id, author_id, title, created_at, updated_at, contents, tags\n            FROM cards\n            WHERE author_id = $1\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "author_id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 2,
+          "name": "title",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "created_at",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 4,
+          "name": "updated_at",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "contents",
+          "type_info": "Jsonb"
+        },
+        {
+          "ordinal": 6,
+          "name": "tags",
+          "type_info": "VarcharArray"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true
+      ]
+    }
+  },
   "558ca5c5e0702bbccf834a1a5ecb851b944d1e3c85cf8d11b62844ac68caf2b6": {
     "query": "\n            SELECT user_id, token, expires_at\n            FROM session_tokens\n            WHERE user_id = $1\n            ",
     "describe": {
@@ -512,6 +568,62 @@
         false,
         false,
         false
+      ]
+    }
+  },
+  "c6e3f34b96cba59ba0de56a411e483e627b526b19832d37909b9e8ff2cf26bf3": {
+    "query": "\n            SELECT c.*\n            FROM boxes AS b\n                     LEFT JOIN boxes_cards bc\n                     ON b.id = bc.box_id\n                     LEFT JOIN cards c\n                     ON c.id = bc.card_id\n            WHERE b.user_id = $1\n              AND b.\"default\" = TRUE\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "author_id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 2,
+          "name": "title",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "created_at",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 4,
+          "name": "updated_at",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "contents",
+          "type_info": "Jsonb"
+        },
+        {
+          "ordinal": 6,
+          "name": "tags",
+          "type_info": "VarcharArray"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true
       ]
     }
   },
