@@ -1,6 +1,6 @@
 use crate::{App, Service};
 use cardbox_core::app::{
-    CardCreateError, CardCreateForm, CardDeleteError, CardSaveError, CardSearchError,
+    CardCreateError, CardCreateForm, CardDeleteError, CardGetError, CardSaveError, CardSearchError,
     CardUpdateError, CardUpdateForm, Cards, CardsListError,
 };
 use cardbox_core::contracts::Repository;
@@ -198,6 +198,14 @@ impl Cards for App {
                 }
             },
         }
+    }
+
+    async fn card_get(&self, card_id: Uuid) -> Result<Card, CardGetError> {
+        let db = self.get::<Service<dyn Repository>>()?;
+
+        let card = db.card_find_by_id(card_id).await?;
+
+        card.map(Ok).unwrap_or(Err(CardGetError::CardNotFound))
     }
 }
 

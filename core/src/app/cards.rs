@@ -37,6 +37,8 @@ pub trait Cards {
         token: Option<String>,
         favorites: bool,
     ) -> Result<Vec<models::Card>, CardsListError>;
+
+    async fn card_get(&self, card_id: Uuid) -> Result<models::Card, CardGetError>;
 }
 
 #[derive(Debug, Validate)]
@@ -129,7 +131,22 @@ pub enum CardsListError {
     Unauthorized,
 }
 
+#[derive(Debug, thiserror::Error)]
+pub enum CardGetError {
+    #[error(transparent)]
+    Unexpected(#[from] eyre::Report),
+    #[error("Card not found")]
+    CardNotFound,
+}
+
 //region from db error
+impl From<UnexpectedDatabaseError> for CardGetError {
+    #[inline]
+    fn from(e: UnexpectedDatabaseError) -> Self {
+        Self::Unexpected(e.into())
+    }
+}
+
 impl From<UnexpectedDatabaseError> for CardsListError {
     #[inline]
     fn from(e: UnexpectedDatabaseError) -> Self {

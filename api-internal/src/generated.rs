@@ -144,6 +144,21 @@ pub mod api {
             self.api = self.api.bind("/cards.list".into(), Method::POST, handler);
             self
         }
+
+        pub fn bind_cards_get<F, T, R>(mut self, handler: F) -> Self
+        where
+            F: Handler<T, R>,
+            T: FromRequest + 'static,
+            R: Future<
+                    Output = Result<
+                        super::paths::cards_get::Response,
+                        super::paths::cards_get::Error,
+                    >,
+                > + 'static,
+        {
+            self.api = self.api.bind("/cards.get".into(), Method::POST, handler);
+            self
+        }
     }
 }
 
@@ -306,6 +321,25 @@ pub mod components {
             #[error("Unauthorized")]
             Unathorized,
         }
+
+        #[derive(Debug, Serialize)]
+        #[serde(rename_all = "camelCase")]
+        pub struct CardsGetSuccess {
+            pub card: schemas::Card,
+        }
+
+        #[derive(Debug, Serialize, thiserror::Error)]
+        #[error(transparent)]
+        pub struct CardsGetFailed {
+            pub error: CardsGetError,
+        }
+
+        #[derive(Debug, Serialize, thiserror::Error)]
+        #[serde(rename_all = "snake_case")]
+        pub enum CardsGetError {
+            #[error("Card not found")]
+            CardNotFound,
+        }
     }
 
     pub mod request_bodies {
@@ -373,6 +407,12 @@ pub mod components {
             pub author_id: Option<Uuid>,
             #[serde(default = "__default_cards_list_request_body_favorites")]
             pub favorites: bool,
+        }
+
+        #[derive(Debug, Deserialize)]
+        #[serde(rename_all = "camelCase")]
+        pub struct CardsGetRequestBody {
+            pub card_id: Uuid,
         }
     }
 
@@ -855,6 +895,69 @@ pub mod paths {
         pub enum Error {
             #[error(transparent)]
             BadRequest(#[from] responses::CardsListFailed),
+            #[error(transparent)]
+            InternalServerError(
+                #[from]
+                #[serde(skip)]
+                eyre::Report,
+            ),
+        }
+
+        impl Responder for Response {
+            fn respond_to(self, _: &HttpRequest) -> HttpResponse {
+                match self {
+                    Response::Ok(r) => HttpResponse::build(StatusCode::OK).json(r),
+                }
+            }
+        }
+
+        impl ResponseError for Error {
+            fn status_code(&self) -> StatusCode {
+                match self {
+                    Error::InternalServerError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                    Error::BadRequest(_) => StatusCode::BAD_REQUEST,
+                }
+            }
+
+            fn error_response(&self) -> HttpResponse {
+                let content_type = match self {
+                    Self::BadRequest(_) => Some(ContentType::Json),
+                    _ => None,
+                };
+
+                let mut res = &mut HttpResponse::build(self.status_code());
+                if let Some(content_type) = content_type {
+                    res = res.content_type(content_type.to_string());
+
+                    match content_type {
+                        ContentType::Json => res.json(self),
+                        ContentType::FormData => res.body(serde_plain::to_string(self).unwrap()),
+                    }
+                } else {
+                    HttpResponse::build(self.status_code()).finish()
+                }
+            }
+        }
+    }
+
+    pub mod cards_get {
+        use super::responses;
+        use actix_swagger::ContentType;
+        use actix_web::http::StatusCode;
+        use actix_web::{HttpRequest, HttpResponse, Responder, ResponseError};
+        use serde::Serialize;
+
+        #[derive(Debug, Serialize)]
+        #[serde(untagged)]
+        pub enum Response {
+            Ok(responses::CardsGetSuccess),
+        }
+
+        #[derive(Debug, Serialize, thiserror::Error)]
+        #[serde(untagged)]
+        pub enum Error {
+            #[error(transparent)]
+            BadRequest(#[from] responses::CardsGetFailed),
             #[error(transparent)]
             InternalServerError(
                 #[from]
