@@ -129,6 +129,21 @@ pub mod api {
             self.api = self.api.bind("/cards.save".into(), Method::POST, handler);
             self
         }
+
+        pub fn bind_cards_list<F, T, R>(mut self, handler: F) -> Self
+        where
+            F: Handler<T, R>,
+            T: FromRequest + 'static,
+            R: Future<
+                    Output = Result<
+                        super::paths::cards_list::Response,
+                        super::paths::cards_list::Error,
+                    >,
+                > + 'static,
+        {
+            self.api = self.api.bind("/cards.list".into(), Method::POST, handler);
+            self
+        }
     }
 }
 
@@ -269,6 +284,28 @@ pub mod components {
             #[error("No access")]
             NoAccess,
         }
+
+        #[derive(Debug, Serialize)]
+        #[serde(rename_all = "camelCase")]
+        pub struct CardsListSuccess {
+            pub cards: Vec<schemas::Card>,
+            pub total: usize,
+        }
+
+        #[derive(Debug, Serialize, thiserror::Error)]
+        #[error(transparent)]
+        pub struct CardsListFailed {
+            pub error: CardsListError,
+        }
+
+        #[derive(Debug, Serialize, thiserror::Error)]
+        #[serde(rename_all = "snake_case")]
+        pub enum CardsListError {
+            #[error("Invalid params")]
+            InvalidParams,
+            #[error("Unauthorized")]
+            Unathorized,
+        }
     }
 
     pub mod request_bodies {
@@ -323,6 +360,19 @@ pub mod components {
         #[serde(rename_all = "camelCase")]
         pub struct CardsSaveRequestBody {
             pub card_id: Uuid,
+        }
+
+        fn __default_cards_list_request_body_favorites() -> bool {
+            false
+        }
+
+        #[derive(Debug, Deserialize)]
+        #[serde(rename_all = "camelCase")]
+        pub struct CardsListRequestBody {
+            /// Author id
+            pub author_id: Option<Uuid>,
+            #[serde(default = "__default_cards_list_request_body_favorites")]
+            pub favorites: bool,
         }
     }
 
@@ -742,6 +792,69 @@ pub mod paths {
         pub enum Error {
             #[error(transparent)]
             BadRequest(#[from] responses::CardsSaveFailed),
+            #[error(transparent)]
+            InternalServerError(
+                #[from]
+                #[serde(skip)]
+                eyre::Report,
+            ),
+        }
+
+        impl Responder for Response {
+            fn respond_to(self, _: &HttpRequest) -> HttpResponse {
+                match self {
+                    Response::Ok(r) => HttpResponse::build(StatusCode::OK).json(r),
+                }
+            }
+        }
+
+        impl ResponseError for Error {
+            fn status_code(&self) -> StatusCode {
+                match self {
+                    Error::InternalServerError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                    Error::BadRequest(_) => StatusCode::BAD_REQUEST,
+                }
+            }
+
+            fn error_response(&self) -> HttpResponse {
+                let content_type = match self {
+                    Self::BadRequest(_) => Some(ContentType::Json),
+                    _ => None,
+                };
+
+                let mut res = &mut HttpResponse::build(self.status_code());
+                if let Some(content_type) = content_type {
+                    res = res.content_type(content_type.to_string());
+
+                    match content_type {
+                        ContentType::Json => res.json(self),
+                        ContentType::FormData => res.body(serde_plain::to_string(self).unwrap()),
+                    }
+                } else {
+                    HttpResponse::build(self.status_code()).finish()
+                }
+            }
+        }
+    }
+
+    pub mod cards_list {
+        use super::responses;
+        use actix_swagger::ContentType;
+        use actix_web::http::StatusCode;
+        use actix_web::{HttpRequest, HttpResponse, Responder, ResponseError};
+        use serde::Serialize;
+
+        #[derive(Debug, Serialize)]
+        #[serde(untagged)]
+        pub enum Response {
+            Ok(responses::CardsListSuccess),
+        }
+
+        #[derive(Debug, Serialize, thiserror::Error)]
+        #[serde(untagged)]
+        pub enum Error {
+            #[error(transparent)]
+            BadRequest(#[from] responses::CardsListFailed),
             #[error(transparent)]
             InternalServerError(
                 #[from]
