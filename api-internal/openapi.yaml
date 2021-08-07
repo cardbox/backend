@@ -95,7 +95,7 @@ paths:
                   total:
                     type: integer
         500:
-          description: Server error
+          description: SERVER_ERROR
 
   /cards.list:
     post:
@@ -388,7 +388,7 @@ paths:
         500:
           description: SERVER_ERROR
 
-  "/session/get":
+  /session/get:
     post:
       operationId: sessionGet
       tags: [ Session ]
@@ -403,7 +403,7 @@ paths:
         500:
           description: Something went wrong
 
-  "/session/delete":
+  /session/delete:
     post:
       operationId: sessionDelete
       tags: [ Session ]
@@ -420,6 +420,85 @@ paths:
           description: User not authorized
         500:
           description: Something went wrong
+  
+  /users.search:
+    post:
+      summary: Search all users
+      operationId: usersSearch
+      tags: [ Users ]
+      description: |-
+        Full text search of users
+          - `POST /api/internal/users.search '{"search": SEARCH_TERM}'`
+          - By general fields (bio, username, firstName, lastName, work)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ query ]
+              properties:
+                query:
+                  type: string
+                  description: Search term
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [total, users]
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  total:
+                    type: integer
+        500:
+          description: SERVER_ERROR
+  /users.get:
+    post:
+      summary: Get user by username
+      operationId: usersGet
+      tags: [ Users ]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username]
+              properties:
+                username:
+                  type: string
+
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [user]
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+        400:
+          description: CLIENT_ERROR
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [error, code]
+                properties:
+                  error:
+                    type: boolean
+                  code:
+                    type: string
+                    enum:
+                      - user_not_found
+        500:
+          description: SERVER_ERROR
 
 components:
   requestBodies:
@@ -528,17 +607,9 @@ components:
           description: |-
             Later, can implement as `File` entity
         socials:
-          type: object
-          properties:
-            github:
-              type: string
-              nullable: true
-            devto:
-              type: string
-              nullable: true
-            twitter:
-              type: string
-              nullable: true
+          type: array
+          items:
+            $ref: '#/components/schemas/UserSocial'
         work:
           type: string
           nullable: true
@@ -586,4 +657,18 @@ components:
           description: |-
             Later, we can add this field
             For custom text-overflow (instead of truncating with emphasizing)
-          
+    UserSocial:
+      type: object
+      required: [id, type, link, username]
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          description: github | devto | twitter | ...
+        link:
+          type: string
+        username:
+          type: string
+          description: Username at social platform (gaearon => github/gaearon)
