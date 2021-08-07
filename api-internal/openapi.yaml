@@ -387,7 +387,54 @@ paths:
                       - no_access
         500:
           description: SERVER_ERROR
+
+  "/session/get":
+    post:
+      operationId: sessionGet
+      tags: [ Session ]
+      # TODO: Add rate limit and CSRF protection
+      description: Read session token and show current session.
+        Authenticated checked by session-token cookie
+      responses:
+        200:
+          $ref: "#/components/responses/SessionGetSuccess"
+        401:
+          description: User not authorized
+        500:
+          description: Something went wrong
+
+  "/session/delete":
+    post:
+      operationId: sessionDelete
+      tags: [ Session ]
+      # TODO: Add rate limit and CSRF protection
+      description: Delete current or all sessions
+      requestBody:
+        $ref: "#/components/requestBodies/SessionDelete"
+      responses:
+        200:
+          description: session deleted
+        400:
+          $ref: "#/components/responses/SessionDeleteFailure"
+        401:
+          description: User not authorized
+        500:
+          description: Something went wrong
+
 components:
+  requestBodies:
+    SessionDelete:
+      required: true
+      description: sd
+      content:
+        application/json:
+          schema:
+            required:
+              - deleteAllSessions
+            properties:
+              deleteAllSessions:
+                type: boolean
+
   responses:
     AuthDoneFailed:
       description: Failed to authorize
@@ -406,10 +453,10 @@ components:
       content:
         application/json:
           schema:
-            required: [ userInfo ]
+            required: [ user ]
             properties:
-              userInfo:
-                $ref: "#/components/schemas/UserInfo"
+              user:
+                $ref: "#/components/schemas/SessionUser"
     AuthUrlSuccess:
       description: ""
       content:
@@ -420,15 +467,44 @@ components:
               accessoUrl:
                 type: string
                 description: Accesso Url
+
+    SessionGetSuccess:
+      description: Session exists
+      content:
+        application/json:
+          schema:
+            required:
+              - user
+            properties:
+              user:
+                $ref: "#/components/schemas/SessionUser"
+
+    SessionDeleteFailure:
+      description: failed to delete session
+      content:
+        application/json:
+          schema:
+            required:
+              - error
+            properties:
+              error:
+                type: string
+                enum:
+                  - "invalid_payload"
+
   schemas:
-    UserInfo:
+    SessionUser:
       type: object
-      required: [ firstName, lastName ]
+      required: [ id, firstName, lastName ]
       properties:
+        id:
+          type: string
+          format: uuid
         firstName:
           type: string
         lastName:
           type: string
+
     User:
       type: object
       required: [id, username, firstName, lastName, bio, avatar]
