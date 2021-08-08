@@ -140,6 +140,10 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Card'
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
                   total:
                     type: integer
         400:
