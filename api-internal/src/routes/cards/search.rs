@@ -37,10 +37,25 @@ pub async fn route(
             .collect(),
         users: search_results
             .into_iter()
-            .map(|(_, u)| User {
-                id: u.id,
-                first_name: u.first_name,
-                last_name: u.last_name,
+            .map(|(_, u)| {
+                let id_str = u.id.to_string();
+                let username = u.username.unwrap_or(id_str);
+
+                User {
+                    username,
+                    id: u.id,
+                    first_name: u.first_name,
+                    last_name: u.last_name,
+                    avatar: u.avatar,
+                    work: u.work,
+                    bio: u.bio,
+                    socials: u
+                        .socials
+                        .unwrap_or_else(Vec::new)
+                        .into_iter()
+                        .map(Into::into)
+                        .collect(),
+                }
             })
             .collect(),
         total,

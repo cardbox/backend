@@ -3,6 +3,7 @@ use crate::models;
 use async_trait::async_trait;
 use uuid::Uuid;
 
+use crate::models::User;
 #[cfg(feature = "testing")]
 use mockall::*;
 
@@ -11,6 +12,7 @@ use mockall::*;
 pub trait UserRepo {
     async fn user_find_by_id(&self, user_id: Uuid) -> RepoResult<Option<models::User>>;
     async fn user_find_by_accesso(&self, accesso_id: Uuid) -> RepoResult<Option<models::User>>;
+    async fn user_find_by_username(&self, username: &str) -> RepoResult<Option<models::User>>;
     async fn user_update(&self, user: models::User) -> RepoResult<models::User>;
     async fn user_create(&self, user: models::UserCreate) -> Result<models::User, UserCreateError>;
 }
@@ -40,5 +42,9 @@ impl UserRepo for crate::contracts::MockDb {
 
     async fn user_create(&self, user: models::UserCreate) -> Result<models::User, UserCreateError> {
         self.users.user_create(user).await
+    }
+
+    async fn user_find_by_username(&self, username: &str) -> RepoResult<Option<User>> {
+        self.users.user_find_by_username(username).await
     }
 }

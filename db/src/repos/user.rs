@@ -1,4 +1,4 @@
-use crate::entities::User;
+use crate::entities::{Socials, User};
 use crate::mappers::sqlx_error_to_user_create_error;
 use crate::Database;
 use cardbox_core::contracts::repo::{RepoResult, UserCreateError, UserRepo};
@@ -12,9 +12,13 @@ impl UserRepo for Database {
             User,
             // language=PostgreSQL
             r#"
-            SELECT id, accesso_id, first_name, last_name
-            FROM users
-            WHERE users.id = $1
+            SELECT 
+                   u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work,
+                   (s.id, s.user_id, s.name, s.link) AS "socials: Socials"
+            FROM users AS u
+                     LEFT OUTER JOIN socials s
+                     ON u.id = s.user_id
+            WHERE u.id = $1
             "#,
             user_id
         )
@@ -28,9 +32,13 @@ impl UserRepo for Database {
             User,
             // language=PostgreSQL
             r#"
-            SELECT id, accesso_id, first_name, last_name
-            FROM users
-            WHERE users.accesso_id = $1
+            SELECT 
+                   u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work,
+                   (s.id, s.user_id, s.name, s.link) AS "socials: Socials"
+            FROM users AS u
+                     LEFT OUTER JOIN socials s
+                     ON u.id = s.user_id
+            WHERE u.accesso_id = $1
             "#,
             accesso_id
         )
@@ -39,19 +47,43 @@ impl UserRepo for Database {
         .map(Into::into))
     }
 
+    async fn user_find_by_username(&self, username: &str) -> RepoResult<Option<models::User>> {
+        Ok(sqlx::query_as!(
+            User,
+            // language=PostgreSQL
+            r#"
+            SELECT 
+                   u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work,
+                   (s.id, s.user_id, s.name, s.link) AS "socials: Socials"
+            FROM users AS u
+                     LEFT OUTER JOIN socials s
+                     ON u.id = s.user_id
+            WHERE u.username = $1
+            "#,
+            username
+        )
+            .fetch_optional(&self.pool)
+            .await?
+            .map(Into::into))
+    }
+
     async fn user_update(&self, user: models::User) -> RepoResult<models::User> {
         let updated = sqlx::query_as!(
             User,
             // language=PostgreSQL
             r#"
             UPDATE users
-            SET (accesso_id, first_name, last_name) = ($1, $2, $3)
-            WHERE id = $4
-            RETURNING id, accesso_id, first_name, last_name
+            SET (accesso_id, first_name, last_name, username, bio, avatar, work) = ($1, $2, $3, $4, $5, $6, $7)
+            WHERE id = $8
+            RETURNING id, accesso_id, first_name, last_name, username, bio, avatar, work, NULL as "socials: Socials"
             "#,
             user.accesso_id,
             user.first_name,
             user.last_name,
+            user.username,
+            user.bio,
+            user.avatar,
+            user.work,
             user.id
         )
         .fetch_one(&self.pool)
@@ -67,7 +99,7 @@ impl UserRepo for Database {
             r#"
             INSERT INTO users (accesso_id, first_name, last_name)
             VALUES ($1, $2, $3)
-            RETURNING id, accesso_id, first_name, last_name
+            RETURNING id, accesso_id, first_name, last_name, username, bio, avatar, work, NULL as "socials: Socials"
             "#,
             user.accesso_id,
             user.first_name,
