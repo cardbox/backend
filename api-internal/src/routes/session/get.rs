@@ -31,5 +31,6 @@ fn map_user_get_error(error: UserGetError) -> Error {
         Unexpected(e) => Error::InternalServerError(e),
         TokenNotFound => Error::Unauthorized,
         TokenExpired => Error::Unauthorized,
+        UserNotFound => Error::Unauthorized,
     }
 }

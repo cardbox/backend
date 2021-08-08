@@ -6,7 +6,7 @@ use eyre::WrapErr;
 
 #[async_trait]
 impl Users for App {
-    async fn user_get(&self, username: String) -> Result<User, UserGetError> {
+    async fn user_get_by_username(&self, username: String) -> Result<User, UserGetError> {
         let db = self.get::<Service<dyn Repository>>()?;
 
         let user = db.user_find_by_username(&username).await?;

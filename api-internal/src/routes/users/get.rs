@@ -17,7 +17,7 @@ pub async fn route(
     let body = body.into_inner();
 
     let user = app
-        .user_get(body.username)
+        .user_get_by_username(body.username)
         .await
         .map_err(map_user_get_error)?;
 
@@ -33,6 +33,8 @@ fn map_user_get_error(error: UserGetError) -> Error {
             error: FailureVariant::UserNotFound,
         }
         .into(),
+        // TODO: make different error type for getting by username
+        _ => unreachable!("user_get_by_username cannot call this branch"),
     }
 }
 
