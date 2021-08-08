@@ -590,7 +590,7 @@ components:
 
     User:
       type: object
-      required: [id, username, firstName, lastName, bio, avatar]
+      required: [id, username, firstName, lastName, bio, avatar, socials]
       properties:
         id:
           type: string
