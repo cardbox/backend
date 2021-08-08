@@ -1,4 +1,5 @@
 debug = true
+use_opentelemetry = false
 
 [cookies]
 http_only = false

@@ -14,11 +14,12 @@ impl UserRepo for Database {
             r#"
             SELECT 
                    u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work,
-                   (s.id, s.user_id, s.name, s.link) AS "socials: Socials"
+                   (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE s.id IS NOT NULL )) AS "socials: Socials"
             FROM users AS u
                      LEFT OUTER JOIN socials s
                      ON u.id = s.user_id
             WHERE u.id = $1
+            GROUP BY u.id
             "#,
             user_id
         )
@@ -34,11 +35,12 @@ impl UserRepo for Database {
             r#"
             SELECT 
                    u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work,
-                   (s.id, s.user_id, s.name, s.link) AS "socials: Socials"
+                   (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE s.id IS NOT NULL )) AS "socials: Socials"
             FROM users AS u
                      LEFT OUTER JOIN socials s
                      ON u.id = s.user_id
             WHERE u.accesso_id = $1
+            GROUP BY u.id
             "#,
             accesso_id
         )
@@ -54,11 +56,12 @@ impl UserRepo for Database {
             r#"
             SELECT 
                    u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work,
-                   (s.id, s.user_id, s.name, s.link) AS "socials: Socials"
+                   (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE s.id IS NOT NULL )) AS "socials: Socials"
             FROM users AS u
                      LEFT OUTER JOIN socials s
                      ON u.id = s.user_id
             WHERE u.username = $1
+            GROUP BY u.id
             "#,
             username
         )
