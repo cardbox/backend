@@ -392,7 +392,7 @@ paths:
         500:
           description: SERVER_ERROR
 
-  /session/get:
+  /session.get:
     post:
       operationId: sessionGet
       tags: [ Session ]
@@ -407,7 +407,7 @@ paths:
         500:
           description: Something went wrong
 
-  /session/delete:
+  /session.delete:
     post:
       operationId: sessionDelete
       tags: [ Session ]
