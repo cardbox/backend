@@ -1,3 +1,4 @@
+use crate::entities::SessionToken;
 use crate::entities::Socials;
 use cardbox_core::models;
 use sqlx::decode::Decode;
@@ -54,6 +55,15 @@ impl Type<Postgres> for User {
     }
 }
 
+#[derive(Debug, sqlx::FromRow, sqlx::Type)]
+pub(crate) struct SessionUser {
+    pub(crate) id: Uuid,
+    pub(crate) accesso_id: Uuid,
+    pub(crate) first_name: String,
+    pub(crate) last_name: String,
+    pub(crate) session_token: SessionToken,
+}
+
 impl From<User> for models::User {
     #[inline]
     fn from(u: User) -> Self {
@@ -67,6 +77,19 @@ impl From<User> for models::User {
             avatar: u.avatar,
             work: u.work,
             socials: u.socials.map(|s| s.0.into_iter().map(Into::into).collect()),
+        }
+    }
+}
+
+impl From<SessionUser> for models::SessionUser {
+    #[inline]
+    fn from(u: SessionUser) -> Self {
+        Self {
+            id: u.id,
+            accesso_id: u.accesso_id,
+            first_name: u.first_name,
+            last_name: u.last_name,
+            expired: models::SessionToken::from(u.session_token).is_expired(),
         }
     }
 }

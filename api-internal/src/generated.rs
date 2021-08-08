@@ -174,6 +174,21 @@ pub mod api {
             self.api = self.api.bind("/users.get".into(), Method::POST, handler);
             self
         }
+
+        pub fn bind_session_get<F, T, R>(mut self, handler: F) -> Self
+        where
+            F: Handler<T, R>,
+            T: FromRequest + 'static,
+            R: Future<
+                    Output = Result<
+                        super::paths::session_get::Response,
+                        super::paths::session_get::Error,
+                    >,
+                > + 'static,
+        {
+            self.api = self.api.bind("/session.get".into(), Method::POST, handler);
+            self
+        }
     }
 }
 
@@ -374,6 +389,12 @@ pub mod components {
             #[error("User not found")]
             UserNotFound,
         }
+
+        #[derive(Debug, Serialize)]
+        #[serde(rename_all = "camelCase")]
+        pub struct SessionGetSuccess {
+            pub user: schemas::SessionUser,
+        }
     }
 
     pub mod request_bodies {
@@ -479,6 +500,14 @@ pub mod components {
             pub avatar: Option<String>,
             pub socials: Vec<UserSocial>,
             pub work: Option<String>,
+        }
+
+        #[derive(Debug, Serialize)]
+        #[serde(rename_all = "camelCase")]
+        pub struct SessionUser {
+            pub id: Uuid,
+            pub first_name: String,
+            pub last_name: String,
         }
 
         #[derive(Debug, Serialize)]
@@ -1104,6 +1133,49 @@ pub mod paths {
                     }
                 } else {
                     HttpResponse::build(self.status_code()).finish()
+                }
+            }
+        }
+    }
+
+    pub mod session_get {
+        use super::responses;
+        use actix_web::http::StatusCode;
+        use actix_web::{HttpRequest, HttpResponse, Responder, ResponseError};
+        use serde::Serialize;
+
+        #[derive(Debug, Serialize)]
+        #[serde(untagged)]
+        pub enum Response {
+            Ok(responses::SessionGetSuccess),
+        }
+
+        #[derive(Debug, Serialize, thiserror::Error)]
+        #[serde(untagged)]
+        pub enum Error {
+            #[error("Unauthorized")]
+            Unauthorized,
+            #[error(transparent)]
+            InternalServerError(
+                #[from]
+                #[serde(skip)]
+                eyre::Report,
+            ),
+        }
+
+        impl Responder for Response {
+            fn respond_to(self, _: &HttpRequest) -> HttpResponse {
+                match self {
+                    Response::Ok(r) => HttpResponse::build(StatusCode::OK).json(r),
+                }
+            }
+        }
+
+        impl ResponseError for Error {
+            fn status_code(&self) -> StatusCode {
+                match self {
+                    Error::InternalServerError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                    Error::Unauthorized => StatusCode::UNAUTHORIZED,
                 }
             }
         }
