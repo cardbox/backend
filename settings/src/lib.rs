@@ -12,6 +12,7 @@ pub struct Settings {
     pub cookies: Cookies,
     pub server: Server,
     pub accesso: Accesso,
+    pub use_opentelemetry: bool,
 }
 
 #[derive(Debug, Deserialize, Clone)]

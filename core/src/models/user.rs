@@ -15,6 +15,15 @@ pub struct User {
     pub socials: Option<Vec<Social>>,
 }
 
+#[derive(Debug, Clone)]
+pub struct SessionUser {
+    pub id: uuid::Uuid,
+    pub accesso_id: uuid::Uuid,
+    pub first_name: String,
+    pub last_name: String,
+    pub expired: bool,
+}
+
 #[derive(Debug)]
 pub struct UserCreate {
     pub accesso_id: uuid::Uuid,

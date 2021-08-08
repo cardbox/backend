@@ -8,4 +8,4 @@ pub(crate) use boxes::{Box, BoxType};
 pub(crate) use card::Card;
 pub(crate) use session_token::SessionToken;
 pub(crate) use socials::Socials;
-pub(crate) use user::User;
+pub(crate) use user::{SessionUser, User};

@@ -1,4 +1,4 @@
-use crate::entities::{Socials, User};
+use crate::entities::{SessionToken, SessionUser, Socials, User};
 use crate::mappers::sqlx_error_to_user_create_error;
 use crate::Database;
 use cardbox_core::contracts::repo::{RepoResult, UserCreateError, UserRepo};
@@ -14,11 +14,12 @@ impl UserRepo for Database {
             r#"
             SELECT 
                    u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work,
-                   (s.id, s.user_id, s.name, s.link) AS "socials: Socials"
+                   (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE s.id IS NOT NULL )) AS "socials: Socials"
             FROM users AS u
                      LEFT OUTER JOIN socials s
                      ON u.id = s.user_id
             WHERE u.id = $1
+            GROUP BY u.id
             "#,
             user_id
         )
@@ -34,11 +35,12 @@ impl UserRepo for Database {
             r#"
             SELECT 
                    u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work,
-                   (s.id, s.user_id, s.name, s.link) AS "socials: Socials"
+                   (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE s.id IS NOT NULL )) AS "socials: Socials"
             FROM users AS u
                      LEFT OUTER JOIN socials s
                      ON u.id = s.user_id
             WHERE u.accesso_id = $1
+            GROUP BY u.id
             "#,
             accesso_id
         )
@@ -54,11 +56,12 @@ impl UserRepo for Database {
             r#"
             SELECT 
                    u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work,
-                   (s.id, s.user_id, s.name, s.link) AS "socials: Socials"
+                   (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE s.id IS NOT NULL )) AS "socials: Socials"
             FROM users AS u
                      LEFT OUTER JOIN socials s
                      ON u.id = s.user_id
             WHERE u.username = $1
+            GROUP BY u.id
             "#,
             username
         )
@@ -110,5 +113,26 @@ impl UserRepo for Database {
         .map_err(sqlx_error_to_user_create_error)?;
 
         Ok(user.into())
+    }
+
+    async fn user_find_by_session_token(
+        &self,
+        session_token: String,
+    ) -> RepoResult<Option<models::SessionUser>> {
+        Ok(sqlx::query_as!(
+            SessionUser,
+            // language=PostgreSQL
+            r#"
+            SELECT u.id, u.accesso_id, u.first_name, u.last_name,
+                   (st.user_id, st.token, st.expires_at) as "session_token!: SessionToken"
+            FROM users as u
+            JOIN session_tokens st ON u.id = st.user_id
+            WHERE st.token = $1
+            "#,
+            session_token
+        )
+        .fetch_optional(&self.pool)
+        .await?
+        .map(Into::into))
     }
 }
