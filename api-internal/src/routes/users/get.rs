@@ -60,12 +60,14 @@ impl From<cardbox_core::models::User> for schemas::User {
     }
 }
 
-impl From<cardbox_core::models::Social> for schemas::Social {
+impl From<cardbox_core::models::Social> for schemas::UserSocial {
     #[inline]
     fn from(s: Social) -> Self {
         Self {
             link: s.link,
-            name: s.name,
+            username: s.name,
+            r#type: "PLACEHOLDER_TYPE".into(),
+            id: s.id,
         }
     }
 }

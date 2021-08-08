@@ -477,14 +477,17 @@ pub mod components {
             pub last_name: String,
             pub bio: Option<String>,
             pub avatar: Option<String>,
-            pub socials: Vec<Social>,
+            pub socials: Vec<UserSocial>,
             pub work: Option<String>,
         }
 
         #[derive(Debug, Serialize)]
         #[serde(rename_all = "camelCase")]
-        pub struct Social {
-            pub name: String,
+        pub struct UserSocial {
+            pub id: Uuid,
+            #[serde(rename = "type")]
+            pub r#type: String,
+            pub username: String,
             pub link: String,
         }
 
