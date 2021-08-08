@@ -159,6 +159,21 @@ pub mod api {
             self.api = self.api.bind("/cards.get".into(), Method::POST, handler);
             self
         }
+
+        pub fn bind_users_get<F, T, R>(mut self, handler: F) -> Self
+        where
+            F: Handler<T, R>,
+            T: FromRequest + 'static,
+            R: Future<
+                    Output = Result<
+                        super::paths::users_get::Response,
+                        super::paths::users_get::Error,
+                    >,
+                > + 'static,
+        {
+            self.api = self.api.bind("/users.get".into(), Method::POST, handler);
+            self
+        }
     }
 }
 
@@ -340,6 +355,25 @@ pub mod components {
             #[error("Card not found")]
             CardNotFound,
         }
+
+        #[derive(Debug, Serialize)]
+        #[serde(rename_all = "camelCase")]
+        pub struct UsersGetSuccess {
+            pub user: schemas::User,
+        }
+
+        #[derive(Debug, Serialize, thiserror::Error)]
+        #[error(transparent)]
+        pub struct UsersGetFailed {
+            pub error: UsersGetError,
+        }
+
+        #[derive(Debug, Serialize, thiserror::Error)]
+        #[serde(rename_all = "snake_case")]
+        pub enum UsersGetError {
+            #[error("User not found")]
+            UserNotFound,
+        }
     }
 
     pub mod request_bodies {
@@ -414,6 +448,12 @@ pub mod components {
         pub struct CardsGetRequestBody {
             pub card_id: Uuid,
         }
+
+        #[derive(Debug, Deserialize)]
+        #[serde(rename_all = "camelCase")]
+        pub struct UsersGetRequestBody {
+            pub user_id: Uuid,
+        }
     }
 
     pub mod schemas {
@@ -432,20 +472,20 @@ pub mod components {
         #[serde(rename_all = "camelCase")]
         pub struct User {
             pub id: Uuid,
-            //pub username: String,
+            pub username: String,
             pub first_name: String,
             pub last_name: String,
-            // pub bio: Option<String>,
-            // pub avatar: Option<String>,
-            // pub socials: Vec<Social>,
-            // pub work: Option<String>,
+            pub bio: Option<String>,
+            pub avatar: Option<String>,
+            pub socials: Vec<Social>,
+            pub work: Option<String>,
         }
 
         #[derive(Debug, Serialize)]
         #[serde(rename_all = "camelCase")]
         pub struct Social {
-            name: String,
-            link: String,
+            pub name: String,
+            pub link: String,
         }
 
         #[derive(Debug, Serialize)]
@@ -958,6 +998,69 @@ pub mod paths {
         pub enum Error {
             #[error(transparent)]
             BadRequest(#[from] responses::CardsGetFailed),
+            #[error(transparent)]
+            InternalServerError(
+                #[from]
+                #[serde(skip)]
+                eyre::Report,
+            ),
+        }
+
+        impl Responder for Response {
+            fn respond_to(self, _: &HttpRequest) -> HttpResponse {
+                match self {
+                    Response::Ok(r) => HttpResponse::build(StatusCode::OK).json(r),
+                }
+            }
+        }
+
+        impl ResponseError for Error {
+            fn status_code(&self) -> StatusCode {
+                match self {
+                    Error::InternalServerError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                    Error::BadRequest(_) => StatusCode::BAD_REQUEST,
+                }
+            }
+
+            fn error_response(&self) -> HttpResponse {
+                let content_type = match self {
+                    Self::BadRequest(_) => Some(ContentType::Json),
+                    _ => None,
+                };
+
+                let mut res = &mut HttpResponse::build(self.status_code());
+                if let Some(content_type) = content_type {
+                    res = res.content_type(content_type.to_string());
+
+                    match content_type {
+                        ContentType::Json => res.json(self),
+                        ContentType::FormData => res.body(serde_plain::to_string(self).unwrap()),
+                    }
+                } else {
+                    HttpResponse::build(self.status_code()).finish()
+                }
+            }
+        }
+    }
+
+    pub mod users_get {
+        use super::responses;
+        use actix_swagger::ContentType;
+        use actix_web::http::StatusCode;
+        use actix_web::{HttpRequest, HttpResponse, Responder, ResponseError};
+        use serde::Serialize;
+
+        #[derive(Debug, Serialize)]
+        #[serde(untagged)]
+        pub enum Response {
+            Ok(responses::UsersGetSuccess),
+        }
+
+        #[derive(Debug, Serialize, thiserror::Error)]
+        #[serde(untagged)]
+        pub enum Error {
+            #[error(transparent)]
+            BadRequest(#[from] responses::UsersGetFailed),
             #[error(transparent)]
             InternalServerError(
                 #[from]

@@ -41,6 +41,16 @@ pub async fn route(
                 id: u.id,
                 first_name: u.first_name,
                 last_name: u.last_name,
+                username: u.username,
+                avatar: u.avatar,
+                work: u.work,
+                bio: u.bio,
+                socials: u
+                    .socials
+                    .unwrap_or_else(Vec::new)
+                    .into_iter()
+                    .map(Into::into)
+                    .collect(),
             })
             .collect(),
         total,
