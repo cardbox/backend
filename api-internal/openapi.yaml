@@ -638,6 +638,8 @@ components:
           type: string
         content:
           type: array
+          items:
+            type: object
         createdAt:
           type: string
           format: date-time
