@@ -39,7 +39,7 @@ impl Users for App {
         match user {
             Some(user) => {
                 if user.expired {
-                    tracing::warn!(token, "Token is expired!");
+                    tracing::warn!(%token, "Token is expired!");
                     Err(UserGetError::TokenExpired)
                 } else {
                     Ok(user)
