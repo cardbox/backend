@@ -47,6 +47,26 @@ impl UserRepo for Database {
         .map(Into::into))
     }
 
+    async fn user_find_by_username(&self, username: &str) -> RepoResult<Option<models::User>> {
+        Ok(sqlx::query_as!(
+            User,
+            // language=PostgreSQL
+            r#"
+            SELECT 
+                   u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work,
+                   (s.id, s.user_id, s.name, s.link) AS "socials: Socials"
+            FROM users AS u
+                     LEFT OUTER JOIN socials s
+                     ON u.id = s.user_id
+            WHERE u.username = $1
+            "#,
+            username
+        )
+            .fetch_optional(&self.pool)
+            .await?
+            .map(Into::into))
+    }
+
     async fn user_update(&self, user: models::User) -> RepoResult<models::User> {
         let updated = sqlx::query_as!(
             User,

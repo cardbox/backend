@@ -12,7 +12,7 @@ pub(crate) struct User {
     pub(crate) accesso_id: Uuid,
     pub(crate) first_name: String,
     pub(crate) last_name: String,
-    pub(crate) username: String,
+    pub(crate) username: Option<String>,
     pub(crate) bio: Option<String>,
     pub(crate) avatar: Option<String>,
     pub(crate) work: Option<String>,
@@ -28,7 +28,7 @@ impl<'r> Decode<'r, Postgres> for User {
         let accesso_id = decoder.try_decode::<Uuid>()?;
         let first_name = decoder.try_decode::<String>()?;
         let last_name = decoder.try_decode::<String>()?;
-        let username = decoder.try_decode::<String>()?;
+        let username = decoder.try_decode::<Option<String>>()?;
         let bio = decoder.try_decode::<Option<String>>()?;
         let avatar = decoder.try_decode::<Option<String>>()?;
         let work = decoder.try_decode::<Option<String>>()?;

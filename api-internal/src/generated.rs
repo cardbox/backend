@@ -452,7 +452,7 @@ pub mod components {
         #[derive(Debug, Deserialize)]
         #[serde(rename_all = "camelCase")]
         pub struct UsersGetRequestBody {
-            pub user_id: Uuid,
+            pub username: String,
         }
     }
 

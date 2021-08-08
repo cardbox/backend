@@ -60,7 +60,7 @@
         false,
         false,
         false,
-        false,
+        true,
         true,
         true,
         true,
@@ -264,6 +264,74 @@
       ]
     }
   },
+  "5af7d8daebf6fbd3bcd923261198369a0861b4a5852144d911ae1a18b24a7f84": {
+    "query": "\n            SELECT \n                   u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work,\n                   (s.id, s.user_id, s.name, s.link) AS \"socials: Socials\"\n            FROM users AS u\n                     LEFT OUTER JOIN socials s\n                     ON u.id = s.user_id\n            WHERE u.username = $1\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "accesso_id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 2,
+          "name": "first_name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "last_name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 4,
+          "name": "username",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 5,
+          "name": "bio",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 6,
+          "name": "avatar",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 7,
+          "name": "work",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 8,
+          "name": "socials: Socials",
+          "type_info": "Record"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        true,
+        true,
+        true,
+        true,
+        null
+      ]
+    }
+  },
   "87f9b2288105bdc1f42f213646af16e1d61581deb591cf4259d8999e4317e8c3": {
     "query": "\n            INSERT INTO users (accesso_id, first_name, last_name)\n            VALUES ($1, $2, $3)\n            RETURNING id, accesso_id, first_name, last_name, username, bio, avatar, work, NULL as \"socials: Socials\"\n            ",
     "describe": {
@@ -326,7 +394,7 @@
         false,
         false,
         false,
-        false,
+        true,
         true,
         true,
         true,
@@ -471,7 +539,7 @@
         false,
         false,
         false,
-        false,
+        true,
         true,
         true,
         true,
@@ -687,7 +755,7 @@
         false,
         false,
         false,
-        false,
+        true,
         true,
         true,
         true,

@@ -1,10 +1,9 @@
 use crate::contracts::UnexpectedDatabaseError;
 use crate::models;
-use uuid::Uuid;
 
 #[async_trait]
 pub trait Users {
-    async fn user_get(&self, user_id: Uuid) -> Result<models::User, UserGetError>;
+    async fn user_get(&self, username: String) -> Result<models::User, UserGetError>;
 }
 
 #[derive(Debug, thiserror::Error)]

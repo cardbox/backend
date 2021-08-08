@@ -17,7 +17,7 @@ pub async fn route(
     let body = body.into_inner();
 
     let user = app
-        .user_get(body.user_id)
+        .user_get(body.username)
         .await
         .map_err(map_user_get_error)?;
 
@@ -39,6 +39,9 @@ fn map_user_get_error(error: UserGetError) -> Error {
 impl From<cardbox_core::models::User> for schemas::User {
     #[inline]
     fn from(u: User) -> Self {
+        let id_str = u.id.to_string();
+        let username = u.username.unwrap_or(id_str);
+
         Self {
             id: u.id,
             first_name: u.first_name,
@@ -52,7 +55,7 @@ impl From<cardbox_core::models::User> for schemas::User {
             avatar: u.avatar,
             work: u.work,
             bio: u.bio,
-            username: u.username,
+            username,
         }
     }
 }
