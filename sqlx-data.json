@@ -1,7 +1,7 @@
 {
   "db": "PostgreSQL",
-  "00aa2b677bed609e13b7c7563403197b791f1d0e143934d80a0ed5fef7ad066f": {
-    "query": "\n            SELECT \n                   u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work,\n                   (s.id, s.user_id, s.name, s.link) AS \"socials: Socials\"\n            FROM users AS u\n                     LEFT OUTER JOIN socials s\n                     ON u.id = s.user_id\n            WHERE u.accesso_id = $1\n            ",
+  "02c20e0a9160fc758c3a6a81e81b72aee8f970bfd78b77bcd34bbfacf7a3a533": {
+    "query": "\n            SELECT \n                   u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work,\n                   (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE s.id IS NOT NULL )) AS \"socials: Socials\"\n            FROM users AS u\n                     LEFT OUTER JOIN socials s\n                     ON u.id = s.user_id\n            WHERE u.id = $1\n            GROUP BY u.id\n            ",
     "describe": {
       "columns": [
         {
@@ -47,7 +47,7 @@
         {
           "ordinal": 8,
           "name": "socials: Socials",
-          "type_info": "Record"
+          "type_info": "RecordArray"
         }
       ],
       "parameters": {
@@ -261,74 +261,6 @@
         false,
         false,
         false
-      ]
-    }
-  },
-  "5af7d8daebf6fbd3bcd923261198369a0861b4a5852144d911ae1a18b24a7f84": {
-    "query": "\n            SELECT \n                   u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work,\n                   (s.id, s.user_id, s.name, s.link) AS \"socials: Socials\"\n            FROM users AS u\n                     LEFT OUTER JOIN socials s\n                     ON u.id = s.user_id\n            WHERE u.username = $1\n            ",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Uuid"
-        },
-        {
-          "ordinal": 1,
-          "name": "accesso_id",
-          "type_info": "Uuid"
-        },
-        {
-          "ordinal": 2,
-          "name": "first_name",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 3,
-          "name": "last_name",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 4,
-          "name": "username",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 5,
-          "name": "bio",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 6,
-          "name": "avatar",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 7,
-          "name": "work",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 8,
-          "name": "socials: Socials",
-          "type_info": "Record"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Text"
-        ]
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        true,
-        true,
-        true,
-        true,
-        null
       ]
     }
   },
@@ -695,74 +627,6 @@
       ]
     }
   },
-  "c5d8cc871b8220b87ded49f1d7ba19b9aab8261395f543f2f347ee91f2768e33": {
-    "query": "\n            SELECT \n                   u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work,\n                   (s.id, s.user_id, s.name, s.link) AS \"socials: Socials\"\n            FROM users AS u\n                     LEFT OUTER JOIN socials s\n                     ON u.id = s.user_id\n            WHERE u.id = $1\n            ",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Uuid"
-        },
-        {
-          "ordinal": 1,
-          "name": "accesso_id",
-          "type_info": "Uuid"
-        },
-        {
-          "ordinal": 2,
-          "name": "first_name",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 3,
-          "name": "last_name",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 4,
-          "name": "username",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 5,
-          "name": "bio",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 6,
-          "name": "avatar",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 7,
-          "name": "work",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 8,
-          "name": "socials: Socials",
-          "type_info": "Record"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Uuid"
-        ]
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        true,
-        true,
-        true,
-        true,
-        null
-      ]
-    }
-  },
   "c6e3f34b96cba59ba0de56a411e483e627b526b19832d37909b9e8ff2cf26bf3": {
     "query": "\n            SELECT c.*\n            FROM boxes AS b\n                     LEFT JOIN boxes_cards bc\n                     ON b.id = bc.box_id\n                     LEFT JOIN cards c\n                     ON c.id = bc.card_id\n            WHERE b.user_id = $1\n              AND b.\"default\" = TRUE\n            ",
     "describe": {
@@ -816,6 +680,74 @@
         false,
         false,
         true
+      ]
+    }
+  },
+  "cee302294dde47b75b2ef6bbe6047e203041042a3b28671525b6e37d72f6235e": {
+    "query": "\n            SELECT \n                   u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work,\n                   (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE s.id IS NOT NULL )) AS \"socials: Socials\"\n            FROM users AS u\n                     LEFT OUTER JOIN socials s\n                     ON u.id = s.user_id\n            WHERE u.username = $1\n            GROUP BY u.id\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "accesso_id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 2,
+          "name": "first_name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "last_name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 4,
+          "name": "username",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 5,
+          "name": "bio",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 6,
+          "name": "avatar",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 7,
+          "name": "work",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 8,
+          "name": "socials: Socials",
+          "type_info": "RecordArray"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        true,
+        true,
+        true,
+        true,
+        null
       ]
     }
   },
@@ -910,6 +842,74 @@
         false,
         false,
         false
+      ]
+    }
+  },
+  "d7642cfcb6c81de64d47ffd4fafd1ba5d56497f4052ee62a2baeb68793d6c469": {
+    "query": "\n            SELECT \n                   u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work,\n                   (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE s.id IS NOT NULL )) AS \"socials: Socials\"\n            FROM users AS u\n                     LEFT OUTER JOIN socials s\n                     ON u.id = s.user_id\n            WHERE u.accesso_id = $1\n            GROUP BY u.id\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "accesso_id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 2,
+          "name": "first_name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "last_name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 4,
+          "name": "username",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 5,
+          "name": "bio",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 6,
+          "name": "avatar",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 7,
+          "name": "work",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 8,
+          "name": "socials: Socials",
+          "type_info": "RecordArray"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        true,
+        true,
+        true,
+        true,
+        null
       ]
     }
   }
