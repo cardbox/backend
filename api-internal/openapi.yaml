@@ -637,7 +637,7 @@ components:
         title:
           type: string
         content:
-          type: object
+          type: array
         createdAt:
           type: string
           format: date-time
