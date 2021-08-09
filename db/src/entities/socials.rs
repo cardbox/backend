@@ -14,8 +14,10 @@ pub(crate) struct Social {
 pub(crate) struct Socials(pub(crate) Vec<Social>);
 
 impl Type<Postgres> for Socials {
+    // NOTE: We always use array aggregates when dealing with 1:n relationships,
+    // aggregating the rows into record array.
     fn type_info() -> PgTypeInfo {
-        PgTypeInfo::with_name("_socials")
+        PgTypeInfo::with_name("_record")
     }
 }
 
