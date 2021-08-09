@@ -5,7 +5,6 @@ use cardbox_core::app::{
 };
 use cardbox_core::contracts::Repository;
 use cardbox_core::models::{Card, CardCreate, CardUpdate, User};
-use itertools::Itertools;
 use sqlx_core::types::{Json, Uuid};
 use validator::Validate;
 
@@ -46,10 +45,7 @@ impl Cards for App {
 
         let search_results = db.cards_search(query, limit).await?;
 
-        Ok(search_results
-            .into_iter()
-            .unique_by(|(c, _)| c.id)
-            .collect())
+        Ok(search_results)
     }
 
     async fn card_update<'a>(

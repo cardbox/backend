@@ -1,5 +1,33 @@
 {
   "db": "PostgreSQL",
+  "0051c3c9c0ace8c4ec3c16d9170bdb71f7ae665d30cdbbd48e676be23f48b44f": {
+    "query": "\n            SELECT DISTINCT ON (c.id)\n               (u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work, (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE (s.id IS NOT NULL) ))) as \"user!: User\",\n               (c.id, c.author_id, c.title, c.created_at, c.updated_at, c.contents, c.tags) as \"card!: Card\"\n            FROM cards as c\n            JOIN users u on u.id = c.author_id\n            LEFT OUTER JOIN socials s ON u.id = s.user_id\n            WHERE c.title ILIKE $1\n               OR c.tags @> (ARRAY [$2::varchar])\n               OR jsonb_to_tsvector_multilang(\n                    jsonb_path_query_array(c.contents, 'strict $.**.text'), '[\n                      \"string\"\n                    ]')\n                @@ to_tsquery($2)\n            GROUP BY u.id, c.id\n            LIMIT $3\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "user!: User",
+          "type_info": "Record"
+        },
+        {
+          "ordinal": 1,
+          "name": "card!: Card",
+          "type_info": "Record"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Varchar",
+          "Int8"
+        ]
+      },
+      "nullable": [
+        null,
+        null
+      ]
+    }
+  },
   "02c20e0a9160fc758c3a6a81e81b72aee8f970bfd78b77bcd34bbfacf7a3a533": {
     "query": "\n            SELECT \n                   u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work,\n                   (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE s.id IS NOT NULL )) AS \"socials: Socials\"\n            FROM users AS u\n                     LEFT OUTER JOIN socials s\n                     ON u.id = s.user_id\n            WHERE u.id = $1\n            GROUP BY u.id\n            ",
     "describe": {
@@ -78,34 +106,6 @@
         ]
       },
       "nullable": []
-    }
-  },
-  "2fabcd6ae55936150f462fdec48befd26fe32f4186472d7cf160283e745cd1e5": {
-    "query": "\n            SELECT \n               (u.id, u.accesso_id, u.first_name, u.last_name) as \"user!: User\",\n               (c.id, c.author_id, c.title, c.created_at, c.updated_at, c.contents, c.tags) as \"card!: Card\"\n            FROM cards as c\n            JOIN users u on u.id = c.author_id\n            WHERE c.title ILIKE $1\n               OR c.tags @> (ARRAY [$2::varchar])\n               OR jsonb_to_tsvector_multilang(\n                    jsonb_path_query_array(c.contents, 'strict $.**.text'), '[\n                      \"string\"\n                    ]')\n                @@ to_tsquery($2)\n            LIMIT $3\n            ",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "user!: User",
-          "type_info": "Record"
-        },
-        {
-          "ordinal": 1,
-          "name": "card!: Card",
-          "type_info": "Record"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Text",
-          "Varchar",
-          "Int8"
-        ]
-      },
-      "nullable": [
-        true,
-        true
-      ]
     }
   },
   "30d6779fbe49f4e722677bfc8f8fd0962b5347febb36ac1b2fefab47b2a7ae8c": {

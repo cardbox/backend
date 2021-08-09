@@ -40,11 +40,12 @@ impl CardRepo for Database {
             UserCard,
             // language=PostgreSQL
             r#"
-            SELECT 
-               (u.id, u.accesso_id, u.first_name, u.last_name) as "user!: User",
+            SELECT DISTINCT ON (c.id)
+               (u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work, (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE (s.id IS NOT NULL) ))) as "user!: User",
                (c.id, c.author_id, c.title, c.created_at, c.updated_at, c.contents, c.tags) as "card!: Card"
             FROM cards as c
             JOIN users u on u.id = c.author_id
+            LEFT OUTER JOIN socials s ON u.id = s.user_id
             WHERE c.title ILIKE $1
                OR c.tags @> (ARRAY [$2::varchar])
                OR jsonb_to_tsvector_multilang(
@@ -52,6 +53,7 @@ impl CardRepo for Database {
                       "string"
                     ]')
                 @@ to_tsquery($2)
+            GROUP BY u.id, c.id
             LIMIT $3
             "#,
             format!("%{}%", query),
