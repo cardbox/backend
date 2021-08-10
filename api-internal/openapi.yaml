@@ -192,12 +192,16 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [cards, total]
+                required: [cards, users, total]
                 properties:
                   cards:
                     type: array
                     items:
                       $ref: '#/components/schemas/Card'
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
                   total:
                     type: integer
         400:
