@@ -100,6 +100,7 @@ jobs:
           filters: |
             tools:
               - 'migrations.Dockerfile'
+              - 'migrations/**'
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v3

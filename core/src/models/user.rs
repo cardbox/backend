@@ -1,4 +1,5 @@
 use crate::app::UserInfo;
+use crate::models::Social;
 
 /// TODO: how to guarantee model validity
 #[derive(Debug, Clone)]
@@ -7,7 +8,20 @@ pub struct User {
     pub accesso_id: uuid::Uuid,
     pub first_name: String,
     pub last_name: String,
-    // pub registered_at: chrono::NaiveDateTime,
+    pub username: Option<String>,
+    pub bio: Option<String>,
+    pub avatar: Option<String>,
+    pub work: Option<String>, // pub registered_at: chrono::NaiveDateTime,
+    pub socials: Option<Vec<Social>>,
+}
+
+#[derive(Debug, Clone)]
+pub struct SessionUser {
+    pub id: uuid::Uuid,
+    pub accesso_id: uuid::Uuid,
+    pub first_name: String,
+    pub last_name: String,
+    pub expired: bool,
 }
 
 #[derive(Debug)]
@@ -35,6 +49,11 @@ impl User {
             accesso_id,
             first_name: String::new(),
             last_name: String::new(),
+            username: None,
+            bio: None,
+            avatar: None,
+            work: None,
+            socials: None,
         }
     }
 }

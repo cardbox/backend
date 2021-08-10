@@ -1,138 +1,7 @@
 {
   "db": "PostgreSQL",
-  "14f4986d3ed3d38b424f72dd11f37ccea8c488da8e07de3a5c2554c8bc16aec3": {
-    "query": "\n            SELECT id, accesso_id, first_name, last_name\n            FROM users\n            WHERE users.accesso_id = $1\n            ",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Uuid"
-        },
-        {
-          "ordinal": 1,
-          "name": "accesso_id",
-          "type_info": "Uuid"
-        },
-        {
-          "ordinal": 2,
-          "name": "first_name",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 3,
-          "name": "last_name",
-          "type_info": "Varchar"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Uuid"
-        ]
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        false
-      ]
-    }
-  },
-  "17f1d1e92d6f92adaa0dd915a3148ba5acc4d6b6373bdf2ae27ac5e60cebb2e7": {
-    "query": "\n            UPDATE users\n            SET (accesso_id, first_name, last_name) = ($1, $2, $3)\n            WHERE id = $4\n            RETURNING id, accesso_id, first_name, last_name\n            ",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Uuid"
-        },
-        {
-          "ordinal": 1,
-          "name": "accesso_id",
-          "type_info": "Uuid"
-        },
-        {
-          "ordinal": 2,
-          "name": "first_name",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 3,
-          "name": "last_name",
-          "type_info": "Varchar"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Uuid",
-          "Varchar",
-          "Varchar",
-          "Uuid"
-        ]
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        false
-      ]
-    }
-  },
-  "25cd872cc78c38c190e391782135c04c0353e07592ec408e93ecac6e0caad4b1": {
-    "query": "\n            DELETE \n            FROM session_tokens \n            WHERE token = $1\n            ",
-    "describe": {
-      "columns": [],
-      "parameters": {
-        "Left": [
-          "Text"
-        ]
-      },
-      "nullable": []
-    }
-  },
-  "2f345a5ed8cf0f954abf0113ef302bd1ce0925ad3ea6160b039e5840058cd70d": {
-    "query": "\n            INSERT INTO users (accesso_id, first_name, last_name)\n            VALUES ($1, $2, $3)\n            RETURNING id, accesso_id, first_name, last_name\n            ",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Uuid"
-        },
-        {
-          "ordinal": 1,
-          "name": "accesso_id",
-          "type_info": "Uuid"
-        },
-        {
-          "ordinal": 2,
-          "name": "first_name",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 3,
-          "name": "last_name",
-          "type_info": "Varchar"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Uuid",
-          "Varchar",
-          "Varchar"
-        ]
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        false
-      ]
-    }
-  },
-  "2fabcd6ae55936150f462fdec48befd26fe32f4186472d7cf160283e745cd1e5": {
-    "query": "\n            SELECT \n               (u.id, u.accesso_id, u.first_name, u.last_name) as \"user!: User\",\n               (c.id, c.author_id, c.title, c.created_at, c.updated_at, c.contents, c.tags) as \"card!: Card\"\n            FROM cards as c\n            JOIN users u on u.id = c.author_id\n            WHERE c.title ILIKE $1\n               OR c.tags @> (ARRAY [$2::varchar])\n               OR jsonb_to_tsvector_multilang(\n                    jsonb_path_query_array(c.contents, 'strict $.**.text'), '[\n                      \"string\"\n                    ]')\n                @@ to_tsquery($2)\n            LIMIT $3\n            ",
+  "0051c3c9c0ace8c4ec3c16d9170bdb71f7ae665d30cdbbd48e676be23f48b44f": {
+    "query": "\n            SELECT DISTINCT ON (c.id)\n               (u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work, (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE (s.id IS NOT NULL) ))) as \"user!: User\",\n               (c.id, c.author_id, c.title, c.created_at, c.updated_at, c.contents, c.tags) as \"card!: Card\"\n            FROM cards as c\n            JOIN users u on u.id = c.author_id\n            LEFT OUTER JOIN socials s ON u.id = s.user_id\n            WHERE c.title ILIKE $1\n               OR c.tags @> (ARRAY [$2::varchar])\n               OR jsonb_to_tsvector_multilang(\n                    jsonb_path_query_array(c.contents, 'strict $.**.text'), '[\n                      \"string\"\n                    ]')\n                @@ to_tsquery($2)\n            GROUP BY u.id, c.id\n            LIMIT $3\n            ",
     "describe": {
       "columns": [
         {
@@ -154,9 +23,89 @@
         ]
       },
       "nullable": [
-        true,
-        true
+        null,
+        null
       ]
+    }
+  },
+  "02c20e0a9160fc758c3a6a81e81b72aee8f970bfd78b77bcd34bbfacf7a3a533": {
+    "query": "\n            SELECT \n                   u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work,\n                   (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE s.id IS NOT NULL )) AS \"socials: Socials\"\n            FROM users AS u\n                     LEFT OUTER JOIN socials s\n                     ON u.id = s.user_id\n            WHERE u.id = $1\n            GROUP BY u.id\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "accesso_id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 2,
+          "name": "first_name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "last_name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 4,
+          "name": "username",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 5,
+          "name": "bio",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 6,
+          "name": "avatar",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 7,
+          "name": "work",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 8,
+          "name": "socials: Socials",
+          "type_info": "RecordArray"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        true,
+        true,
+        true,
+        true,
+        null
+      ]
+    }
+  },
+  "25cd872cc78c38c190e391782135c04c0353e07592ec408e93ecac6e0caad4b1": {
+    "query": "\n            DELETE \n            FROM session_tokens \n            WHERE token = $1\n            ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": []
     }
   },
   "30d6779fbe49f4e722677bfc8f8fd0962b5347febb36ac1b2fefab47b2a7ae8c": {
@@ -315,6 +264,76 @@
       ]
     }
   },
+  "87f9b2288105bdc1f42f213646af16e1d61581deb591cf4259d8999e4317e8c3": {
+    "query": "\n            INSERT INTO users (accesso_id, first_name, last_name)\n            VALUES ($1, $2, $3)\n            RETURNING id, accesso_id, first_name, last_name, username, bio, avatar, work, NULL as \"socials: Socials\"\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "accesso_id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 2,
+          "name": "first_name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "last_name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 4,
+          "name": "username",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 5,
+          "name": "bio",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 6,
+          "name": "avatar",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 7,
+          "name": "work",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 8,
+          "name": "socials: Socials",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Varchar",
+          "Varchar"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        true,
+        true,
+        true,
+        true,
+        null
+      ]
+    }
+  },
   "8c727d3a0b7ffc1be9d7b5ecc84630309f3c90c508dab7900b317b7d85710109": {
     "query": "\n            INSERT INTO cards (author_id, title, contents)\n            VALUES ($1, $2, $3)\n            RETURNING id, author_id, title, created_at, updated_at, contents, tags\n            ",
     "describe": {
@@ -385,8 +404,8 @@
       "nullable": []
     }
   },
-  "99fd64e79b261ec607ab1b7499cad92a1ee0cbc0023fe2de9dad6fa823e5dfa5": {
-    "query": "\n            SELECT id, accesso_id, first_name, last_name\n            FROM users\n            WHERE users.id = $1\n            ",
+  "9a336f4d50bac7e921675c9a6b606fd4db0ad0d85afa4f114de03499ae3f57aa": {
+    "query": "\n            UPDATE users\n            SET (accesso_id, first_name, last_name, username, bio, avatar, work) = ($1, $2, $3, $4, $5, $6, $7)\n            WHERE id = $8\n            RETURNING id, accesso_id, first_name, last_name, username, bio, avatar, work, NULL as \"socials: Socials\"\n            ",
     "describe": {
       "columns": [
         {
@@ -408,10 +427,42 @@
           "ordinal": 3,
           "name": "last_name",
           "type_info": "Varchar"
+        },
+        {
+          "ordinal": 4,
+          "name": "username",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 5,
+          "name": "bio",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 6,
+          "name": "avatar",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 7,
+          "name": "work",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 8,
+          "name": "socials: Socials",
+          "type_info": "Text"
         }
       ],
       "parameters": {
         "Left": [
+          "Uuid",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar",
           "Uuid"
         ]
       },
@@ -419,7 +470,12 @@
         false,
         false,
         false,
-        false
+        false,
+        true,
+        true,
+        true,
+        true,
+        null
       ]
     }
   },
@@ -489,6 +545,50 @@
         false,
         false,
         true
+      ]
+    }
+  },
+  "a95137622a7fe490e7c873b50c8921874ecfc540a42cd2da0716eca6c57b0688": {
+    "query": "\n            SELECT u.id, u.accesso_id, u.first_name, u.last_name,\n                   (st.user_id, st.token, st.expires_at) as \"session_token!: SessionToken\"\n            FROM users as u\n            JOIN session_tokens st ON u.id = st.user_id\n            WHERE st.token = $1\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "accesso_id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 2,
+          "name": "first_name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "last_name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 4,
+          "name": "session_token!: SessionToken",
+          "type_info": "Record"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        null
       ]
     }
   },
@@ -627,6 +727,74 @@
       ]
     }
   },
+  "cee302294dde47b75b2ef6bbe6047e203041042a3b28671525b6e37d72f6235e": {
+    "query": "\n            SELECT \n                   u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work,\n                   (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE s.id IS NOT NULL )) AS \"socials: Socials\"\n            FROM users AS u\n                     LEFT OUTER JOIN socials s\n                     ON u.id = s.user_id\n            WHERE u.username = $1\n            GROUP BY u.id\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "accesso_id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 2,
+          "name": "first_name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "last_name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 4,
+          "name": "username",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 5,
+          "name": "bio",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 6,
+          "name": "avatar",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 7,
+          "name": "work",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 8,
+          "name": "socials: Socials",
+          "type_info": "RecordArray"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        true,
+        true,
+        true,
+        true,
+        null
+      ]
+    }
+  },
   "cf2fedb3ff821cc8aecdfc29d5f6caa51e20258f7aefee4808dea9fda6f3bdb7": {
     "query": "\n            UPDATE cards SET\n                title = coalesce($1, title),\n                contents = coalesce($2, contents),\n                tags = coalesce($3, tags)\n            WHERE id = $4 AND author_id = $5\n            RETURNING id, author_id, title, created_at, updated_at, contents, tags\n            ",
     "describe": {
@@ -718,6 +886,74 @@
         false,
         false,
         false
+      ]
+    }
+  },
+  "d7642cfcb6c81de64d47ffd4fafd1ba5d56497f4052ee62a2baeb68793d6c469": {
+    "query": "\n            SELECT \n                   u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work,\n                   (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE s.id IS NOT NULL )) AS \"socials: Socials\"\n            FROM users AS u\n                     LEFT OUTER JOIN socials s\n                     ON u.id = s.user_id\n            WHERE u.accesso_id = $1\n            GROUP BY u.id\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "accesso_id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 2,
+          "name": "first_name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "last_name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 4,
+          "name": "username",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 5,
+          "name": "bio",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 6,
+          "name": "avatar",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 7,
+          "name": "work",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 8,
+          "name": "socials: Socials",
+          "type_info": "RecordArray"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        true,
+        true,
+        true,
+        true,
+        null
       ]
     }
   }

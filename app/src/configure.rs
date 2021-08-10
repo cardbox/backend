@@ -36,7 +36,7 @@ pub async fn not_found(_req: HttpRequest) -> impl Responder {
     .with_status(StatusCode::NOT_FOUND)
 }
 
-pub fn install_logger(app_name: String, _settings: &Settings) -> Result<WorkerGuard, eyre::Report> {
+pub fn install_logger(app_name: String, settings: &Settings) -> Result<WorkerGuard, eyre::Report> {
     use opentelemetry::sdk::trace;
     opentelemetry::global::set_text_map_propagator(opentelemetry_jaeger::Propagator::new());
 
@@ -47,23 +47,33 @@ pub fn install_logger(app_name: String, _settings: &Settings) -> Result<WorkerGu
 
     let bunyan_layer = BunyanFormattingLayer::new(app_name.clone(), move || writer.clone());
 
-    let tracer = opentelemetry_jaeger::new_pipeline()
-        .with_agent_endpoint(std::env::var("OPENTELEMETRY_ENDPOINT_URL")?)
-        .with_trace_config(
-            trace::config()
-                .with_resource(Resource::new(vec![KeyValue::new("service.name", app_name)])),
-        )
-        .install_batch(opentelemetry::runtime::TokioCurrentThread)?;
+    println!("{:?}", settings);
+    if settings.use_opentelemetry {
+        let tracer = opentelemetry_jaeger::new_pipeline()
+            .with_agent_endpoint(std::env::var("OPENTELEMETRY_ENDPOINT_URL")?)
+            .with_trace_config(
+                trace::config()
+                    .with_resource(Resource::new(vec![KeyValue::new("service.name", app_name)])),
+            )
+            .install_batch(opentelemetry::runtime::TokioCurrentThread)?;
 
-    let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
+        let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
 
-    set_global_default(
-        Registry::default()
-            .with(telemetry)
-            .with(JsonStorageLayer)
-            .with(bunyan_layer)
-            .with(env_filter),
-    )?;
+        set_global_default(
+            Registry::default()
+                .with(telemetry)
+                .with(JsonStorageLayer)
+                .with(bunyan_layer)
+                .with(env_filter),
+        )?;
+    } else {
+        set_global_default(
+            Registry::default()
+                .with(JsonStorageLayer)
+                .with(bunyan_layer)
+                .with(env_filter),
+        )?;
+    }
 
     Ok(guard)
 }

@@ -16,7 +16,7 @@ RUN mkdir -p /out/etc/ \
  && echo 'nobody:x:65534:65534:nobody:/:' > /out/etc/passwd \
  && echo 'nobody:x:65534:' > /out/etc/group
 
-COPY Cargo.lock Cargo.toml sqlx-data.json /app/
+COPY Cargo.lock Cargo.toml /app/
 COPY db/Cargo.toml /app/db/
 COPY settings/Cargo.toml /app/settings/
 COPY api-admin/Cargo.toml /app/api-admin/
@@ -52,6 +52,7 @@ COPY api-internal/ /app/api-internal/
 COPY api-private/ /app/api-private/
 COPY core/ /app/core/
 COPY app/ /app/app/
+COPY sqlx-data.json /app/
 
 RUN cargo build --package cardbox-api-$API_NAME ${rustc_opts}
 

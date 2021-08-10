@@ -12,6 +12,7 @@ mod services;
 mod session;
 #[cfg(feature = "testing")]
 mod testing;
+mod users;
 
 #[cfg(feature = "testing")]
 pub use testing::*;

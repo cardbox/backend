@@ -1,5 +1,6 @@
 # Enable logging
 debug = false
+use_opentelemtry = false
 
 [cookies]
 http_only = true
