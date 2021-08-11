@@ -97,6 +97,64 @@ paths:
         500:
           description: SERVER_ERROR
 
+  /cards.feed:
+    post:
+      summary: Get recommended cards (for feed page)
+      operationId: cardsList
+      tags: [ Cards ]
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [top, latest]
+                properties:
+                  top:
+                      type: object
+                      required: [cards, users, total]
+                      properties:
+                        cards:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/Card'
+                        users:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/User'
+                        total:
+                          type: integer
+                  latest:
+                      type: object
+                      required: [cards, users, total]
+                      properties:
+                        cards:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/Card'
+                        users:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/User'
+                        total:
+                          type: integer
+        400:
+          description: CLIENT_ERROR
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [error, code]
+                properties:
+                  error:
+                    type: boolean
+                  code:
+                    type: string
+                    enum:
+                      - unauthorized
+        500:
+          description: SERVER_ERROR
   /cards.list:
     post:
       summary: Get cards list
@@ -134,7 +192,7 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [cards, total]
+                required: [cards, users, total]
                 properties:
                   cards:
                     type: array
@@ -594,7 +652,7 @@ components:
 
     User:
       type: object
-      required: [id, username, firstName, lastName, bio, avatar, socials]
+      required: [id, username, firstName, lastName, socials]
       properties:
         id:
           type: string
@@ -633,7 +691,7 @@ components:
             Later, can implement checking user permissions by `Role` entity
     Card:
       type: object
-      required: [id, content, title, createdAt, updatedAt, author, tags]
+      required: [id, content, title, createdAt, updatedAt, authorId, tags]
       properties:
         id:
           type: string
