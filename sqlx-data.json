@@ -96,6 +96,32 @@
       ]
     }
   },
+  "1cc0fad94afa81a85f1050b3096690a44db1d4315871c2b15259cd202e590b8a": {
+    "query": "\n            SELECT \n                (u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work, (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE (s.id IS NOT NULL) ))) as \"user!: User\",\n                (c.id, c.author_id, c.title, c.created_at, c.updated_at, c.contents, c.tags) as \"card!: Card\"\n            FROM boxes AS b\n                     LEFT JOIN boxes_cards bc\n                     ON b.id = bc.box_id\n                     LEFT JOIN cards c\n                     ON c.id = bc.card_id\n                     LEFT JOIN users u ON u.id = $1\n                     LEFT OUTER JOIN socials s ON u.id = $1\n            WHERE b.user_id = $1\n              AND b.\"default\" = TRUE\n            GROUP BY u.id, c.id\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "user!: User",
+          "type_info": "Record"
+        },
+        {
+          "ordinal": 1,
+          "name": "card!: Card",
+          "type_info": "Record"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        null,
+        null
+      ]
+    }
+  },
   "25cd872cc78c38c190e391782135c04c0353e07592ec408e93ecac6e0caad4b1": {
     "query": "\n            DELETE \n            FROM session_tokens \n            WHERE token = $1\n            ",
     "describe": {
@@ -176,62 +202,6 @@
       ]
     }
   },
-  "35408837a3a700172cd1552835ae533051437111d09c0a039efd5abbeb0a75b4": {
-    "query": "\n            SELECT id, author_id, title, created_at, updated_at, contents, tags\n            FROM cards\n            WHERE author_id = $1\n            ",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Uuid"
-        },
-        {
-          "ordinal": 1,
-          "name": "author_id",
-          "type_info": "Uuid"
-        },
-        {
-          "ordinal": 2,
-          "name": "title",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 3,
-          "name": "created_at",
-          "type_info": "Timestamptz"
-        },
-        {
-          "ordinal": 4,
-          "name": "updated_at",
-          "type_info": "Timestamptz"
-        },
-        {
-          "ordinal": 5,
-          "name": "contents",
-          "type_info": "Jsonb"
-        },
-        {
-          "ordinal": 6,
-          "name": "tags",
-          "type_info": "VarcharArray"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Uuid"
-        ]
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        true
-      ]
-    }
-  },
   "558ca5c5e0702bbccf834a1a5ecb851b944d1e3c85cf8d11b62844ac68caf2b6": {
     "query": "\n            SELECT user_id, token, expires_at\n            FROM session_tokens\n            WHERE user_id = $1\n            ",
     "describe": {
@@ -261,6 +231,56 @@
         false,
         false,
         false
+      ]
+    }
+  },
+  "5fbaa3c15ab366455c5cc9854e1101848ee1a65fa2b492ec475a9a5481e1896f": {
+    "query": "\n            SELECT\n                (u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work, (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE (s.id IS NOT NULL) ))) as \"user!: User\",\n                (c.id, c.author_id, c.title, c.created_at, c.updated_at, c.contents, c.tags) as \"card!: Card\"\n            FROM cards as c\n                LEFT JOIN users u ON u.id = $1\n                LEFT OUTER JOIN socials s ON u.id = $1\n            WHERE author_id = $1\n            GROUP BY u.id, c.id\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "user!: User",
+          "type_info": "Record"
+        },
+        {
+          "ordinal": 1,
+          "name": "card!: Card",
+          "type_info": "Record"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        null,
+        null
+      ]
+    }
+  },
+  "68cf199e7338a6035360e45daa477d8295ffe7feef60c4e3d84deaf3e3d47f52": {
+    "query": "\n            SELECT\n                (u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work, (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE (s.id IS NOT NULL) ))) as \"user!: User\",\n                (c.id, c.author_id, c.title, c.created_at, c.updated_at, c.contents, c.tags) as \"card!: Card\"\n            FROM cards as c\n                TABLESAMPLE bernoulli(66)\n                     LEFT JOIN users u ON u.id = c.author_id\n                     LEFT OUTER JOIN socials s ON s.user_id = u.id\n            GROUP BY u.id, c.id\n            LIMIT 5\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "user!: User",
+          "type_info": "Record"
+        },
+        {
+          "ordinal": 1,
+          "name": "card!: Card",
+          "type_info": "Record"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        null,
+        null
       ]
     }
   },
@@ -492,6 +512,74 @@
       "nullable": []
     }
   },
+  "9e01179ac314458f8c967a9918a39a9cb5d35e5a08bbb1d7dca1425d4c1c1fe4": {
+    "query": "\n            SELECT \n                   u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work,\n                   (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE s.id IS NOT NULL )) AS \"socials: Socials\"\n            FROM users AS u\n                LEFT OUTER JOIN socials s\n                ON u.id = s.user_id\n            WHERE ts @@ plainto_tsquery_multilang($1)\n            GROUP BY u.id\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "accesso_id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 2,
+          "name": "first_name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "last_name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 4,
+          "name": "username",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 5,
+          "name": "bio",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 6,
+          "name": "avatar",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 7,
+          "name": "work",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 8,
+          "name": "socials: Socials",
+          "type_info": "RecordArray"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        true,
+        true,
+        true,
+        true,
+        null
+      ]
+    }
+  },
   "a3108df40ba5f578f78a845911042fbea16e0bddcfd2f6c7be5a4f10587f88b2": {
     "query": "\n            SELECT id, author_id, title, created_at, updated_at, contents, tags \n            FROM cards\n            WHERE id = $1\n            ",
     "describe": {
@@ -668,62 +756,6 @@
         false,
         false,
         false
-      ]
-    }
-  },
-  "c6e3f34b96cba59ba0de56a411e483e627b526b19832d37909b9e8ff2cf26bf3": {
-    "query": "\n            SELECT c.*\n            FROM boxes AS b\n                     LEFT JOIN boxes_cards bc\n                     ON b.id = bc.box_id\n                     LEFT JOIN cards c\n                     ON c.id = bc.card_id\n            WHERE b.user_id = $1\n              AND b.\"default\" = TRUE\n            ",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Uuid"
-        },
-        {
-          "ordinal": 1,
-          "name": "author_id",
-          "type_info": "Uuid"
-        },
-        {
-          "ordinal": 2,
-          "name": "title",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 3,
-          "name": "created_at",
-          "type_info": "Timestamptz"
-        },
-        {
-          "ordinal": 4,
-          "name": "updated_at",
-          "type_info": "Timestamptz"
-        },
-        {
-          "ordinal": 5,
-          "name": "contents",
-          "type_info": "Jsonb"
-        },
-        {
-          "ordinal": 6,
-          "name": "tags",
-          "type_info": "VarcharArray"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Uuid"
-        ]
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        true
       ]
     }
   },
