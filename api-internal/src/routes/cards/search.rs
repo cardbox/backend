@@ -1,12 +1,10 @@
 use crate::generated::{
-    components::{
-        request_bodies::CardsSearchRequestBody, responses::CardsSearchSuccess, schemas::Card,
-        schemas::User,
-    },
+    components::{request_bodies::CardsSearchRequestBody, responses::CardsSearchSuccess},
     paths::cards_search::{Error, Response},
 };
 use actix_web::web::{self, Data};
 use cardbox_core::app::{CardSearchError, Cards};
+use itertools::Itertools;
 
 pub async fn route(
     app: Data<cardbox_app::App>,
@@ -19,46 +17,21 @@ pub async fn route(
         .await
         .map_err(map_card_search_error)?;
 
-    let total = search_results.len();
+    let cards = search_results
+        .iter()
+        .cloned()
+        .map(|(card, _)| card)
+        .collect::<Vec<_>>();
+
+    let users = search_results
+        .into_iter()
+        .map(|(_, user)| user)
+        .unique_by(|u| u.id)
+        .collect::<Vec<_>>();
 
     Ok(Response::Ok(CardsSearchSuccess {
-        cards: search_results
-            .iter()
-            .cloned()
-            .map(|(c, _)| Card {
-                id: c.id,
-                title: c.title,
-                content: c.contents,
-                created_at: c.created_at,
-                updated_at: c.updated_at,
-                author_id: c.author_id,
-                tags: c.tags,
-            })
-            .collect(),
-        users: search_results
-            .into_iter()
-            .map(|(_, u)| {
-                let id_str = u.id.to_string();
-                let username = u.username.unwrap_or(id_str);
-
-                User {
-                    username,
-                    id: u.id,
-                    first_name: u.first_name,
-                    last_name: u.last_name,
-                    avatar: u.avatar,
-                    work: u.work,
-                    bio: u.bio,
-                    socials: u
-                        .socials
-                        .unwrap_or_else(Vec::new)
-                        .into_iter()
-                        .map(Into::into)
-                        .collect(),
-                }
-            })
-            .collect(),
-        total,
+        cards: cards.into_iter().map(Into::into).collect(),
+        users: users.into_iter().map(Into::into).collect(),
     }))
 }
 

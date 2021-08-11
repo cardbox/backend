@@ -5,6 +5,13 @@ use cardbox_core::models;
 use cardbox_core::models::CardUpdate;
 use uuid::Uuid;
 
+/// Helper struct
+#[derive(Debug, sqlx::FromRow)]
+struct UserCard {
+    user: User,
+    card: Card,
+}
+
 #[async_trait]
 impl CardRepo for Database {
     async fn card_create<'a>(&self, card: models::CardCreate<'a>) -> RepoResult<models::Card> {
@@ -30,12 +37,6 @@ impl CardRepo for Database {
         query: &str,
         limit: Option<i64>,
     ) -> RepoResult<Vec<(models::Card, models::User)>> {
-        #[derive(Debug, sqlx::FromRow)]
-        struct UserCard {
-            user: User,
-            card: Card,
-        }
-
         let found = sqlx::query_as!(
             UserCard,
             // language=PostgreSQL
@@ -128,44 +129,86 @@ impl CardRepo for Database {
         .map(Into::into))
     }
 
-    async fn cards_list(&self, user_id: Uuid) -> RepoResult<Vec<models::Card>> {
+    async fn cards_list(&self, user_id: Uuid) -> RepoResult<Vec<(models::Card, models::User)>> {
         Ok(sqlx::query_as!(
-            Card,
+            UserCard,
             // language=PostgreSQL
             r#"
-            SELECT id, author_id, title, created_at, updated_at, contents, tags
-            FROM cards
+            SELECT
+                (u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work, (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE (s.id IS NOT NULL) ))) as "user!: User",
+                (c.id, c.author_id, c.title, c.created_at, c.updated_at, c.contents, c.tags) as "card!: Card"
+            FROM cards as c
+                LEFT JOIN users u ON u.id = $1
+                LEFT OUTER JOIN socials s ON u.id = $1
             WHERE author_id = $1
+            GROUP BY u.id, c.id
             "#,
             user_id
         )
         .fetch_all(&self.pool)
         .await?
         .into_iter()
-        .map(Into::into)
+        .map(|user_card| (user_card.card.into(), user_card.user.into()))
         .collect())
     }
 
-    async fn cards_favorites_of_user(&self, user_id: Uuid) -> RepoResult<Vec<models::Card>> {
+    async fn cards_favorites_of_user(
+        &self,
+        user_id: Uuid,
+    ) -> RepoResult<Vec<(models::Card, models::User)>> {
         Ok(sqlx::query_as!(
-            Card,
+            UserCard,
             // language=PostgreSQL
             r#"
-            SELECT c.*
+            SELECT 
+                (u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work, (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE (s.id IS NOT NULL) ))) as "user!: User",
+                (c.id, c.author_id, c.title, c.created_at, c.updated_at, c.contents, c.tags) as "card!: Card"
             FROM boxes AS b
                      LEFT JOIN boxes_cards bc
                      ON b.id = bc.box_id
                      LEFT JOIN cards c
                      ON c.id = bc.card_id
+                     LEFT JOIN users u ON u.id = $1
+                     LEFT OUTER JOIN socials s ON u.id = $1
             WHERE b.user_id = $1
               AND b."default" = TRUE
+            GROUP BY u.id, c.id
             "#,
             user_id
         )
         .fetch_all(&self.pool)
         .await?
         .into_iter()
-        .map(Into::into)
+        .map(|user_card| (user_card.card.into(), user_card.user.into()))
         .collect())
+    }
+
+    async fn cards_latest(&self) -> RepoResult<Vec<(models::Card, models::User)>> {
+        // TODO: replace with actual logic later
+        Ok(sqlx::query_as!(
+            UserCard,
+            // language=PostgreSQL
+            r#"
+            SELECT
+                (u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work, (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE (s.id IS NOT NULL) ))) as "user!: User",
+                (c.id, c.author_id, c.title, c.created_at, c.updated_at, c.contents, c.tags) as "card!: Card"
+            FROM cards as c
+                TABLESAMPLE bernoulli(66)
+                     LEFT JOIN users u ON u.id = c.author_id
+                     LEFT OUTER JOIN socials s ON s.user_id = u.id
+            GROUP BY u.id, c.id
+            LIMIT 5
+            "#
+        )
+        .fetch_all(&self.pool)
+        .await?
+        .into_iter()
+        .map(|user_card| (user_card.card.into(), user_card.user.into()))
+        .collect())
+    }
+
+    async fn cards_top(&self) -> RepoResult<Vec<(models::Card, models::User)>> {
+        // TODO: implement actual logic
+        self.cards_latest().await
     }
 }

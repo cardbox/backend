@@ -1,5 +1,5 @@
 use crate::{App, Service};
-use cardbox_core::app::{UserGetError, Users};
+use cardbox_core::app::{UserGetError, UserSearchError, Users};
 use cardbox_core::contracts::Repository;
 use cardbox_core::models::{SessionUser, User};
 use eyre::WrapErr;
@@ -47,5 +47,11 @@ impl Users for App {
             }
             None => Err(UserGetError::TokenNotFound),
         }
+    }
+
+    async fn users_search(&self, query: &str) -> Result<Vec<User>, UserSearchError> {
+        let db = self.get::<Service<dyn Repository>>()?;
+
+        db.users_search(query).await.map_err(Into::into)
     }
 }

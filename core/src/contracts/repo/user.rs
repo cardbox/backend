@@ -18,6 +18,7 @@ pub trait UserRepo {
     ) -> RepoResult<Option<models::SessionUser>>;
     async fn user_update(&self, user: models::User) -> RepoResult<models::User>;
     async fn user_create(&self, user: models::UserCreate) -> Result<models::User, UserCreateError>;
+    async fn users_search(&self, query: &str) -> RepoResult<Vec<models::User>>;
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -56,5 +57,9 @@ impl UserRepo for crate::contracts::MockDb {
         session_token: String,
     ) -> RepoResult<Option<models::SessionUser>> {
         self.users.user_find_by_session_token(session_token).await
+    }
+
+    async fn users_search(&self, query: &str) -> RepoResult<Vec<models::User>> {
+        self.users.users_search(query).await
     }
 }

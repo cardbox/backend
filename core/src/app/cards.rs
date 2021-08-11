@@ -36,9 +36,11 @@ pub trait Cards {
         author_id: Option<Uuid>,
         token: Option<String>,
         favorites: bool,
-    ) -> Result<Vec<models::Card>, CardsListError>;
+    ) -> Result<Vec<(models::Card, models::User)>, CardsListError>;
 
     async fn card_get(&self, card_id: Uuid) -> Result<models::Card, CardGetError>;
+
+    async fn cards_feed(&self) -> Result<models::CardsFeed, CardsFeedError>;
 }
 
 #[derive(Debug, Validate)]
@@ -132,6 +134,12 @@ pub enum CardsListError {
 }
 
 #[derive(Debug, thiserror::Error)]
+pub enum CardsFeedError {
+    #[error(transparent)]
+    Unexpected(#[from] eyre::Report),
+}
+
+#[derive(Debug, thiserror::Error)]
 pub enum CardGetError {
     #[error(transparent)]
     Unexpected(#[from] eyre::Report),
@@ -140,6 +148,13 @@ pub enum CardGetError {
 }
 
 //region from db error
+impl From<UnexpectedDatabaseError> for CardsFeedError {
+    #[inline]
+    fn from(e: UnexpectedDatabaseError) -> Self {
+        Self::Unexpected(e.into())
+    }
+}
+
 impl From<UnexpectedDatabaseError> for CardGetError {
     #[inline]
     fn from(e: UnexpectedDatabaseError) -> Self {

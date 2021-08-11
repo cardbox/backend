@@ -1,3 +1,4 @@
+use crate::models::User;
 use chrono::{DateTime, Utc};
 use sqlx_core::types::Json;
 use uuid::Uuid;
@@ -11,6 +12,11 @@ pub struct Card {
     pub updated_at: DateTime<Utc>,
     pub contents: serde_json::Value,
     pub tags: Vec<String>,
+}
+
+pub struct CardsFeed {
+    pub top: Vec<(Card, User)>,
+    pub latest: Vec<(Card, User)>,
 }
 
 #[cfg(feature = "testing")]

@@ -443,6 +443,7 @@ dependencies = [
  "color-eyre",
  "dotenv",
  "eyre",
+ "itertools 0.10.1",
  "once_cell",
  "opentelemetry",
  "prometheus",

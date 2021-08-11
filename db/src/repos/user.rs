@@ -135,4 +135,27 @@ impl UserRepo for Database {
         .await?
         .map(Into::into))
     }
+
+    async fn users_search(&self, query: &str) -> RepoResult<Vec<models::User>> {
+        Ok(sqlx::query_as!(
+            User,
+            // language=PostgreSQL
+            r#"
+            SELECT 
+                   u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work,
+                   (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE s.id IS NOT NULL )) AS "socials: Socials"
+            FROM users AS u
+                LEFT OUTER JOIN socials s
+                ON u.id = s.user_id
+            WHERE ts @@ plainto_tsquery_multilang($1)
+            GROUP BY u.id
+            "#,
+            query
+        )
+        .fetch_all(&self.pool)
+        .await?
+            .into_iter()
+            .map(Into::into)
+            .collect())
+    }
 }

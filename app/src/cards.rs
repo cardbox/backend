@@ -1,10 +1,10 @@
 use crate::{App, Service};
 use cardbox_core::app::{
     CardCreateError, CardCreateForm, CardDeleteError, CardGetError, CardSaveError, CardSearchError,
-    CardUpdateError, CardUpdateForm, Cards, CardsListError,
+    CardUpdateError, CardUpdateForm, Cards, CardsFeedError, CardsListError,
 };
 use cardbox_core::contracts::Repository;
-use cardbox_core::models::{Card, CardCreate, CardUpdate, User};
+use cardbox_core::models::{Card, CardCreate, CardUpdate, CardsFeed, User};
 use sqlx_core::types::{Json, Uuid};
 use validator::Validate;
 
@@ -165,7 +165,7 @@ impl Cards for App {
         author_id: Option<Uuid>,
         token: Option<String>,
         favorites: bool,
-    ) -> Result<Vec<Card>, CardsListError> {
+    ) -> Result<Vec<(Card, User)>, CardsListError> {
         let db = self.get::<Service<dyn Repository>>()?;
 
         let get_cards = |id: Uuid| {
@@ -202,6 +202,14 @@ impl Cards for App {
         let card = db.card_find_by_id(card_id).await?;
 
         card.map(Ok).unwrap_or(Err(CardGetError::CardNotFound))
+    }
+
+    async fn cards_feed(&self) -> Result<CardsFeed, CardsFeedError> {
+        let db = self.get::<Service<dyn Repository>>()?;
+
+        let (top, latest) = tokio::try_join!(db.cards_top(), db.cards_latest())?;
+
+        Ok(CardsFeed { top, latest })
     }
 }
 
