@@ -125,7 +125,7 @@ pub async fn route(
                                 .map_err(map_authorize_error)?;
 
                             let mut response = Response::Ok(AuthDoneSuccess {
-                                user_info: UserInfo {
+                                user: UserInfo {
                                     first_name: user.first_name,
                                     last_name: user.last_name,
                                 },
