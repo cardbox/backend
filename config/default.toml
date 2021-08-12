@@ -20,6 +20,7 @@ ssl_validate = true
 [server]
 host = "localhost"
 port = 9110
+use_ssl = true
 
 # By default server uses number of available logical cpu as threads
 # workers = 8

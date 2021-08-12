@@ -155,7 +155,9 @@ dependencies = [
  "futures-core",
  "http",
  "log",
+ "tokio-rustls",
  "tokio-util",
+ "webpki-roots",
 ]
 
 [[package]]
@@ -181,6 +183,7 @@ dependencies = [
  "actix-rt",
  "actix-server",
  "actix-service",
+ "actix-tls",
  "actix-utils",
  "actix-web-codegen",
  "ahash",
@@ -448,6 +451,7 @@ dependencies = [
  "opentelemetry",
  "prometheus",
  "reqwest",
+ "rustls",
  "serde",
  "serde_json",
  "serde_plain",

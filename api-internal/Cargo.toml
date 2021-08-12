@@ -14,7 +14,8 @@ cardbox-settings = { path = "../settings" }
 reqwest = { version = "0.11.4", default-features = false, features = ["json", "rustls-tls"] }
 actix-rt = "2.2.0"
 actix-swagger = "=0.3.0-beta.1"
-actix-web = "4.0.0-beta.8"
+actix-web = { version = "4.0.0-beta.8", default-features = false, features = ["compress-zstd", "cookies", "rustls"] }
+rustls = "0.19.1"
 actix-web-prometheus = { version = "0.1.2-beta.8", features = ["process"]}
 prometheus = "0.12.0"
 actix-http = "3.0.0-beta.8"

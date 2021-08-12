@@ -116,9 +116,51 @@ async fn main() -> eyre::Result<()> {
         server = server.client_shutdown(client_shutdown);
     }
 
-    server.bind(bind_address)?.run().await?;
+    if settings.server.use_ssl {
+        let tls_cfg = {
+            let cert = load_certs(&std::env::var("TLS_CERT_FILE")?)?;
+            let key = load_private_key(&std::env::var("TLS_KEY_FILE")?)?;
+            let mut cfg = rustls::ServerConfig::new(rustls::NoClientAuth::new());
 
-    #[cfg(not(debug_assertions))]
-    opentelemetry::global::shutdown_tracer_provider();
+            cfg.set_single_cert(cert, key)
+                .map_err(|e| eyre::Report::from(e))?;
+            cfg.set_protocols(&[b"h2".to_vec(), b"http/1.1".to_vec()]);
+            cfg
+        };
+        server.bind_rustls(bind_address, tls_cfg)?.run().await?;
+    } else {
+        server.bind(bind_address)?.run().await?;
+    }
+
+    if settings.use_opentelemetry {
+        opentelemetry::global::shutdown_tracer_provider();
+    }
+
     Ok(())
+}
+
+fn load_certs(filename: &str) -> eyre::Result<Vec<rustls::Certificate>> {
+    use rustls::internal::pemfile;
+    use std::{fs, io};
+    let certfile =
+        fs::File::open(filename).map_err(|e| eyre::eyre!("failed to open {}: {}", filename, e))?;
+    let mut reader = io::BufReader::new(certfile);
+
+    pemfile::certs(&mut reader).map_err(|_| eyre::eyre!("failed to load certificate"))
+}
+
+// Load private key from file.
+fn load_private_key(filename: &str) -> eyre::Result<rustls::PrivateKey> {
+    use rustls::internal::pemfile;
+    use std::{fs, io};
+    let keyfile =
+        fs::File::open(filename).map_err(|e| eyre::eyre!("failed to open {}: {}", filename, e))?;
+    let mut reader = io::BufReader::new(keyfile);
+
+    let keys = pemfile::rsa_private_keys(&mut reader)
+        .map_err(|_| eyre::eyre!("failed to load private key"))?;
+    if keys.len() != 1 {
+        return Err(eyre::eyre!("expected a single private key"));
+    }
+    Ok(keys[0].clone())
 }
