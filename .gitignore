@@ -84,3 +84,7 @@ tmp
 *.out
 .idea
 .env
+.data
+.config.*
+.config-*.*
+!.config*.sample
