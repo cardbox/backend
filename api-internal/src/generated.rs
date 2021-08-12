@@ -548,6 +548,7 @@ pub mod components {
         #[derive(Debug, Serialize)]
         #[serde(rename_all = "camelCase")]
         pub struct UserInfo {
+            pub id: Uuid,
             pub first_name: String,
             pub last_name: String,
         }
