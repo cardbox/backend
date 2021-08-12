@@ -38,7 +38,7 @@ pub trait Cards {
         favorites: bool,
     ) -> Result<Vec<(models::Card, models::User)>, CardsListError>;
 
-    async fn card_get(&self, card_id: Uuid) -> Result<models::Card, CardGetError>;
+    async fn card_get(&self, card_id: Uuid) -> Result<(models::Card, models::User), CardGetError>;
 
     async fn cards_feed(&self) -> Result<models::CardsFeed, CardsFeedError>;
 }

@@ -222,10 +222,12 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [card]
+                required: [card, user]
                 properties:
                   card:
                     $ref: '#/components/schemas/Card'
+                  user:
+                    $ref: '#/components/schemas/User'
         400:
           description: CLIENT_ERROR
           content:

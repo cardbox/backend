@@ -48,7 +48,7 @@ impl BoxRepo for Database {
         let card = self.card_find_by_id(card_id).await?;
 
         match card {
-            Some(card) => {
+            Some((card, _)) => {
                 let rows_affected = sqlx::query!(
                     // language=PostgreSQL
                     r#"

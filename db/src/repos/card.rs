@@ -113,20 +113,28 @@ impl CardRepo for Database {
         .await?)
     }
 
-    async fn card_find_by_id(&self, card_id: Uuid) -> RepoResult<Option<models::Card>> {
+    async fn card_find_by_id(
+        &self,
+        card_id: Uuid,
+    ) -> RepoResult<Option<(models::Card, models::User)>> {
         Ok(sqlx::query_as!(
-            Card,
+            UserCard,
             // language=PostgreSQL
             r#"
-            SELECT id, author_id, title, created_at, updated_at, contents, tags 
-            FROM cards
-            WHERE id = $1
+            SELECT 
+                   (u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work, (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE (s.id IS NOT NULL) ))) as "user!: User",
+                   (c.id, c.author_id, c.title, c.created_at, c.updated_at, c.contents, c.tags) as "card!: Card" 
+            FROM cards as c
+                LEFT JOIN users u ON u.id = c.author_id
+                LEFT OUTER JOIN socials s ON s.user_id = u.id
+            WHERE c.id = $1
+            GROUP BY u.id, c.id
             "#,
             card_id
         )
         .fetch_optional(&self.pool)
         .await?
-        .map(Into::into))
+        .map(|uc| (uc.card.into(), uc.user.into())))
     }
 
     async fn cards_list(&self, user_id: Uuid) -> RepoResult<Vec<(models::Card, models::User)>> {

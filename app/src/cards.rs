@@ -95,8 +95,8 @@ impl Cards for App {
             let card_to_delete = db.card_find_by_id(card_id).await?;
 
             match card_to_delete {
-                Some(card) => {
-                    if card.author_id != token.user_id {
+                Some((_, user)) => {
+                    if user.id != token.user_id {
                         return Err(CardDeleteError::NoAccess);
                     }
 
@@ -132,8 +132,8 @@ impl Cards for App {
             let card_to_save = db.card_find_by_id(card_id).await?;
 
             match card_to_save {
-                Some(card) => {
-                    if card.author_id != token.user_id {
+                Some((_, user)) => {
+                    if user.id != token.user_id {
                         return Err(CardSaveError::NoAccess);
                     }
 
@@ -196,12 +196,12 @@ impl Cards for App {
         }
     }
 
-    async fn card_get(&self, card_id: Uuid) -> Result<Card, CardGetError> {
+    async fn card_get(&self, card_id: Uuid) -> Result<(Card, User), CardGetError> {
         let db = self.get::<Service<dyn Repository>>()?;
 
-        let card = db.card_find_by_id(card_id).await?;
+        let found = db.card_find_by_id(card_id).await?;
 
-        card.map(Ok).unwrap_or(Err(CardGetError::CardNotFound))
+        found.map(Ok).unwrap_or(Err(CardGetError::CardNotFound))
     }
 
     async fn cards_feed(&self) -> Result<CardsFeed, CardsFeedError> {
@@ -220,7 +220,7 @@ mod tests {
         CardCreateError, CardCreateForm, CardDeleteError, CardSaveError, Cards,
     };
     use cardbox_core::contracts::MockDb;
-    use cardbox_core::models::{self, Card, SessionToken};
+    use cardbox_core::models::{self, Card, SessionToken, User};
     use lazy_static::lazy_static;
     use uuid::Uuid;
 
@@ -392,9 +392,11 @@ mod tests {
 
         mock_db.cards.expect_card_find_by_id().returning(move |_| {
             let mut random_card = Card::create_random();
+            let random_user = User::create_random();
+
             random_card.author_id = card_id;
 
-            Ok(Some(random_card))
+            Ok(Some((random_card, random_user)))
         });
 
         mock_db
@@ -431,10 +433,12 @@ mod tests {
 
         mock_db.cards.expect_card_find_by_id().returning(move |_| {
             let mut card = Card::create_random();
+            let mut user = User::create_random();
 
             card.id = card_id;
             card.author_id = user_id;
-            Ok(Some(card))
+            user.id = user_id;
+            Ok(Some((card, user)))
         });
 
         mock_db
@@ -542,10 +546,12 @@ mod tests {
 
         mock_db.cards.expect_card_find_by_id().returning(move |_| {
             let mut card = Card::create_random();
+            let mut user = User::create_random();
 
             card.id = card_id;
             card.author_id = user_id;
-            Ok(Some(card))
+            user.id = user_id;
+            Ok(Some((card, user)))
         });
 
         mock_db

@@ -385,6 +385,7 @@ pub mod components {
         #[serde(rename_all = "camelCase")]
         pub struct CardsGetSuccess {
             pub card: schemas::Card,
+            pub user: schemas::User,
         }
 
         #[derive(Debug, Serialize, thiserror::Error)]

@@ -57,3 +57,31 @@ impl User {
         }
     }
 }
+
+#[cfg(feature = "testing")]
+impl User {
+    pub fn create_random() -> Self {
+        use rand::distributions::Alphanumeric;
+        use rand::{thread_rng, Rng};
+
+        fn random_string(length: usize) -> String {
+            thread_rng()
+                .sample_iter(&Alphanumeric)
+                .take(length)
+                .map(char::from)
+                .collect()
+        }
+
+        Self {
+            id: uuid::Uuid::new_v4(),
+            accesso_id: uuid::Uuid::new_v4(),
+            first_name: random_string(12),
+            last_name: random_string(12),
+            username: None,
+            bio: None,
+            avatar: None,
+            work: None,
+            socials: None,
+        }
+    }
+}

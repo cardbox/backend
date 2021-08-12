@@ -15,12 +15,15 @@ pub async fn route(
 ) -> Result<Response, Error> {
     let body = body.into_inner();
 
-    let card = app
+    let (card, user) = app
         .card_get(body.card_id)
         .await
         .map_err(map_cards_get_error)?;
 
-    Ok(Response::Ok(CardsGetSuccess { card: card.into() }))
+    Ok(Response::Ok(CardsGetSuccess {
+        card: card.into(),
+        user: user.into(),
+    }))
 }
 
 fn map_cards_get_error(error: CardGetError) -> Error {
