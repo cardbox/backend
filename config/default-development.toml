@@ -10,7 +10,6 @@ database = "cardbox"
 host = "localhost"
 password = "cardbox"
 user = "cardbox"
-port = 5433
 pool_size = 2
 ssl_validate = false
 
@@ -19,8 +18,8 @@ host = "localhost"
 port = 9110
 
 [accesso]
-url = "https://accesso.local:3000"
+url = "http://localhost:9115"
 client_id = '00000000-0000-4000-acce-000000009100'
-redirect_back_url = "https://cardbox.local:5000/oauth-done"
+redirect_back_url = "http://localhost:9100/accesso/done"
 client_secret = "CardboxDev"
 ssl_validate = false
