@@ -122,6 +122,32 @@
       ]
     }
   },
+  "24122a2a412df82d72e2afbb6dc486a6c517a96f69631a977412b078118f5c39": {
+    "query": "\n            SELECT \n                   (u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work, (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE (s.id IS NOT NULL) ))) as \"user!: User\",\n                   (c.id, c.author_id, c.title, c.created_at, c.updated_at, c.contents, c.tags) as \"card!: Card\" \n            FROM cards as c\n                LEFT JOIN users u ON u.id = c.author_id\n                LEFT OUTER JOIN socials s ON s.user_id = u.id\n            WHERE c.id = $1\n            GROUP BY u.id, c.id\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "user!: User",
+          "type_info": "Record"
+        },
+        {
+          "ordinal": 1,
+          "name": "card!: Card",
+          "type_info": "Record"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        null,
+        null
+      ]
+    }
+  },
   "25cd872cc78c38c190e391782135c04c0353e07592ec408e93ecac6e0caad4b1": {
     "query": "\n            DELETE \n            FROM session_tokens \n            WHERE token = $1\n            ",
     "describe": {
@@ -577,62 +603,6 @@
         true,
         true,
         null
-      ]
-    }
-  },
-  "a3108df40ba5f578f78a845911042fbea16e0bddcfd2f6c7be5a4f10587f88b2": {
-    "query": "\n            SELECT id, author_id, title, created_at, updated_at, contents, tags \n            FROM cards\n            WHERE id = $1\n            ",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Uuid"
-        },
-        {
-          "ordinal": 1,
-          "name": "author_id",
-          "type_info": "Uuid"
-        },
-        {
-          "ordinal": 2,
-          "name": "title",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 3,
-          "name": "created_at",
-          "type_info": "Timestamptz"
-        },
-        {
-          "ordinal": 4,
-          "name": "updated_at",
-          "type_info": "Timestamptz"
-        },
-        {
-          "ordinal": 5,
-          "name": "contents",
-          "type_info": "Jsonb"
-        },
-        {
-          "ordinal": 6,
-          "name": "tags",
-          "type_info": "VarcharArray"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Uuid"
-        ]
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        true
       ]
     }
   },
