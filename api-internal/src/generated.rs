@@ -238,7 +238,7 @@ pub mod components {
         #[derive(Debug, Serialize)]
         #[serde(rename_all = "camelCase")]
         pub struct AuthDoneSuccess {
-            pub user_info: schemas::UserInfo,
+            pub user: schemas::UserInfo,
         }
 
         #[derive(Debug, Serialize, thiserror::Error)]
