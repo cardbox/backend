@@ -38,6 +38,8 @@ pub fn create_request_client(config: &Settings) -> Result<reqwest::Client, eyre:
 
 #[actix_rt::main]
 async fn main() -> eyre::Result<()> {
+    dotenv::dotenv().wrap_err("Failed to initialize dotenv")?;
+
     let settings = Arc::new(Settings::new("internal").wrap_err("failed to parse settings")?);
 
     if settings.debug {
@@ -46,8 +48,6 @@ async fn main() -> eyre::Result<()> {
     } else {
         tracing::info!("==> Starting {} in PRODUCTION mode!", APP_NAME);
     };
-
-    dotenv::dotenv().wrap_err("Failed to initialize dotenv")?;
 
     let _guard = install_logger(APP_NAME.into(), &settings)?;
 
