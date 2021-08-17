@@ -1,0 +1,16 @@
+{
+  "name": "backend",
+  "version": "0.1.0",
+  "main": "index.js",
+  "repository": "git@github.com:cardbox/backend.git",
+  "author": "Sergey Sova <mail@sergeysova.com>",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "openapi": "^2.0.0-14",
+    "openapi-preset-actix": "^0.3.0"
+  },
+  "scripts": {
+    "api:internal": "openapi --config ./api-internal/.openapi.config.js"
+  }
+}
