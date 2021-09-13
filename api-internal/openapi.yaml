@@ -433,6 +433,50 @@ paths:
                       - no_access
         500:
           description: SERVER_ERROR
+  /cards.unsave:
+    post:
+      tags: [ Cards ]
+      summary: Remove card from favorites
+      operationId: cardsUnsave
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required: [cardId]
+              properties:
+                cardId:
+                  type: string
+                  format: uuid
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                required: [card, boxId]
+                properties:
+                  card:
+                    $ref: "#/components/schemas/Card"
+                  boxId:
+                    type: string
+                    format: uuid
+        400:
+          description: CLIENT_ERROR
+          content:
+            application/json:
+              schema:
+                required: [error, code]
+                properties:
+                  error:
+                    type: boolean
+                  code:
+                    type: string
+                    enum:
+                      - already_unsaved
+                      - card_not_found
+                      - no_access
+        500:
+          description: SERVER_ERROR
 
   /session.get:
     post:
