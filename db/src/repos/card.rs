@@ -201,11 +201,11 @@ impl CardRepo for Database {
                 (u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work, (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE (s.id IS NOT NULL) ))) as "user!: User",
                 (c.id, c.author_id, c.title, c.created_at, c.updated_at, c.contents, c.tags) as "card!: Card"
             FROM cards as c
-                TABLESAMPLE bernoulli(66)
-                     LEFT JOIN users u ON u.id = c.author_id
-                     LEFT OUTER JOIN socials s ON s.user_id = u.id
+                 LEFT JOIN users u ON u.id = c.author_id
+                 LEFT OUTER JOIN socials s ON s.user_id = u.id
             GROUP BY u.id, c.id
-            LIMIT 5
+            ORDER BY c.created_at DESC
+            LIMIT 6
             "#
         )
         .fetch_all(&self.pool)
