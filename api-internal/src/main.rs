@@ -1,6 +1,5 @@
 #![deny(warnings)]
 #![forbid(unsafe_code)]
-#![feature(try_trait_v2, error_iter)]
 
 use actix_web::middleware;
 use actix_web::{web, HttpServer};
