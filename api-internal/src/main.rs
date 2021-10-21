@@ -74,6 +74,7 @@ async fn main() -> eyre::Result<()> {
                 cardbox_app::configure(config, settings);
             })
             //.wrap(middleware::Compress::default())
+            .wrap(middleware::NormalizePath::trim())
             .wrap(
                 middleware::DefaultHeaders::new()
                     // .header("X-Frame-Options", "deny")
