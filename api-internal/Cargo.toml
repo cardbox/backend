@@ -13,7 +13,7 @@ cardbox-db = { path = "../db" }
 cardbox-settings = { path = "../settings" }
 reqwest = { version = "0.11.6", default-features = false, features = ["json", "rustls-tls"] }
 actix-rt = "2.3.0"
-actix-swagger = "=0.3.0-beta.2"
+actix-swagger = "=0.3.0-beta.3"
 actix-web = { version = "4.0.0-beta.10", default-features = false, features = ["compress-zstd", "cookies", "rustls"] }
 rustls = "0.20.0"
 rustls-pemfile = "0.2.1"

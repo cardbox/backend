@@ -3,9 +3,10 @@
 #![allow(clippy::enum_variant_names)]
 
 pub mod api {
-    use actix_swagger::{Api, Method};
+    use actix_swagger::Api;
     use actix_web::{
         dev::{AppService, Handler, HttpServiceFactory},
+        http::Method,
         FromRequest, Responder,
     };
     use std::future::Future;

@@ -124,9 +124,9 @@ dependencies = [
 
 [[package]]
 name = "actix-swagger"
-version = "0.3.0-beta.2"
+version = "0.3.0-beta.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "276aa9f4f5c12fffd7128f5ba12425daae384a158da8c5d34bcdae5c5f584634"
+checksum = "bbfcc371323c19d91f635e5f5626d042b2937ef5c2bcf02ba43ad1900e8c3155"
 dependencies = [
  "actix-http",
  "actix-rt",
