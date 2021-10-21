@@ -11,30 +11,31 @@ cardbox-core = { path = "../core" }
 cardbox-app = { path = "../app" }
 cardbox-db = { path = "../db" }
 cardbox-settings = { path = "../settings" }
-reqwest = { version = "0.11.4", default-features = false, features = ["json", "rustls-tls"] }
-actix-rt = "2.2.0"
-actix-swagger = "=0.3.0-beta.1"
-actix-web = { version = "4.0.0-beta.8", default-features = false, features = ["compress-zstd", "cookies", "rustls"] }
-rustls = "0.19.1"
-actix-web-prometheus = { version = "0.1.2-beta.8", features = ["process"]}
-prometheus = "0.12.0"
-actix-http = "3.0.0-beta.8"
+reqwest = { version = "0.11.6", default-features = false, features = ["json", "rustls-tls"] }
+actix-rt = "2.3.0"
+actix-swagger = "=0.3.0-beta.2"
+actix-web = { version = "4.0.0-beta.10", default-features = false, features = ["compress-zstd", "cookies", "rustls"] }
+rustls = "0.20.0"
+rustls-pemfile = "0.2.1"
+actix-web-prometheus = { version = "0.1.2-beta.10", features = ["process"] }
+prometheus = "0.13.0"
+actix-http = "3.0.0-beta.11"
 shrinkwraprs = "0.3.0"
-async-trait = "0.1.50"
+async-trait = "0.1.51"
 chrono = { version = "0.4.19", features = ["serde"] }
 dotenv = "0.15.0"
 once_cell = "1.8.0"
-serde = { version = "1.0.126", features = ["derive"] }
-serde_json = { version = "1.0.64", features = ["raw_value"] }
-serde_plain = "0.3.0"
-time = "0.2.26"
-tokio = "1.9.0"
+serde = { version = "1.0.130", features = ["derive"] }
+serde_json = { version = "1.0.68", features = ["raw_value"] }
+serde_plain = "1.0.0"
+time = "0.3.3"
+tokio = "1.12.0"
 eyre = "0.6.5"
 color-eyre = "0.5.11"
-tracing = "0.1.26"
+tracing = "0.1.29"
 itertools = "0.10.1"
-thiserror = "1.0.26"
-tracing-actix-web = { version = "0.4.0-beta.9", default-features = false, features = ["emit_event_on_error", "opentelemetry_0_15"]}
-opentelemetry = "0.15.0"
+thiserror = "1.0.30"
+tracing-actix-web = { version = "0.4.0-beta.15", default-features = false, features = ["emit_event_on_error", "opentelemetry_0_16"] }
+opentelemetry = "0.16.0"
 url = "2.2.2"
 uuid = { version = "0.8.2", features = ["serde", "v4"] }

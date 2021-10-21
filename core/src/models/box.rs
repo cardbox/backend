@@ -5,6 +5,7 @@ pub struct Box {
     pub id: Uuid,
     pub user_id: Uuid,
     pub _type: BoxType,
+    pub default: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -19,6 +20,7 @@ impl Box {
             _type: BoxType::User,
             user_id: Uuid::new_v4(),
             id: Uuid::new_v4(),
+            default: false,
         }
     }
 }

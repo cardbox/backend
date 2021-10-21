@@ -22,6 +22,7 @@ impl From<Box> for models::Box {
             id: b.id,
             user_id: b.user_id,
             _type: b.r#type.into(),
+            default: b.default,
         }
     }
 }

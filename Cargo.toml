@@ -9,3 +9,5 @@ members = [
   "app",
   "settings"
 ]
+
+resolver = "2"

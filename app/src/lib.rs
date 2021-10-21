@@ -28,6 +28,9 @@ use std::hash::{BuildHasherDefault, Hasher};
 use std::ops::Deref;
 use std::sync::Arc;
 
+#[global_allocator]
+static ALLOC: rpmalloc::RpMalloc = rpmalloc::RpMalloc;
+
 type ServiceMap = HashMap<TypeId, Box<dyn Any + Send + Sync>, BuildHasherDefault<TypeIdHasher>>;
 
 #[derive(Debug, Clone, Default)]

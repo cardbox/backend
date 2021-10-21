@@ -20,7 +20,6 @@ use futures::future::{err, ok, Ready};
 pub struct SessionToken(String);
 
 impl FromRequest for SessionToken {
-    type Config = ();
     type Error = actix_web::Error;
     type Future = Ready<Result<Self, Error>>;
 

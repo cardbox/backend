@@ -7,18 +7,18 @@ version = "0.1.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-async-trait = "0.1.50"
+async-trait = "0.1.51"
 cardbox-core = { path = "../core" }
 cardbox-settings = { path = "../settings" }
 chrono = { version = "0.4.19", default-features = false, features = ["serde", "std", "clock"] }
-tracing = "0.1.26"
-serde = "1.0.126"
-serde_json = { version = "1.0.64", features = ["raw_value"] }
-futures = "0.3.15"
+tracing = "0.1.29"
+serde = "1.0.130"
+serde_json = { version = "1.0.68", features = ["raw_value"] }
+futures = "0.3.17"
 uuid = { version = "0.8.2", features = ["serde", "v4"] }
 
 [dependencies.sqlx]
-version = "0.5.5"
+version = "0.5.9"
 default-features = false
 features = [
     "uuid",
@@ -29,3 +29,7 @@ features = [
     "offline",
     "json"
 ]
+
+[features]
+inmemory-cache = []
+distributed-cache = []
