@@ -96,6 +96,30 @@
       ]
     }
   },
+  "098d99156d27c6708e0fc827ee1db278f77716c081fe3892a11b17e481b1ea01": {
+    "query": "\n            SELECT\n                (u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work, (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE (s.id IS NOT NULL) ))) as \"user!: User\",\n                (c.id, c.author_id, c.title, c.created_at, c.updated_at, c.contents, c.tags) as \"card!: Card\"\n            FROM cards as c\n                 LEFT JOIN users u ON u.id = c.author_id\n                 LEFT OUTER JOIN socials s ON s.user_id = u.id\n            GROUP BY u.id, c.id\n            ORDER BY c.created_at DESC\n            LIMIT 6\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "user!: User",
+          "type_info": "Record"
+        },
+        {
+          "ordinal": 1,
+          "name": "card!: Card",
+          "type_info": "Record"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        null,
+        null
+      ]
+    }
+  },
   "1cc0fad94afa81a85f1050b3096690a44db1d4315871c2b15259cd202e590b8a": {
     "query": "\n            SELECT \n                (u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work, (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE (s.id IS NOT NULL) ))) as \"user!: User\",\n                (c.id, c.author_id, c.title, c.created_at, c.updated_at, c.contents, c.tags) as \"card!: Card\"\n            FROM boxes AS b\n                     LEFT JOIN boxes_cards bc\n                     ON b.id = bc.box_id\n                     LEFT JOIN cards c\n                     ON c.id = bc.card_id\n                     LEFT JOIN users u ON u.id = $1\n                     LEFT OUTER JOIN socials s ON u.id = $1\n            WHERE b.user_id = $1\n              AND b.\"default\" = TRUE\n            GROUP BY u.id, c.id\n            ",
     "describe": {
@@ -279,30 +303,6 @@
         "Left": [
           "Uuid"
         ]
-      },
-      "nullable": [
-        null,
-        null
-      ]
-    }
-  },
-  "68cf199e7338a6035360e45daa477d8295ffe7feef60c4e3d84deaf3e3d47f52": {
-    "query": "\n            SELECT\n                (u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work, (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE (s.id IS NOT NULL) ))) as \"user!: User\",\n                (c.id, c.author_id, c.title, c.created_at, c.updated_at, c.contents, c.tags) as \"card!: Card\"\n            FROM cards as c\n                TABLESAMPLE bernoulli(66)\n                     LEFT JOIN users u ON u.id = c.author_id\n                     LEFT OUTER JOIN socials s ON s.user_id = u.id\n            GROUP BY u.id, c.id\n            LIMIT 5\n            ",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "user!: User",
-          "type_info": "Record"
-        },
-        {
-          "ordinal": 1,
-          "name": "card!: Card",
-          "type_info": "Record"
-        }
-      ],
-      "parameters": {
-        "Left": []
       },
       "nullable": [
         null,
