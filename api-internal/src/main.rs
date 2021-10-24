@@ -98,6 +98,7 @@ async fn main() -> eyre::Result<()> {
                     .bind_cards_get(routes::cards::get::route)
                     .bind_cards_feed(routes::cards::feed::route)
                     .bind_session_get(routes::session::get::route)
+                    .bind_session_delete(routes::session::delete::route)
                     .bind_users_get(routes::users::get::route)
                     .bind_users_search(routes::users::search::route),
             )

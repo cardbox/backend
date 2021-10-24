@@ -191,6 +191,19 @@ pub mod api {
             self
         }
 
+        pub fn bind_session_delete<F, T, R, Res>(mut self, handler: F) -> Self
+            where
+                F: Handler<T, R>,
+                T: FromRequest + 'static,
+                Res: Responder + 'static,
+                R: Future<Output = Result<Res, super::paths::session_delete::Error>> + 'static,
+        {
+            self.api = self
+                .api
+                .bind("/session.delete".into(), Method::POST, handler);
+            self
+        }
+
         pub fn bind_users_search<F, T, R>(mut self, handler: F) -> Self
         where
             F: Handler<T, R>,
@@ -427,6 +440,21 @@ pub mod components {
             pub user: schemas::SessionUser,
         }
 
+        #[doc = "failed to delete session"]
+        #[derive(Debug, Serialize, thiserror::Error)]
+        #[error(transparent)]
+        pub struct SessionDeleteFailure {
+            #[from]
+            pub error: SessionDeleteFailureError,
+        }
+
+        #[derive(Debug, Serialize, thiserror::Error)]
+        pub enum SessionDeleteFailureError {
+            #[serde(rename = "invalid_payload")]
+            #[error(transparent)]
+            InvalidPayload(#[serde(skip)] eyre::Report),
+        }
+
         #[derive(Debug, Serialize)]
         #[serde(rename_all = "camelCase")]
         pub struct UsersSearchSuccess {
@@ -599,6 +627,7 @@ pub mod components {
         }
     }
 }
+
 pub mod paths {
     use super::components::responses;
 
@@ -1241,6 +1270,72 @@ pub mod paths {
                 match self {
                     Error::InternalServerError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                     Error::Unauthorized => StatusCode::UNAUTHORIZED,
+                }
+            }
+        }
+    }
+
+    pub mod session_delete {
+        use super::responses;
+        use actix_swagger::ContentType;
+        use actix_web::http::StatusCode;
+        use actix_web::{HttpRequest, HttpResponse, Responder, ResponseError};
+        use serde::Serialize;
+
+        #[derive(Debug, Serialize)]
+        #[serde(untagged)]
+        pub enum Response {
+            Ok,
+        }
+
+        #[derive(Debug, Serialize, thiserror::Error)]
+        #[serde(untagged)]
+        pub enum Error {
+            #[error(transparent)]
+            BadRequest(#[from] responses::SessionDeleteFailure),
+            #[error(transparent)]
+            Unauthorized(#[serde(skip)] eyre::Report),
+            #[error(transparent)]
+            Unexpected(
+                #[from]
+                #[serde(skip)]
+                eyre::Report,
+            ),
+        }
+
+        impl Responder for Response {
+            fn respond_to(self, _: &HttpRequest) -> HttpResponse {
+                match self {
+                    Response::Ok => HttpResponse::build(StatusCode::OK).finish(),
+                }
+            }
+        }
+
+        impl ResponseError for Error {
+            fn status_code(&self) -> StatusCode {
+                match self {
+                    Error::Unexpected(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                    Error::BadRequest(_) => StatusCode::BAD_REQUEST,
+                    Error::Unauthorized(_) => StatusCode::UNAUTHORIZED,
+                }
+            }
+
+            fn error_response(&self) -> HttpResponse {
+                let content_type = match self {
+                    Self::BadRequest(_) => Some(ContentType::Json),
+                    _ => None,
+                };
+
+                let mut res = &mut HttpResponse::build(self.status_code());
+                if let Some(content_type) = content_type {
+                    res = res.content_type(content_type.to_string());
+
+                    match content_type {
+                        ContentType::Json => res.body(serde_json::to_string(self).unwrap()),
+                        ContentType::FormData => res.body(serde_plain::to_string(self).unwrap()),
+                    }
+                } else {
+                    HttpResponse::build(self.status_code()).finish()
                 }
             }
         }
