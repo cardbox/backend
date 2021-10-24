@@ -31,6 +31,13 @@ pub trait Cards {
         token: String,
     ) -> Result<(models::Card, Uuid), CardSaveError>;
 
+    async fn card_remove_from_box(
+        &self,
+        card_id: Uuid,
+        box_id: Option<Uuid>,
+        token: String,
+    ) -> Result<(models::Card, Uuid), CardUnsaveError>;
+
     async fn cards_list(
         &self,
         author_id: Option<Uuid>,
@@ -126,6 +133,25 @@ pub enum CardSaveError {
 }
 
 #[derive(Debug, thiserror::Error)]
+pub enum CardUnsaveError {
+    #[error(transparent)]
+    Unexpected(#[from] eyre::Report),
+    #[error("Already unsaved")]
+    AlreadyUnsaved,
+    #[error("Card not found")]
+    CardNotFound,
+    // TODO: extract to auth domain
+    #[error("Token not found")]
+    TokenNotFound,
+    #[error("Token expired")]
+    TokenExpired,
+    #[error("No access")]
+    NoAccess,
+    #[error("Box not found")]
+    BoxNotFound,
+}
+
+#[derive(Debug, thiserror::Error)]
 pub enum CardsListError {
     #[error(transparent)]
     Unexpected(#[from] eyre::Report),
@@ -170,6 +196,13 @@ impl From<UnexpectedDatabaseError> for CardsListError {
 }
 
 impl From<UnexpectedDatabaseError> for CardSaveError {
+    #[inline]
+    fn from(e: UnexpectedDatabaseError) -> Self {
+        Self::Unexpected(e.into())
+    }
+}
+
+impl From<UnexpectedDatabaseError> for CardUnsaveError {
     #[inline]
     fn from(e: UnexpectedDatabaseError) -> Self {
         Self::Unexpected(e.into())

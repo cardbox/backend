@@ -1,7 +1,7 @@
 use crate::{App, Service};
 use cardbox_core::app::{
     CardCreateError, CardCreateForm, CardDeleteError, CardGetError, CardSaveError, CardSearchError,
-    CardUpdateError, CardUpdateForm, Cards, CardsFeedError, CardsListError,
+    CardUnsaveError, CardUpdateError, CardUpdateForm, Cards, CardsFeedError, CardsListError,
 };
 use cardbox_core::contracts::Repository;
 use cardbox_core::models::{Card, CardCreate, CardUpdate, CardsFeed, User};
@@ -132,11 +132,7 @@ impl Cards for App {
             let card_to_save = db.card_find_by_id(card_id).await?;
 
             match card_to_save {
-                Some((_, user)) => {
-                    if user.id != token.user_id {
-                        return Err(CardSaveError::NoAccess);
-                    }
-
+                Some(_) => {
                     let box_id = match box_id {
                         Some(id) => {
                             let r#box = db.box_get_by_id(id).await?;
@@ -157,6 +153,47 @@ impl Cards for App {
             }
         } else {
             Err(CardSaveError::TokenNotFound)
+        }
+    }
+
+    async fn card_remove_from_box(
+        &self,
+        card_id: Uuid,
+        box_id: Option<Uuid>,
+        token: String,
+    ) -> Result<(Card, Uuid), CardUnsaveError> {
+        let db = self.get::<Service<dyn Repository>>()?;
+        let token = db.token_find(token).await?;
+
+        if let Some(token) = token {
+            if token.is_expired() {
+                return Err(CardUnsaveError::TokenExpired);
+            }
+
+            let card_to_save = db.card_find_by_id(card_id).await?;
+
+            match card_to_save {
+                Some(_) => {
+                    let box_id = match box_id {
+                        Some(id) => {
+                            let r#box = db.box_get_by_id(id).await?;
+
+                            match r#box {
+                                Some(_) => id,
+                                None => return Err(CardUnsaveError::BoxNotFound),
+                            }
+                        }
+                        None => db.box_get_user_default(token.user_id).await?.id,
+                    };
+
+                    let card = db.box_remove_card(box_id, card_id).await?;
+
+                    Ok((card, box_id))
+                }
+                None => return Err(CardUnsaveError::CardNotFound),
+            }
+        } else {
+            Err(CardUnsaveError::TokenNotFound)
         }
     }
 

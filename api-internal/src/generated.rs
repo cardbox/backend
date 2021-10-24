@@ -37,9 +37,7 @@ pub mod api {
                     >,
                 > + 'static,
         {
-            self.api = self
-                .api
-                .bind("/accesso/auth.params".into(), Method::POST, handler);
+            self.api = self.api.bind("/accesso/auth.params", Method::POST, handler);
             self
         }
 
@@ -50,9 +48,7 @@ pub mod api {
             Res: Responder + 'static,
             R: Future<Output = Result<Res, super::paths::auth_done::Error>> + 'static,
         {
-            self.api = self
-                .api
-                .bind("/accesso/auth.done".into(), Method::POST, handler);
+            self.api = self.api.bind("/accesso/auth.done", Method::POST, handler);
             self
         }
 
@@ -67,7 +63,7 @@ pub mod api {
                     >,
                 > + 'static,
         {
-            self.api = self.api.bind("/cards.create".into(), Method::POST, handler);
+            self.api = self.api.bind("/cards.create", Method::POST, handler);
             self
         }
 
@@ -82,7 +78,7 @@ pub mod api {
                     >,
                 > + 'static,
         {
-            self.api = self.api.bind("/cards.search".into(), Method::POST, handler);
+            self.api = self.api.bind("/cards.search", Method::POST, handler);
             self
         }
 
@@ -97,7 +93,7 @@ pub mod api {
                     >,
                 > + 'static,
         {
-            self.api = self.api.bind("/cards.edit".into(), Method::POST, handler);
+            self.api = self.api.bind("/cards.edit", Method::POST, handler);
             self
         }
 
@@ -112,7 +108,7 @@ pub mod api {
                     >,
                 > + 'static,
         {
-            self.api = self.api.bind("/cards.delete".into(), Method::POST, handler);
+            self.api = self.api.bind("/cards.delete", Method::POST, handler);
             self
         }
 
@@ -127,7 +123,22 @@ pub mod api {
                     >,
                 > + 'static,
         {
-            self.api = self.api.bind("/cards.save".into(), Method::POST, handler);
+            self.api = self.api.bind("/cards.save", Method::POST, handler);
+            self
+        }
+
+        pub fn bind_cards_unsave<F, T, R>(mut self, handler: F) -> Self
+        where
+            F: Handler<T, R>,
+            T: FromRequest + 'static,
+            R: Future<
+                    Output = Result<
+                        super::paths::cards_unsave::Response,
+                        super::paths::cards_unsave::Error,
+                    >,
+                > + 'static,
+        {
+            self.api = self.api.bind("/cards.unsave", Method::POST, handler);
             self
         }
 
@@ -142,7 +153,7 @@ pub mod api {
                     >,
                 > + 'static,
         {
-            self.api = self.api.bind("/cards.list".into(), Method::POST, handler);
+            self.api = self.api.bind("/cards.list", Method::POST, handler);
             self
         }
 
@@ -157,7 +168,7 @@ pub mod api {
                     >,
                 > + 'static,
         {
-            self.api = self.api.bind("/cards.get".into(), Method::POST, handler);
+            self.api = self.api.bind("/cards.get", Method::POST, handler);
             self
         }
 
@@ -172,7 +183,7 @@ pub mod api {
                     >,
                 > + 'static,
         {
-            self.api = self.api.bind("/users.get".into(), Method::POST, handler);
+            self.api = self.api.bind("/users.get", Method::POST, handler);
             self
         }
 
@@ -187,7 +198,7 @@ pub mod api {
                     >,
                 > + 'static,
         {
-            self.api = self.api.bind("/session.get".into(), Method::POST, handler);
+            self.api = self.api.bind("/session.get", Method::POST, handler);
             self
         }
 
@@ -202,7 +213,7 @@ pub mod api {
                     >,
                 > + 'static,
         {
-            self.api = self.api.bind("/users.search".into(), Method::POST, handler);
+            self.api = self.api.bind("/users.search", Method::POST, handler);
             self
         }
 
@@ -217,7 +228,7 @@ pub mod api {
                     >,
                 > + 'static,
         {
-            self.api = self.api.bind("/cards.feed".into(), Method::POST, handler);
+            self.api = self.api.bind("/cards.feed", Method::POST, handler);
             self
         }
     }
@@ -354,6 +365,31 @@ pub mod components {
         pub enum CardsSaveError {
             #[error("Already saved")]
             AlreadySaved,
+            #[error("Card not found")]
+            CardNotFound,
+            #[error("No access")]
+            NoAccess,
+        }
+
+        #[derive(Debug, Serialize)]
+        #[serde(rename_all = "camelCase")]
+        pub struct CardsUnsaveSuccess {
+            pub card: schemas::Card,
+            pub box_id: Uuid,
+        }
+
+        #[derive(Debug, Serialize, thiserror::Error)]
+        #[error(transparent)]
+        pub struct CardsUnsaveFailed {
+            #[from]
+            pub error: CardsUnsaveError,
+        }
+
+        #[derive(Debug, Serialize, thiserror::Error)]
+        #[serde(rename_all = "snake_case")]
+        pub enum CardsUnsaveError {
+            #[error("Already unsaved")]
+            AlreadyUnsaved,
             #[error("Card not found")]
             CardNotFound,
             #[error("No access")]
@@ -506,6 +542,12 @@ pub mod components {
         #[derive(Debug, Deserialize)]
         #[serde(rename_all = "camelCase")]
         pub struct CardsSaveRequestBody {
+            pub card_id: Uuid,
+        }
+
+        #[derive(Debug, Deserialize)]
+        #[serde(rename_all = "camelCase")]
+        pub struct CardsUnsaveRequestBody {
             pub card_id: Uuid,
         }
 
@@ -969,6 +1011,69 @@ pub mod paths {
         pub enum Error {
             #[error(transparent)]
             BadRequest(#[from] responses::CardsSaveFailed),
+            #[error(transparent)]
+            InternalServerError(
+                #[from]
+                #[serde(skip)]
+                eyre::Report,
+            ),
+        }
+
+        impl Responder for Response {
+            fn respond_to(self, _: &HttpRequest) -> HttpResponse {
+                match self {
+                    Response::Ok(r) => HttpResponse::build(StatusCode::OK).json(r),
+                }
+            }
+        }
+
+        impl ResponseError for Error {
+            fn status_code(&self) -> StatusCode {
+                match self {
+                    Error::InternalServerError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                    Error::BadRequest(_) => StatusCode::BAD_REQUEST,
+                }
+            }
+
+            fn error_response(&self) -> HttpResponse {
+                let content_type = match self {
+                    Self::BadRequest(_) => Some(ContentType::Json),
+                    _ => None,
+                };
+
+                let mut res = &mut HttpResponse::build(self.status_code());
+                if let Some(content_type) = content_type {
+                    res = res.content_type(content_type.to_string());
+
+                    match content_type {
+                        ContentType::Json => res.json(self),
+                        ContentType::FormData => res.body(serde_plain::to_string(self).unwrap()),
+                    }
+                } else {
+                    HttpResponse::build(self.status_code()).finish()
+                }
+            }
+        }
+    }
+
+    pub mod cards_unsave {
+        use super::responses;
+        use actix_swagger::ContentType;
+        use actix_web::http::StatusCode;
+        use actix_web::{HttpRequest, HttpResponse, Responder, ResponseError};
+        use serde::Serialize;
+
+        #[derive(Debug, Serialize)]
+        #[serde(untagged)]
+        pub enum Response {
+            Ok(responses::CardsUnsaveSuccess),
+        }
+
+        #[derive(Debug, Serialize, thiserror::Error)]
+        #[serde(untagged)]
+        pub enum Error {
+            #[error(transparent)]
+            BadRequest(#[from] responses::CardsUnsaveFailed),
             #[error(transparent)]
             InternalServerError(
                 #[from]
