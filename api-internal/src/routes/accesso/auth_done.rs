@@ -13,6 +13,7 @@ use actix_web::{
     web::{Data, Json},
     HttpRequest, Responder,
 };
+use cardbox_app::AddCookieExt;
 use cardbox_app::SessionCookieConfig;
 use cardbox_core::app::UpdateUserFailure;
 use cardbox_settings::Settings;
@@ -133,8 +134,11 @@ pub async fn route(
                             })
                             .respond_to(&req);
 
-                            response
-                                .add_cookie(&config_session.to_cookie(session_token))
+                            let cookie = config_session
+                                .to_cookie(session_token)
+                                .wrap_err("Could not turn into cookie")?;
+
+                            AddCookieExt::add_cookie(&mut response, &cookie)
                                 .wrap_err("Could not add cookie")?;
 
                             Ok(response)

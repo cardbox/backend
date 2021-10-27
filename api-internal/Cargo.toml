@@ -1,41 +1,41 @@
 [package]
-authors = ["Sergey Sova <mail@sergeysova.com>"]
-edition = "2018"
 name = "cardbox-api-internal"
 version = "0.1.0"
+authors = ["Sergey Sova <mail@sergeysova.com>"]
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cardbox-core = { path = "../core" }
-cardbox-app = { path = "../app" }
-cardbox-db = { path = "../db" }
-cardbox-settings = { path = "../settings" }
-reqwest = { version = "0.11.6", default-features = false, features = ["json", "rustls-tls"] }
+actix-http = "3.0.0-beta.11"
 actix-rt = "2.3.0"
 actix-swagger = "=0.3.0-beta.3"
-actix-web = { version = "4.0.0-beta.10", default-features = false, features = ["compress-zstd", "cookies", "rustls"] }
+actix-web = { version = "4.0.0-beta.10", default-features = false, features = ["compress-zstd", "rustls"] }
+actix-web-prometheus = { version = "0.1.2-beta.10", features = ["process"] }
+async-trait = "0.1.51"
+cardbox-app = { path = "../app" }
+cardbox-core = { path = "../core" }
+cardbox-db = { path = "../db" }
+cardbox-settings = { path = "../settings" }
+chrono = { version = "0.4.19", features = ["serde"] }
+color-eyre = "0.5.11"
+dotenv = "0.15.0"
+eyre = "0.6.5"
+itertools = "0.10.1"
+once_cell = "1.8.0"
+opentelemetry = "0.16.0"
+prometheus = "0.13.0"
+reqwest = { version = "0.11.6", default-features = false, features = ["json", "rustls-tls"] }
 rustls = "0.20.0"
 rustls-pemfile = "0.2.1"
-actix-web-prometheus = { version = "0.1.2-beta.10", features = ["process"] }
-prometheus = "0.13.0"
-actix-http = "3.0.0-beta.11"
-shrinkwraprs = "0.3.0"
-async-trait = "0.1.51"
-chrono = { version = "0.4.19", features = ["serde"] }
-dotenv = "0.15.0"
-once_cell = "1.8.0"
 serde = { version = "1.0.130", features = ["derive"] }
 serde_json = { version = "1.0.68", features = ["raw_value"] }
 serde_plain = "1.0.0"
-time = "0.3.3"
-tokio = "1.12.0"
-eyre = "0.6.5"
-color-eyre = "0.5.11"
-tracing = "0.1.29"
-itertools = "0.10.1"
+shrinkwraprs = "0.3.0"
 thiserror = "1.0.30"
-tracing-actix-web = { version = "0.4.0-beta.15", default-features = false, features = ["emit_event_on_error", "opentelemetry_0_16"] }
-opentelemetry = "0.16.0"
+time = "0.3.4"
+tokio = "1.12.0"
+tracing = "0.1.29"
+tracing-actix-web = { version = "0.5.0-beta.1", default-features = false, features = ["emit_event_on_error", "opentelemetry_0_16"] }
 url = "2.2.2"
 uuid = { version = "0.8.2", features = ["serde", "v4"] }

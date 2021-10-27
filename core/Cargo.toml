@@ -1,26 +1,26 @@
 [package]
-authors = ["Sergey Sova <mail@sergeysova.com>"]
-edition = "2018"
 name = "cardbox-core"
 version = "0.1.0"
+authors = ["Sergey Sova <mail@sergeysova.com>"]
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+actix-web = { version = "4.0.0-beta.10", default-features = false, features = ["cookies"] }
 async-trait = "0.1.51"
-actix-web = { version = "4.0.0-beta.9", default-features = false, features = ["cookies"] }
 chrono = { version = "0.4.19", features = ["std"] }
+eyre = "0.6.5"
+futures = "0.3.17"
+rand = "0.8.4"
 serde = { version = "1.0.130", features = ["derive"] }
 serde_json = { version = "1.0.68", features = ["raw_value"] }
-time = "0.3.3"
+thiserror = "1.0.30"
+time = "0.3.4"
+tracing = "0.1.29"
 uuid = { version = "0.8.2", features = ["v4"] }
-futures = "0.3.17"
 validator = "0.14.0"
 validator_derive = "0.14.0"
-thiserror = "1.0.30"
-tracing = "0.1.29"
-eyre = "0.6.5"
-rand = "0.8.4"
 
 mockall = { version = "0.10.2", optional = true }
 sqlx-core = { version = "0.5.9", default-features = false }

@@ -121,12 +121,10 @@ async fn main() -> eyre::Result<()> {
         let tls_cfg = {
             let cert = load_certs(&std::env::var("TLS_CERT_FILE")?)?;
             let key = load_private_key(&std::env::var("TLS_KEY_FILE")?)?;
-            let cfg = rustls::ServerConfig::builder()
+            rustls::ServerConfig::builder()
                 .with_safe_defaults()
                 .with_no_client_auth()
-                .with_single_cert(cert, key)?;
-
-            cfg
+                .with_single_cert(cert, key)?
         };
         server.bind_rustls(bind_address, tls_cfg)?.run().await?;
     } else {

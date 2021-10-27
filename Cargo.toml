@@ -7,7 +7,12 @@ members = [
   "core",
   "db",
   "app",
-  "settings"
+  "settings",
 ]
 
 resolver = "2"
+
+[profile.release]
+debug = 1
+incremental = true
+lto = "off"
