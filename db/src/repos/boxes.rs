@@ -1,9 +1,10 @@
 use crate::entities::{self, BoxType};
-use crate::mappers::sqlx_error_to_card_save_error;
+use crate::mappers::{sqlx_error_to_card_save_error, sqlx_error_to_card_unsave_error};
 use crate::Database;
-use cardbox_core::app::CardSaveError;
+use cardbox_core::app::{CardSaveError, CardUnsaveError};
 use cardbox_core::contracts::{BoxRepo, CardRepo, RepoResult};
 use cardbox_core::models;
+use cardbox_core::models::Card;
 use uuid::Uuid;
 
 #[async_trait]
@@ -74,6 +75,40 @@ impl BoxRepo for Database {
             None => {
                 tracing::error!(%card_id, "Could not find card");
                 Err(CardSaveError::CardNotFound)
+            }
+        }
+    }
+
+    async fn box_remove_card(&self, box_id: Uuid, card_id: Uuid) -> Result<Card, CardUnsaveError> {
+        let card = self.card_find_by_id(card_id).await?;
+
+        match card {
+            Some((card, _)) => {
+                let rows_affected = sqlx::query!(
+                    // language=PostgreSQL
+                    r#"
+                    DELETE FROM boxes_cards WHERE
+                    (box_id, card_id) = ($1, $2)
+                    "#,
+                    box_id,
+                    card_id
+                )
+                .execute(&self.pool)
+                .await
+                .map_err(sqlx_error_to_card_unsave_error)?
+                .rows_affected();
+
+                if rows_affected == 0 {
+                    tracing::warn!(
+                        "Something weird is going on! Zero rows affected when trying to remove card from box"
+                    );
+                }
+
+                Ok(card)
+            }
+            None => {
+                tracing::error!(%card_id, "Could not find card");
+                Err(CardUnsaveError::CardNotFound)
             }
         }
     }

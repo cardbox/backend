@@ -2,7 +2,7 @@
 use mockall::*;
 
 use super::RepoResult;
-use crate::app::CardSaveError;
+use crate::app::{CardSaveError, CardUnsaveError};
 use crate::models;
 use uuid::Uuid;
 
@@ -18,6 +18,12 @@ pub trait BoxRepo {
         box_id: Uuid,
         card_id: Uuid,
     ) -> Result<models::Card, CardSaveError>;
+
+    async fn box_remove_card(
+        &self,
+        box_id: Uuid,
+        card_id: Uuid,
+    ) -> Result<models::Card, CardUnsaveError>;
 }
 
 #[cfg(feature = "testing")]
@@ -37,5 +43,13 @@ impl BoxRepo for crate::contracts::MockDb {
         card_id: Uuid,
     ) -> Result<models::Card, CardSaveError> {
         self.boxes.box_add_card(box_id, card_id).await
+    }
+
+    async fn box_remove_card(
+        &self,
+        box_id: Uuid,
+        card_id: Uuid,
+    ) -> Result<models::Card, CardUnsaveError> {
+        self.boxes.box_remove_card(box_id, card_id).await
     }
 }
