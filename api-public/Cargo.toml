@@ -3,7 +3,7 @@ name = "cardbox-api-public"
 version = "0.1.0"
 authors = ["Sergey Sova <mail@sergeysova.com>"]
 edition = "2021"
-
+rust-version = "1.56"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
