@@ -28,10 +28,10 @@ pub async fn route(
     if unsaved.id != body.card_id {
         let span = tracing::span::Span::current();
         span.record("card_id", &tracing::field::display(body.card_id));
-        span.record("saved_id", &tracing::field::display(unsaved.id));
+        span.record("unsaved_id", &tracing::field::display(unsaved.id));
 
         Err(Error::InternalServerError(eyre::eyre!(
-            "Saved card has different id!"
+            "Unsaved card has different id!"
         )))
     } else {
         Ok(Response::Ok(CardsUnsaveSuccess {

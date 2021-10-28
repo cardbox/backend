@@ -170,9 +170,9 @@ impl Cards for App {
                 return Err(CardUnsaveError::TokenExpired);
             }
 
-            let card_to_save = db.card_find_by_id(card_id).await?;
+            let card_to_unsave = db.card_find_by_id(card_id).await?;
 
-            match card_to_save {
+            match card_to_unsave {
                 Some(_) => {
                     let box_id = match box_id {
                         Some(id) => {
