@@ -1,4 +1,4 @@
-ARG rust_ver=1.54
+ARG rust_ver=1.56
 FROM rust:${rust_ver}-slim as build
 
 ENV SQLX_OFFLINE=true

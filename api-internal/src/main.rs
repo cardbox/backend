@@ -94,6 +94,7 @@ async fn main() -> eyre::Result<()> {
                     .bind_cards_edit(routes::cards::edit::route)
                     .bind_cards_delete(routes::cards::delete::route)
                     .bind_cards_save(routes::cards::save::route)
+                    .bind_cards_unsave(routes::cards::unsave::route)
                     .bind_cards_list(routes::cards::list::route)
                     .bind_cards_get(routes::cards::get::route)
                     .bind_cards_feed(routes::cards::feed::route)
@@ -122,12 +123,11 @@ async fn main() -> eyre::Result<()> {
         let tls_cfg = {
             let cert = load_certs(&std::env::var("TLS_CERT_FILE")?)?;
             let key = load_private_key(&std::env::var("TLS_KEY_FILE")?)?;
-            let cfg = rustls::ServerConfig::builder()
+
+            rustls::ServerConfig::builder()
                 .with_safe_defaults()
                 .with_no_client_auth()
-                .with_single_cert(cert, key)?;
-
-            cfg
+                .with_single_cert(cert, key)?
         };
         server.bind_rustls(bind_address, tls_cfg)?.run().await?;
     } else {

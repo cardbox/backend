@@ -17,8 +17,8 @@ mod users;
 #[cfg(feature = "testing")]
 pub use testing::*;
 
+pub use crate::cookie::{AddCookieExt, SessionCookieConfig};
 pub use configure::{configure, install_logger, not_found};
-pub use cookie::SessionCookieConfig;
 pub(crate) use services::health_service;
 
 use hashbrown::HashMap;

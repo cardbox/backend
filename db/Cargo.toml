@@ -1,9 +1,9 @@
 [package]
-authors = ["Sergey Sova <mail@sergeysova.com>"]
-edition = "2018"
 name = "cardbox-db"
 version = "0.1.0"
-
+authors = ["Sergey Sova <mail@sergeysova.com>"]
+edition = "2021"
+rust-version = "1.56"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
@@ -11,23 +11,23 @@ async-trait = "0.1.51"
 cardbox-core = { path = "../core" }
 cardbox-settings = { path = "../settings" }
 chrono = { version = "0.4.19", default-features = false, features = ["serde", "std", "clock"] }
-tracing = "0.1.29"
+futures = "0.3.17"
 serde = "1.0.130"
 serde_json = { version = "1.0.68", features = ["raw_value"] }
-futures = "0.3.17"
+tracing = "0.1.29"
 uuid = { version = "0.8.2", features = ["serde", "v4"] }
 
 [dependencies.sqlx]
 version = "0.5.9"
 default-features = false
 features = [
-    "uuid",
-    "postgres",
-    "chrono",
-    "macros",
-    "runtime-actix-rustls",
-    "offline",
-    "json"
+  "uuid",
+  "postgres",
+  "chrono",
+  "macros",
+  "runtime-actix-rustls",
+  "offline",
+  "json",
 ]
 
 [features]
