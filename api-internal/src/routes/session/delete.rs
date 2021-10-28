@@ -3,11 +3,11 @@ use crate::generated::{
 };
 use actix_web::http::header::SET_COOKIE;
 use actix_web::http::HeaderValue;
-use actix_web::{cookie::CookieBuilder, web, Responder};
+use actix_web::{web, Responder};
 use eyre::WrapErr;
-use time::OffsetDateTime;
 use cardbox_core::app::extractors::SessionToken;
 use cardbox_core::app::session::{Session, SessionDeleteError};
+use cookie::{CookieBuilder};
 
 pub async fn route(
     session_config: web::Data<cardbox_app::SessionCookieConfig>,
@@ -19,11 +19,9 @@ pub async fn route(
         .await
         .map_err(map_session_delete_error)?;
 
-    let expires: OffsetDateTime = OffsetDateTime::now_utc();
-
     let cookie = CookieBuilder::new(session_config.name.to_owned(), "")
         // TODO: extract to function or Trait
-        .expires(Some(time::offset_::now_utc()))
+        .expires(time::OffsetDateTime::now_utc())
         .path(session_config.path.to_owned())
         .secure(session_config.secure)
         .http_only(session_config.http_only)
