@@ -671,6 +671,8 @@ components:
           type: string
         lastName:
           type: string
+        username:
+          type: string
 
     User:
       type: object

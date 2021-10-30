@@ -615,6 +615,7 @@ pub mod components {
             pub id: Uuid,
             pub first_name: String,
             pub last_name: String,
+            pub username: Option<String>,
         }
 
         #[derive(Debug, Serialize)]

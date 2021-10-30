@@ -123,7 +123,7 @@ impl UserRepo for Database {
             SessionUser,
             // language=PostgreSQL
             r#"
-            SELECT u.id, u.accesso_id, u.first_name, u.last_name,
+            SELECT u.id, u.accesso_id, u.first_name, u.last_name, u.username,
                    (st.user_id, st.token, st.expires_at) as "session_token!: SessionToken"
             FROM users as u
             JOIN session_tokens st ON u.id = st.user_id
