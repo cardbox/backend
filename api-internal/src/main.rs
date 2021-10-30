@@ -1,4 +1,3 @@
-#![feature(type_name_of_val)]
 #![deny(warnings)]
 #![forbid(unsafe_code)]
 
