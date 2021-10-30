@@ -17,6 +17,7 @@ ssl_validate = false
 host = "localhost"
 port = 9110
 use_ssl = false
+use_h1 = false
 
 [accesso]
 url = "http://localhost:9115"

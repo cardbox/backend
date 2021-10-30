@@ -47,6 +47,7 @@ pub struct Database {
 pub struct Server {
     pub port: u16,
     pub use_ssl: bool,
+    pub use_h1: bool,
     pub host: String,
     pub workers: Option<u16>,
     pub backlog: Option<u32>,

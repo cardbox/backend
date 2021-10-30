@@ -1,3 +1,4 @@
+#![feature(type_name_of_val)]
 #![deny(warnings)]
 #![forbid(unsafe_code)]
 
@@ -147,8 +148,21 @@ async fn main() -> eyre::Result<()> {
             .run()
             .await?;
     } else {
-        server
-            .bind("http/2", bind_address, move || {
+        if settings.server.use_h1 {
+            server.bind("http/1.1", bind_address, move || {
+                let mut builder = HttpServiceBuilder::new();
+
+                if let Some(keep_alive) = settings.server.keep_alive {
+                    builder =
+                        builder.keep_alive(actix_http::KeepAlive::Timeout(keep_alive as usize));
+                }
+
+                builder
+                    .h1(map_config(app(), |_| AppConfig::default()))
+                    .tcp()
+            })?
+        } else {
+            server.bind("http/2", bind_address, move || {
                 let mut builder = HttpServiceBuilder::new();
 
                 if let Some(keep_alive) = settings.server.keep_alive {
@@ -160,8 +174,9 @@ async fn main() -> eyre::Result<()> {
                     .h2(map_config(app(), |_| AppConfig::default()))
                     .tcp()
             })?
-            .run()
-            .await?;
+        }
+        .run()
+        .await?
     }
 
     if use_opentelemetry {
