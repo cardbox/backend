@@ -2,7 +2,7 @@
 #![forbid(unsafe_code)]
 
 use actix_web::middleware;
-use actix_web::{web, HttpServer};
+use actix_web::web;
 use cardbox_app::install_logger;
 use cardbox_settings::Settings;
 use eyre::WrapErr;
@@ -14,6 +14,10 @@ mod accesso;
 mod generated;
 mod routes;
 
+use actix_http::HttpServiceBuilder;
+use actix_server::Server;
+use actix_service::map_config;
+use actix_web::dev::AppConfig;
 use actix_web_prometheus::PrometheusMetricsBuilder;
 use shrinkwraprs::Shrinkwrap;
 
@@ -54,6 +58,7 @@ async fn main() -> eyre::Result<()> {
     let bind_address = settings.server.bind_address();
 
     let client = create_request_client(&settings)?;
+    let use_opentelemetry = settings.use_opentelemetry;
 
     let settings_clone = settings.clone();
     let client_clone = client.clone();
@@ -64,12 +69,12 @@ async fn main() -> eyre::Result<()> {
         .endpoint("/metrics")
         .build()?;
 
-    let mut server = HttpServer::new(move || {
+    let app = move || {
         let settings = settings_clone.clone();
         let client = client_clone.clone();
         let accesso_url = accesso_url.clone();
         actix_web::App::new()
-            .configure(|config| {
+            .configure(move |config| {
                 let settings = settings.clone();
                 cardbox_app::configure(config, settings);
             })
@@ -104,19 +109,15 @@ async fn main() -> eyre::Result<()> {
                     .bind_users_search(routes::users::search::route),
             )
             .default_service(web::route().to(cardbox_app::not_found))
-    });
+    };
+
+    let mut server = Server::build();
 
     if let Some(workers) = settings.server.workers {
         server = server.workers(workers as usize);
     }
     if let Some(backlog) = settings.server.backlog {
         server = server.backlog(backlog);
-    }
-    if let Some(keep_alive) = settings.server.keep_alive {
-        server = server.keep_alive(actix_http::KeepAlive::Timeout(keep_alive as usize));
-    }
-    if let Some(client_shutdown) = settings.server.client_shutdown {
-        server = server.client_shutdown(client_shutdown);
     }
 
     if settings.server.use_ssl {
@@ -129,12 +130,56 @@ async fn main() -> eyre::Result<()> {
                 .with_no_client_auth()
                 .with_single_cert(cert, key)?
         };
-        server.bind_rustls(bind_address, tls_cfg)?.run().await?;
+        server
+            .bind("http/2-ssl", bind_address, move || {
+                let tls_cfg = tls_cfg.clone();
+
+                let mut builder = HttpServiceBuilder::new();
+
+                if let Some(keep_alive) = settings.server.keep_alive {
+                    builder =
+                        builder.keep_alive(actix_http::KeepAlive::Timeout(keep_alive as usize));
+                }
+
+                builder
+                    .h2(map_config(app(), |_| AppConfig::default()))
+                    .rustls(tls_cfg)
+            })?
+            .run()
+            .await?;
     } else {
-        server.bind(bind_address)?.run().await?;
+        if settings.server.use_h1 {
+            server.bind("http/1.1", bind_address, move || {
+                let mut builder = HttpServiceBuilder::new();
+
+                if let Some(keep_alive) = settings.server.keep_alive {
+                    builder =
+                        builder.keep_alive(actix_http::KeepAlive::Timeout(keep_alive as usize));
+                }
+
+                builder
+                    .h1(map_config(app(), |_| AppConfig::default()))
+                    .tcp()
+            })?
+        } else {
+            server.bind("http/2", bind_address, move || {
+                let mut builder = HttpServiceBuilder::new();
+
+                if let Some(keep_alive) = settings.server.keep_alive {
+                    builder =
+                        builder.keep_alive(actix_http::KeepAlive::Timeout(keep_alive as usize));
+                }
+
+                builder
+                    .h2(map_config(app(), |_| AppConfig::default()))
+                    .tcp()
+            })?
+        }
+        .run()
+        .await?
     }
 
-    if settings.use_opentelemetry {
+    if use_opentelemetry {
         opentelemetry::global::shutdown_tracer_provider();
     }
 

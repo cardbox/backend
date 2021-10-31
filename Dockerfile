@@ -1,5 +1,5 @@
 ARG rust_ver=1.56
-FROM rust:${rust_ver}-slim as build
+FROM rust:${rust_ver}-slim-bullseye as build
 
 ENV SQLX_OFFLINE=true
 ARG rustc_mode=release
@@ -62,7 +62,7 @@ COPY .env.sample /out/.env
 
 # ----------------------------------------------------------------
 
-FROM debian:buster-slim AS runtime
+FROM debian:bullseye-slim AS runtime
 
 ARG API_NAME
 

@@ -412,6 +412,8 @@ version = "0.1.0"
 dependencies = [
  "actix-http",
  "actix-rt",
+ "actix-server",
+ "actix-service",
  "actix-swagger",
  "actix-web",
  "actix-web-prometheus",

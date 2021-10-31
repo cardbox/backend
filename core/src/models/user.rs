@@ -21,6 +21,7 @@ pub struct SessionUser {
     pub accesso_id: uuid::Uuid,
     pub first_name: String,
     pub last_name: String,
+    pub username: Option<String>,
     pub expired: bool,
 }
 

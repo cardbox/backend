@@ -619,50 +619,6 @@
       ]
     }
   },
-  "a95137622a7fe490e7c873b50c8921874ecfc540a42cd2da0716eca6c57b0688": {
-    "query": "\n            SELECT u.id, u.accesso_id, u.first_name, u.last_name,\n                   (st.user_id, st.token, st.expires_at) as \"session_token!: SessionToken\"\n            FROM users as u\n            JOIN session_tokens st ON u.id = st.user_id\n            WHERE st.token = $1\n            ",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Uuid"
-        },
-        {
-          "ordinal": 1,
-          "name": "accesso_id",
-          "type_info": "Uuid"
-        },
-        {
-          "ordinal": 2,
-          "name": "first_name",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 3,
-          "name": "last_name",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 4,
-          "name": "session_token!: SessionToken",
-          "type_info": "Record"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Text"
-        ]
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        null
-      ]
-    }
-  },
   "b81e36b4bc6d15fd6d4f9c04d299e96315260715a02633c335c9b4d2b214afaa": {
     "query": "\n            SELECT user_id, token, expires_at\n            FROM session_tokens\n            WHERE token = $1\n            ",
     "describe": {
@@ -901,6 +857,56 @@
         false,
         false,
         false
+      ]
+    }
+  },
+  "d4fe217e3483a4321212d508650097d987575bfb4075a8d372fac97aaf1547d4": {
+    "query": "\n            SELECT u.id, u.accesso_id, u.first_name, u.last_name, u.username,\n                   (st.user_id, st.token, st.expires_at) as \"session_token!: SessionToken\"\n            FROM users as u\n            JOIN session_tokens st ON u.id = st.user_id\n            WHERE st.token = $1\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "accesso_id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 2,
+          "name": "first_name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "last_name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 4,
+          "name": "username",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 5,
+          "name": "session_token!: SessionToken",
+          "type_info": "Record"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        true,
+        null
       ]
     }
   },

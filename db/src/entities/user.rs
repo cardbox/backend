@@ -55,12 +55,13 @@ impl Type<Postgres> for User {
     }
 }
 
-#[derive(Debug, sqlx::FromRow, sqlx::Type)]
+#[derive(Debug, sqlx::FromRow)]
 pub(crate) struct SessionUser {
     pub(crate) id: Uuid,
     pub(crate) accesso_id: Uuid,
     pub(crate) first_name: String,
     pub(crate) last_name: String,
+    pub(crate) username: Option<String>,
     pub(crate) session_token: SessionToken,
 }
 
@@ -90,6 +91,7 @@ impl From<SessionUser> for models::SessionUser {
             first_name: u.first_name,
             last_name: u.last_name,
             expired: models::SessionToken::from(u.session_token).is_expired(),
+            username: u.username,
         }
     }
 }
