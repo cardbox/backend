@@ -20,6 +20,7 @@ cardbox-db = { path = "../db" }
 cardbox-settings = { path = "../settings" }
 chrono = { version = "0.4.19", features = ["serde"] }
 color-eyre = "0.5.11"
+cookie = "0.16.0-rc.1"
 dotenv = "0.15.0"
 eyre = "0.6.5"
 itertools = "0.10.1"

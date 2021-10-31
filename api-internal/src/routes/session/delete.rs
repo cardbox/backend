@@ -1,9 +1,10 @@
 use crate::generated::{
-    paths::session_delete::{Error, Response},
+    paths::session_delete::{Error},
 };
 use actix_web::http::header::SET_COOKIE;
-use actix_web::http::HeaderValue;
+use actix_web::http::{HeaderValue, StatusCode};
 use actix_web::{web, Responder};
+use actix_web::web::Json;
 use eyre::WrapErr;
 use cardbox_core::app::extractors::SessionToken;
 use cardbox_core::app::session::{Session, SessionDeleteError};
@@ -30,7 +31,10 @@ pub async fn route(
     let header_value = HeaderValue::from_str(&cookie.to_string())
         .wrap_err("Could not create header value for cookie!")?;
 
-    Ok(Response::Ok.with_header((SET_COOKIE, header_value)))
+    Ok(Json(serde_json::value::Value::Null)
+        .with_status(StatusCode::OK)
+        .with_header((SET_COOKIE, header_value))
+        .with_header(("content-type", "application/json")))
 }
 
 fn map_session_delete_error(error: SessionDeleteError) -> Error {
