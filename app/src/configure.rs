@@ -38,7 +38,7 @@ pub async fn not_found(_req: HttpRequest) -> impl Responder {
 
 pub fn install_logger(app_name: String, settings: &Settings) -> Result<WorkerGuard, eyre::Report> {
     use opentelemetry::sdk::trace;
-    opentelemetry::global::set_text_map_propagator(opentelemetry_jaeger::Propagator::new());
+    opentelemetry::global::set_text_map_propagator(opentelemetry_zipkin::Propagator::new());
 
     let env_filter = EnvFilter::try_from_default_env()?;
     LogTracer::init()?;
@@ -49,8 +49,8 @@ pub fn install_logger(app_name: String, settings: &Settings) -> Result<WorkerGua
 
     println!("{:?}", settings);
     if settings.use_opentelemetry {
-        let tracer = opentelemetry_jaeger::new_pipeline()
-            .with_agent_endpoint(std::env::var("OPENTELEMETRY_ENDPOINT_URL")?)
+        let tracer = opentelemetry_zipkin::new_pipeline()
+            .with_collector_endpoint(std::env::var("OPENTELEMETRY_ENDPOINT_URL")?)
             .with_trace_config(
                 trace::config()
                     .with_resource(Resource::new(vec![KeyValue::new("service.name", app_name)])),
