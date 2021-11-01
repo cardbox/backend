@@ -180,6 +180,7 @@ impl CardRepo for Database {
                      LEFT OUTER JOIN socials s ON u.id = $1
             WHERE b.user_id = $1
               AND b."default" = TRUE
+              AND EXISTS(SELECT 1 FROM cards WHERE id = bc.card_id)
             GROUP BY u.id, c.id
             "#,
             user_id

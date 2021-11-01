@@ -133,32 +133,6 @@
       "nullable": []
     }
   },
-  "1cc0fad94afa81a85f1050b3096690a44db1d4315871c2b15259cd202e590b8a": {
-    "query": "\n            SELECT \n                (u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work, (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE (s.id IS NOT NULL) ))) as \"user!: User\",\n                (c.id, c.author_id, c.title, c.created_at, c.updated_at, c.contents, c.tags) as \"card!: Card\"\n            FROM boxes AS b\n                     LEFT JOIN boxes_cards bc\n                     ON b.id = bc.box_id\n                     LEFT JOIN cards c\n                     ON c.id = bc.card_id\n                     LEFT JOIN users u ON u.id = $1\n                     LEFT OUTER JOIN socials s ON u.id = $1\n            WHERE b.user_id = $1\n              AND b.\"default\" = TRUE\n            GROUP BY u.id, c.id\n            ",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "user!: User",
-          "type_info": "Record"
-        },
-        {
-          "ordinal": 1,
-          "name": "card!: Card",
-          "type_info": "Record"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Uuid"
-        ]
-      },
-      "nullable": [
-        null,
-        null
-      ]
-    }
-  },
   "24122a2a412df82d72e2afbb6dc486a6c517a96f69631a977412b078118f5c39": {
     "query": "\n            SELECT \n                   (u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work, (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE (s.id IS NOT NULL) ))) as \"user!: User\",\n                   (c.id, c.author_id, c.title, c.created_at, c.updated_at, c.contents, c.tags) as \"card!: Card\" \n            FROM cards as c\n                LEFT JOIN users u ON u.id = c.author_id\n                LEFT OUTER JOIN socials s ON s.user_id = u.id\n            WHERE c.id = $1\n            GROUP BY u.id, c.id\n            ",
     "describe": {
@@ -299,6 +273,32 @@
   },
   "5fbaa3c15ab366455c5cc9854e1101848ee1a65fa2b492ec475a9a5481e1896f": {
     "query": "\n            SELECT\n                (u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work, (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE (s.id IS NOT NULL) ))) as \"user!: User\",\n                (c.id, c.author_id, c.title, c.created_at, c.updated_at, c.contents, c.tags) as \"card!: Card\"\n            FROM cards as c\n                LEFT JOIN users u ON u.id = $1\n                LEFT OUTER JOIN socials s ON u.id = $1\n            WHERE author_id = $1\n            GROUP BY u.id, c.id\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "user!: User",
+          "type_info": "Record"
+        },
+        {
+          "ordinal": 1,
+          "name": "card!: Card",
+          "type_info": "Record"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        null,
+        null
+      ]
+    }
+  },
+  "7e8d0c21ac574b3585573917cd8c3c668cff0759f8df7dc587077685a158e5b3": {
+    "query": "\n            SELECT \n                (u.id, u.accesso_id, u.first_name, u.last_name, u.username, u.bio, u.avatar, u.work, (array_agg((s.id, s.user_id, s.name, s.link)) FILTER ( WHERE (s.id IS NOT NULL) ))) as \"user!: User\",\n                (c.id, c.author_id, c.title, c.created_at, c.updated_at, c.contents, c.tags) as \"card!: Card\"\n            FROM boxes AS b\n                     LEFT JOIN boxes_cards bc\n                     ON b.id = bc.box_id\n                     LEFT JOIN cards c\n                     ON c.id = bc.card_id\n                     LEFT JOIN users u ON u.id = $1\n                     LEFT OUTER JOIN socials s ON u.id = $1\n            WHERE b.user_id = $1\n              AND b.\"default\" = TRUE\n              AND EXISTS(SELECT 1 FROM cards WHERE id = bc.card_id)\n            GROUP BY u.id, c.id\n            ",
     "describe": {
       "columns": [
         {
