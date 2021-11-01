@@ -203,11 +203,11 @@ pub mod api {
         }
 
         pub fn bind_session_delete<F, T, R, Res>(mut self, handler: F) -> Self
-            where
-                F: Handler<T, R>,
-                T: FromRequest + 'static,
-                Res: Responder + 'static,
-                R: Future<Output = Result<Res, super::paths::session_delete::Error>> + 'static,
+        where
+            F: Handler<T, R>,
+            T: FromRequest + 'static,
+            Res: Responder + 'static,
+            R: Future<Output = Result<Res, super::paths::session_delete::Error>> + 'static,
         {
             self.api = self
                 .api
@@ -489,6 +489,8 @@ pub mod components {
             #[serde(rename = "invalid_payload")]
             #[error(transparent)]
             InvalidPayload(#[serde(skip)] eyre::Report),
+            #[error("Unknown")]
+            Unknown,
         }
 
         #[derive(Debug, Serialize)]
@@ -521,6 +523,7 @@ pub mod components {
 
     pub mod request_bodies {
         use serde::Deserialize;
+        use serde::Serialize;
         use uuid::Uuid;
 
         #[derive(Debug, Deserialize)]
@@ -596,6 +599,12 @@ pub mod components {
         #[serde(rename_all = "camelCase")]
         pub struct CardsGetRequestBody {
             pub card_id: Uuid,
+        }
+
+        #[derive(Debug, Serialize, Deserialize)]
+        pub struct SessionDelete {
+            #[serde(rename = "deleteAllSessions")]
+            pub delete_all_sessions: bool,
         }
 
         #[derive(Debug, Deserialize)]

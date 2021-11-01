@@ -424,6 +424,7 @@ dependencies = [
  "cardbox-settings",
  "chrono",
  "color-eyre",
+ "cookie 0.16.0-rc.1",
  "dotenv",
  "eyre",
  "itertools 0.10.1",
