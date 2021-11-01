@@ -15,7 +15,11 @@ pub enum SessionDeleteStrategy {
 
 #[async_trait]
 pub trait Session {
-    async fn session_delete(&self, token: String, strategy: SessionDeleteStrategy) -> Result<u64, SessionDeleteError>;
+    async fn session_delete(
+        &self,
+        token: String,
+        strategy: SessionDeleteStrategy,
+    ) -> Result<u64, SessionDeleteError>;
 }
 
 impl From<UnexpectedDatabaseError> for SessionDeleteError {

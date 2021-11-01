@@ -1,3 +1,5 @@
+use crate::generated::components::request_bodies;
+use crate::generated::components::responses::{SessionDeleteFailure, SessionDeleteFailureError};
 use crate::generated::paths::session_delete::Error;
 use actix_web::http::header::SET_COOKIE;
 use actix_web::http::{HeaderValue, StatusCode};
@@ -7,16 +9,13 @@ use cardbox_core::app::extractors::SessionToken;
 use cardbox_core::app::session::{Session, SessionDeleteError, SessionDeleteStrategy};
 use cookie::CookieBuilder;
 use eyre::WrapErr;
-use crate::generated::components::request_bodies;
-use crate::generated::components::responses::{SessionDeleteFailure, SessionDeleteFailureError};
 
 pub async fn route(
     body: web::Json<request_bodies::SessionDelete>,
     session_config: web::Data<cardbox_app::SessionCookieConfig>,
     app: web::Data<cardbox_app::App>,
-    token: SessionToken
+    token: SessionToken,
 ) -> Result<impl Responder, Error> {
-
     let token_str = token.into_inner();
     let strategy = match body.delete_all_sessions {
         true => SessionDeleteStrategy::All,
@@ -48,7 +47,8 @@ fn map_session_delete_error(error: SessionDeleteError) -> Error {
     match error {
         SessionDeleteError::Unexpected(e) => e.into(),
         SessionDeleteError::TokenNotFound => SessionDeleteFailure {
-            error: SessionDeleteFailureError::Unknown
-        }.into()
+            error: SessionDeleteFailureError::Unknown,
+        }
+        .into(),
     }
 }
