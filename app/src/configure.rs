@@ -2,8 +2,6 @@ use crate::health_service;
 use actix_web::web::ServiceConfig;
 use actix_web::{http::StatusCode, web, HttpRequest, Responder};
 use cardbox_settings::Settings;
-use opentelemetry::sdk::Resource;
-use opentelemetry::KeyValue;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tracing::subscriber::set_global_default;
@@ -37,7 +35,6 @@ pub async fn not_found(_req: HttpRequest) -> impl Responder {
 }
 
 pub fn install_logger(app_name: String, settings: &Settings) -> Result<WorkerGuard, eyre::Report> {
-    use opentelemetry::sdk::trace;
     opentelemetry::global::set_text_map_propagator(
         opentelemetry_zipkin::Propagator::with_encoding(
             opentelemetry_zipkin::B3Encoding::SingleAndMultiHeader,
@@ -53,12 +50,9 @@ pub fn install_logger(app_name: String, settings: &Settings) -> Result<WorkerGua
 
     println!("{:?}", settings);
     if settings.use_opentelemetry {
-        let tracer = opentelemetry_zipkin::new_pipeline()
+        let tracer = opentelemetry_jaeger::new_pipeline()
             .with_collector_endpoint(std::env::var("OPENTELEMETRY_ENDPOINT_URL")?)
-            .with_trace_config(
-                trace::config()
-                    .with_resource(Resource::new(vec![KeyValue::new("service.name", app_name)])),
-            )
+            .with_service_name(app_name)
             .install_batch(opentelemetry::runtime::TokioCurrentThread)?;
 
         let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
