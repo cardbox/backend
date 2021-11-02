@@ -16,7 +16,7 @@ fnv = "1.0.7"
 hashbrown = "0.11.2"
 itertools = "0.10.1"
 opentelemetry = { version = "0.16.0", features = ["rt-tokio-current-thread"] }
-opentelemetry-zipkin = { version = "0.14.0", default-features = false, features = ["reqwest-rustls"] }
+opentelemetry-zipkin = { version = "0.14.0", default-features = false, features = ["reqwest-rustls", "reqwest-client"] }
 rpmalloc = "0.2.2"
 serde = { version = "1.0.130", features = ["derive"] }
 sqlx-core = { version = "0.5.9", default-features = false, features = ["postgres", "json"] }

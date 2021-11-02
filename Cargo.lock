@@ -1548,6 +1548,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "opentelemetry-http"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d50ceb0b0e8b75cb3e388a2571a807c8228dabc5d6670f317b6eb21301095373"
+dependencies = [
+ "async-trait",
+ "bytes",
+ "futures-util",
+ "http",
+ "opentelemetry",
+ "reqwest",
+]
+
+[[package]]
 name = "opentelemetry-semantic-conventions"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1566,6 +1580,7 @@ dependencies = [
  "http",
  "lazy_static",
  "opentelemetry",
+ "opentelemetry-http",
  "opentelemetry-semantic-conventions",
  "reqwest",
  "serde",
