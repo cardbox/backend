@@ -40,7 +40,7 @@ pub fn install_logger(app_name: String, settings: &Settings) -> Result<WorkerGua
     use opentelemetry::sdk::trace;
     opentelemetry::global::set_text_map_propagator(
         opentelemetry_zipkin::Propagator::with_encoding(
-            opentelemetry_zipkin::B3Encoding::SingleHeader,
+            opentelemetry_zipkin::B3Encoding::SingleAndMultiHeader,
         ),
     );
 
