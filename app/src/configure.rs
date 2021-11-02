@@ -38,7 +38,11 @@ pub async fn not_found(_req: HttpRequest) -> impl Responder {
 
 pub fn install_logger(app_name: String, settings: &Settings) -> Result<WorkerGuard, eyre::Report> {
     use opentelemetry::sdk::trace;
-    opentelemetry::global::set_text_map_propagator(opentelemetry_zipkin::Propagator::new());
+    opentelemetry::global::set_text_map_propagator(
+        opentelemetry_zipkin::Propagator::with_encoding(
+            opentelemetry_zipkin::B3Encoding::SingleHeader,
+        ),
+    );
 
     let env_filter = EnvFilter::try_from_default_env()?;
     LogTracer::init()?;
