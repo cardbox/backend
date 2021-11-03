@@ -17,6 +17,7 @@ pub async fn route(app: Data<cardbox_app::App>, token: SessionToken) -> Result<R
 
     Ok(Response::Ok(SessionGetSuccess {
         user: schemas::SessionUser {
+            avatar: user.avatar,
             id: user.id,
             first_name: user.first_name,
             last_name: user.last_name,

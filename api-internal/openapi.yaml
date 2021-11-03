@@ -664,6 +664,9 @@ components:
       type: object
       required: [ id, firstName, lastName ]
       properties:
+        avatar:
+          type: string
+          nullable: true
         id:
           type: string
           format: uuid

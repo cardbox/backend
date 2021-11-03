@@ -57,6 +57,7 @@ impl Type<Postgres> for User {
 
 #[derive(Debug, sqlx::FromRow)]
 pub(crate) struct SessionUser {
+    pub(crate) avatar: Option<String>,
     pub(crate) id: Uuid,
     pub(crate) accesso_id: Uuid,
     pub(crate) first_name: String,
@@ -86,6 +87,7 @@ impl From<SessionUser> for models::SessionUser {
     #[inline]
     fn from(u: SessionUser) -> Self {
         Self {
+            avatar: u.avatar,
             id: u.id,
             accesso_id: u.accesso_id,
             first_name: u.first_name,

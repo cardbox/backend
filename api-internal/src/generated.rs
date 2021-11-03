@@ -628,6 +628,7 @@ pub mod components {
         #[derive(Debug, Serialize)]
         #[serde(rename_all = "camelCase")]
         pub struct UserInfo {
+            pub avatar: Option<String>,
             pub id: Uuid,
             pub first_name: String,
             pub last_name: String,
@@ -649,6 +650,7 @@ pub mod components {
         #[derive(Debug, Serialize)]
         #[serde(rename_all = "camelCase")]
         pub struct SessionUser {
+            pub avatar: Option<String>,
             pub id: Uuid,
             pub first_name: String,
             pub last_name: String,
