@@ -127,6 +127,7 @@ pub async fn route(
 
                             let mut response = Response::Ok(AuthDoneSuccess {
                                 user: UserInfo {
+                                    avatar: user.avatar,
                                     id: user.id,
                                     first_name: user.first_name,
                                     last_name: user.last_name,

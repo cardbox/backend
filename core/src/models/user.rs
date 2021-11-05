@@ -17,6 +17,7 @@ pub struct User {
 
 #[derive(Debug, Clone)]
 pub struct SessionUser {
+    pub avatar: Option<String>,
     pub id: uuid::Uuid,
     pub accesso_id: uuid::Uuid,
     pub first_name: String,

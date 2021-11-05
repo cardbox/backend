@@ -239,6 +239,62 @@
       ]
     }
   },
+  "5463ff21583675723b56e02ca9d96143e4ae376c9eb3da48aaee40b3fabe4e0b": {
+    "query": "\n            SELECT u.id, u.avatar, u.accesso_id, u.first_name, u.last_name, u.username,\n                   (st.user_id, st.token, st.expires_at) as \"session_token!: SessionToken\"\n            FROM users as u\n            JOIN session_tokens st ON u.id = st.user_id\n            WHERE st.token = $1\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "avatar",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "accesso_id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 3,
+          "name": "first_name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 4,
+          "name": "last_name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 5,
+          "name": "username",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 6,
+          "name": "session_token!: SessionToken",
+          "type_info": "Record"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        true,
+        false,
+        false,
+        false,
+        true,
+        null
+      ]
+    }
+  },
   "558ca5c5e0702bbccf834a1a5ecb851b944d1e3c85cf8d11b62844ac68caf2b6": {
     "query": "\n            SELECT user_id, token, expires_at\n            FROM session_tokens\n            WHERE user_id = $1\n            ",
     "describe": {
@@ -857,56 +913,6 @@
         false,
         false,
         false
-      ]
-    }
-  },
-  "d4fe217e3483a4321212d508650097d987575bfb4075a8d372fac97aaf1547d4": {
-    "query": "\n            SELECT u.id, u.accesso_id, u.first_name, u.last_name, u.username,\n                   (st.user_id, st.token, st.expires_at) as \"session_token!: SessionToken\"\n            FROM users as u\n            JOIN session_tokens st ON u.id = st.user_id\n            WHERE st.token = $1\n            ",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Uuid"
-        },
-        {
-          "ordinal": 1,
-          "name": "accesso_id",
-          "type_info": "Uuid"
-        },
-        {
-          "ordinal": 2,
-          "name": "first_name",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 3,
-          "name": "last_name",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 4,
-          "name": "username",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 5,
-          "name": "session_token!: SessionToken",
-          "type_info": "Record"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Text"
-        ]
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        true,
-        null
       ]
     }
   },
