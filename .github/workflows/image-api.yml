@@ -15,6 +15,7 @@ on:
       - "api-internal@*"
       - "api-private@*"
       - "api-public@*"
+      - "v*"
   
   workflow_dispatch:
     inputs:
