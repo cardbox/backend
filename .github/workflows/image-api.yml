@@ -16,13 +16,6 @@ on:
       - "api-private@*"
       - "api-public@*"
       - "v*"
-  
-  workflow_dispatch:
-    inputs:
-      force_rebuild:
-        description: 'Set "yes" to force rebuild images'
-        required: true
-        default: 'no'
 
 jobs:
   style:
@@ -102,6 +95,7 @@ jobs:
             tools:
               - 'migrations.Dockerfile'
               - 'migrations/**'
+
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v3
@@ -202,7 +196,6 @@ jobs:
             ${{ runner.os }}-buildx-${{ matrix.api }}
 
       - name: Build and push
-        if: steps.changes.outputs.source == 'true' || github.event.inputs.force_rebuild == 'yes'
         uses: docker/build-push-action@v2
         with:
           context: .
