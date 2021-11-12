@@ -166,22 +166,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Detect changes
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          list-files: none
-          filters: |
-            source:
-              - 'api-${{ matrix.api }}/**'
-              - 'core/**'
-              - 'db/**'
-              - 'resources/**'
-              - 'Cargo.lock'
-              - 'Cargo.toml'
-              - 'Dockerfile'
-              - 'migrations/**'
-
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v3
