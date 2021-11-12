@@ -8,8 +8,8 @@ rust-version = "1.56"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-actix-http = { version = "3.0.0-beta.11", default-features = false, features = ["compress-zstd", "rustls"]}
-actix-rt = "2.3.0"
+actix-http = { version = "3.0.0-beta.11", default-features = false, features = ["compress-zstd", "rustls"] }
+actix-rt = "2.4.0"
 actix-swagger = "=0.3.0-beta.3"
 actix-web = { version = "4.0.0-beta.10", default-features = false, features = ["compress-zstd", "rustls"] }
 actix-server = "2.0.0-beta.6"
@@ -33,12 +33,12 @@ reqwest = { version = "0.11.6", default-features = false, features = ["json", "r
 rustls = "0.20.0"
 rustls-pemfile = "0.2.1"
 serde = { version = "1.0.130", features = ["derive"] }
-serde_json = { version = "1.0.68", features = ["raw_value"] }
+serde_json = { version = "1.0.69", features = ["raw_value"] }
 serde_plain = "1.0.0"
 shrinkwraprs = "0.3.0"
 thiserror = "1.0.30"
-time = "0.3.4"
-tokio = "1.12.0"
+time = "0.3.5"
+tokio = "1.13.0"
 tracing = "0.1.29"
 tracing-actix-web = { version = "0.5.0-beta.1", default-features = false, features = ["emit_event_on_error", "opentelemetry_0_16"] }
 url = "2.2.2"
