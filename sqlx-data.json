@@ -449,64 +449,6 @@
       ]
     }
   },
-  "8c727d3a0b7ffc1be9d7b5ecc84630309f3c90c508dab7900b317b7d85710109": {
-    "query": "\n            INSERT INTO cards (author_id, title, contents)\n            VALUES ($1, $2, $3)\n            RETURNING id, author_id, title, created_at, updated_at, contents, tags\n            ",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Uuid"
-        },
-        {
-          "ordinal": 1,
-          "name": "author_id",
-          "type_info": "Uuid"
-        },
-        {
-          "ordinal": 2,
-          "name": "title",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 3,
-          "name": "created_at",
-          "type_info": "Timestamptz"
-        },
-        {
-          "ordinal": 4,
-          "name": "updated_at",
-          "type_info": "Timestamptz"
-        },
-        {
-          "ordinal": 5,
-          "name": "contents",
-          "type_info": "Jsonb"
-        },
-        {
-          "ordinal": 6,
-          "name": "tags",
-          "type_info": "VarcharArray"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Uuid",
-          "Varchar",
-          "Jsonb"
-        ]
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        true
-      ]
-    }
-  },
   "8c9ef832378950f34ec3899c146f79d84c3f81c12b86b31f160d31e6ee7b3424": {
     "query": "\n            DELETE\n            FROM session_tokens\n            WHERE user_id = $1\n            ",
     "describe": {
@@ -981,6 +923,65 @@
         true,
         true,
         null
+      ]
+    }
+  },
+  "fc47344fb7d9e2ae1729075a05a67104eaaefcfe76a2936c4afc7eef3e4b596e": {
+    "query": "\n            INSERT INTO cards (author_id, title, contents, tags)\n            VALUES ($1, $2, $3, $4)\n            RETURNING id, author_id, title, created_at, updated_at, contents, tags\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "author_id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 2,
+          "name": "title",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "created_at",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 4,
+          "name": "updated_at",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "contents",
+          "type_info": "Jsonb"
+        },
+        {
+          "ordinal": 6,
+          "name": "tags",
+          "type_info": "VarcharArray"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Varchar",
+          "Jsonb",
+          "VarcharArray"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true
       ]
     }
   }
