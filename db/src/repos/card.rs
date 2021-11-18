@@ -19,13 +19,14 @@ impl CardRepo for Database {
             Card,
             // language=PostgreSQL
             r#"
-            INSERT INTO cards (author_id, title, contents)
-            VALUES ($1, $2, $3)
+            INSERT INTO cards (author_id, title, contents, tags)
+            VALUES ($1, $2, $3, $4)
             RETURNING id, author_id, title, created_at, updated_at, contents, tags
             "#,
             card.author_id,
             card.title,
-            &card.contents as _
+            &card.contents as _,
+            &card.tags
         )
         .fetch_one(&self.pool)
         .await?
