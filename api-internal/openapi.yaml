@@ -713,7 +713,7 @@ components:
             Later, can implement checking user permissions by `Role` entity
     Card:
       type: object
-      required: [id, content, title, createdAt, updatedAt, authorId, tags, isSaved]
+      required: [id, content, title, createdAt, updatedAt, authorId, tags, meta]
       properties:
         id:
           type: string
