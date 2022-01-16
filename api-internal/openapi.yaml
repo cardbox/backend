@@ -718,7 +718,7 @@ components:
             Later, can implement checking user permissions by `Role` entity
     Card:
       type: object
-      required: [id, content, title, createdAt, updatedAt, authorId, tags]
+      required: [id, content, title, createdAt, updatedAt, authorId, tags, meta]
       properties:
         id:
           type: string
@@ -752,6 +752,14 @@ components:
           description: |-
             Later, we can add this field
             For custom text-overflow (instead of truncating with emphasizing)
+        meta:
+          type: object
+          required: [isSaved]
+          description: Additional meta-information for utilitary purpose
+          properties:
+            isSaved:
+              type: boolean
+              description: Is card saved for current authorized user
     UserSocial:
       type: object
       required: [id, type, link, username]
