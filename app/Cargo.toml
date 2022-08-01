@@ -18,7 +18,6 @@ itertools = "0.10.1"
 opentelemetry = { version = "0.16.0", features = ["rt-tokio-current-thread"] }
 opentelemetry-zipkin = { version = "0.14.0", default-features = false, features = ["reqwest-client"] }
 opentelemetry-jaeger = { version = "0.15.0", default-features = false, features = ["rt-tokio-current-thread", "reqwest_collector_client"] }
-rpmalloc = "0.2.2"
 serde = { version = "1.0.130", features = ["derive"] }
 sqlx-core = { version = "0.5.9", default-features = false, features = ["postgres", "json"] }
 time = "0.3.5"
