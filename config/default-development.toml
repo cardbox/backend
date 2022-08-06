@@ -20,7 +20,8 @@ use_ssl = false
 use_h1 = false
 
 [accesso]
-url = "http://localhost:9015"
+authorize_url = "https://localhost:9000/oauth/authorize"
+public_api_url = "http://localhost:9015"
 client_id = '00000000-0000-4000-acce-000000009200'
 redirect_back_url = "https://0.0.0.0:9100/accesso/done"
 client_secret = "w3msPYIg2lnnvEccpDONSkHFHED658zkzYyfiuQWyql6gKVteF6N"

@@ -23,7 +23,21 @@ use shrinkwraprs::Shrinkwrap;
 
 #[derive(Debug, Shrinkwrap, Clone)]
 #[shrinkwrap(mutable)]
-pub struct AccessoUrl(pub Url);
+pub struct AccessoAuthorizeUrl(pub Url);
+
+#[derive(Debug, Shrinkwrap, Clone)]
+#[shrinkwrap(mutable)]
+pub struct AccessoPublicApiUrl(pub Url);
+
+impl AccessoPublicApiUrl {
+    pub fn append_path(&self, path: &str) -> Self {
+        let mut clone = self.clone();
+        let new_path = format!("{}{}", self.0.path(), path);
+        clone.0.set_path(&new_path);
+        clone
+    }
+
+}
 
 pub static APP_NAME: &str = "cardbox-api-internal";
 
@@ -63,7 +77,8 @@ async fn main() -> eyre::Result<()> {
     let settings_clone = settings.clone();
     let client_clone = client.clone();
 
-    let accesso_url = Arc::new(AccessoUrl(Url::parse(&settings.accesso.url)?));
+    let accesso_authorize_url = Arc::new(AccessoAuthorizeUrl(Url::parse(&settings.accesso.authorize_url)?));
+    let accesso_public_api_url = Arc::new(AccessoPublicApiUrl(Url::parse(&settings.accesso.public_api_url)?));
 
     let prometheus = PrometheusMetricsBuilder::new("api_internal")
         .endpoint("/metrics")
@@ -72,7 +87,8 @@ async fn main() -> eyre::Result<()> {
     let app = move || {
         let settings = settings_clone.clone();
         let client = client_clone.clone();
-        let accesso_url = accesso_url.clone();
+        let accesso_authorize_url = accesso_authorize_url.clone();
+        let accesso_public_api_url = accesso_public_api_url.clone();
         actix_web::App::new()
             .configure(move |config| {
                 let settings = settings.clone();
@@ -89,7 +105,8 @@ async fn main() -> eyre::Result<()> {
             .wrap(TracingLogger::default())
             .wrap(prometheus.clone())
             .app_data(web::Data::new(client))
-            .app_data(web::Data::from(accesso_url))
+            .app_data(web::Data::from(accesso_authorize_url))
+            .app_data(web::Data::from(accesso_public_api_url))
             .service(
                 generated::api::create()
                     .bind_auth_params(routes::accesso::auth_params::route)

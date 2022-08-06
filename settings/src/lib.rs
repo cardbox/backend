@@ -20,7 +20,8 @@ pub struct Accesso {
     pub client_id: String,
     pub client_secret: String,
     pub redirect_back_url: String,
-    pub url: String,
+    pub authorize_url: String,
+    pub public_api_url: String,
     pub ssl_validate: bool,
 }
 

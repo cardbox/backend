@@ -7,7 +7,7 @@ use crate::generated::{
     },
     paths::auth_done::{Error as AuthDoneFailure, Response},
 };
-use crate::AccessoUrl;
+use crate::AccessoPublicApiUrl;
 use actix_web::http::header;
 use actix_web::{
     web::{Data, Json},
@@ -27,7 +27,7 @@ pub async fn route(
     config_session: Data<SessionCookieConfig>,
     client: Data<Client>,
     app: Data<cardbox_app::App>,
-    accesso_url: Data<AccessoUrl>,
+    accesso_public_api_url: Data<AccessoPublicApiUrl>,
     req: HttpRequest,
 ) -> Result<impl Responder, AuthDoneFailure> {
     let grant_type = GrantType::AuthorizationCode;
@@ -40,15 +40,7 @@ pub async fn route(
         client_secret: config.accesso.client_secret.clone(),
     };
 
-    let exchange_token_url = {
-        let mut uri = AccessoUrl::clone(&accesso_url);
-        let clone = uri.clone();
-        let host = clone.host_str();
-        uri.set_host(host.map(|host| format!("api.{}", host)).as_deref())
-            .wrap_err("Could not set host")?;
-        uri.set_path("/v0/oauth/token");
-        uri.to_string()
-    };
+    let exchange_token_url = accesso_public_api_url.append_path("oauth/token").to_string();
 
     tracing::debug!(%exchange_token_url, ?payload, "Sending request");
 
@@ -88,15 +80,7 @@ pub async fn route(
                         Error,
                     };
 
-                    let viewer_get_url = {
-                        let mut uri = AccessoUrl::clone(&accesso_url);
-                        let clone = uri.clone();
-                        let host = clone.host_str();
-                        uri.set_host(host.map(|host| format!("api.{}", host)).as_deref())
-                            .wrap_err("Could not set host")?;
-                        uri.set_path("/v0/viewer.get");
-                        uri.to_string()
-                    };
+                    let viewer_get_url = accesso_public_api_url.append_path("viewer.get").to_string();
 
                     let result = client
                         .post(viewer_get_url)
